@@ -1,0 +1,20 @@
+{% if gameweek %}
+    <h1>Gameweek {{ gameweek.number }}</h1>
+    <h2>Deadline: {{ gameweek.deadline }}</h2>
+    <table><tr><th></th><th>Home</th><th>Draw</th><th>Away</th></tr>
+    {% for game in gameweek.game_set.all %}
+        <tr>
+        <td>{{ game.hometeam }}</td>
+        <td>{{ game.homenumerator }}/{{ game.homedenominator }}</td>
+        <td>{{ game.drawnumerator }}/{{ game.drawdenominator }}</td>
+        <td>{{ game.awaynumerator }}/{{ game.awaydenominator }}</td>
+        <td>{{ game.awayteam }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+    {% if user.is_authenticated %}
+        <h2>My bets</h2>
+    {% endif %}
+{% else %}
+    <p>No data available.</p>
+{% endif %}

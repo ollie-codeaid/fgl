@@ -17,3 +17,8 @@ def season(request, season_id):
     gameweek_list = season.gameweek_set.all()
     context = {'gameweek_list': gameweek_list}
     return render(request, 'bets/season.html', context)
+
+def gameweek(request, gameweek_id):
+    gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
+    context = {'gameweek': gameweek}
+    return render(request, 'bets/gameweek.html', context)
