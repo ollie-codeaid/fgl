@@ -27,7 +27,7 @@ class Gameweek(models.Model):
     deadline = models.DateTimeField("bets deadline")
 
     def __str__(self):
-        return self.number
+        return str(self.number)
 
 @register_snippet
 class Game(models.Model):
@@ -42,7 +42,7 @@ class Game(models.Model):
     awaydenominator = models.IntegerField(default=1)
 
     def __str__(self):
-        return self.hometeam + " vs " + awayteam
+        return self.hometeam + " vs " + self.awayteam
 
 @register_snippet
 class Result(models.Model):
