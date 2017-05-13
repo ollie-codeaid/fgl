@@ -1,0 +1,9 @@
+{% if gameweek_list %}
+    <ul>
+    {% for gameweek in gameweek_list %}
+        <li><a href="/bets/gameweek/{{ gameweek.id }}/">{{ gameweek }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No data available.</p>
+{% endif %}
