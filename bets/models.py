@@ -5,6 +5,11 @@ from django.db import models
 
 from django import forms
 
+from wagtail.wagtailadmin.edit_handlers import FieldPanel, StreamFieldPanel
+from wagtail.wagtailcore import blocks
+from wagtail.wagtailcore.fields import StreamField
+from wagtail.wagtailcore.models import Page
+from wagtail.wagtailsnippets.blocks import SnippetChooserBlock
 from wagtail.wagtailsnippets.models import register_snippet
 
 # Create your models here.
@@ -43,4 +48,23 @@ class Game(models.Model):
 class Result(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     RESULTS = (('H', 'Home'), ('D', 'Draw'), ('A', 'Away'))
-    result = models.CharField(max_length=1, choices=RESULTS)
+    result = models.CharField(max_length=1, choices=RESULTS, default='H')
+
+class BetPage(Page):
+    gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.SET_NULL)
+    bets = StreamField([('bets_list', blocks.ListBlock(blocks.StructBlock([
+        ('stake', blocks.DecimalBlock(required=True)),
+        ('bets', blocks.ListBlock(blocks.StructBlock([
+            ('game', SnippetChooserBlock(Game, required=True)),
+            ('result', blocks.ChoiceBlock(choices=[
+                ('H', 'Home'),
+                ('D', 'Draw'),
+                ('A', 'Away')
+            ]))
+        ])))
+     ])))])
+
+    content_panels = Page.content_panels + [
+        FieldPanel('gameweek'),
+        StreamFieldPanel('bets')
+    ]
