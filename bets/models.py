@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 
 from django import forms
+from django.contrib.auth.models import User
 
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.wagtailcore import blocks
