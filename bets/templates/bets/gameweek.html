@@ -1,3 +1,4 @@
+{% load wagtailcore_tags %}
 {% if gameweek %}
     <h1>Gameweek {{ gameweek.number }}</h1>
     <h2>Deadline: {{ gameweek.deadline }}</h2>
@@ -16,7 +17,16 @@
         <h2>My bets</h2>
         {% for betpage in gameweek.betpage_set.all %}
             {% if user == betpage.owner %}
-                <p>{{ betpage }}</p>
+                {% for bets_list in betpage.bets %}
+                    {% for bet in bets_list.value %}
+                            <p>Stake: {% include_block bet.stake %}</p>
+                            <ul>
+                            {% for gameresult in bet.gameresults %}
+                                <li>{% include_block gameresult.game %} - {% include_block gameresult.result %}</li>
+                            {% endfor %}
+                            </ul>
+                    {% endfor %}
+                {% endfor %}
             {% endif %}
         {% endfor %}
     {% endif %}
