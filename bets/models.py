@@ -5,6 +5,7 @@ from django.db import models
 
 from django import forms
 from django.contrib.auth.models import User
+from django.utils.timezone import now
 
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.wagtailcore import blocks
@@ -29,6 +30,16 @@ class Gameweek(models.Model):
 
     def __str__(self):
         return str(self.number)
+
+    def deadline_passed(self):
+        return now() > self.deadline
+
+    def results_complete(self):
+        results_count = 0
+        for game in self.game_set.all():
+            if game.result_set.count > 0:
+                results_count += 1
+        return self.game_set.count == results_count
 
 @register_snippet
 class Game(models.Model):

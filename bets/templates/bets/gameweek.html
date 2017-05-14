@@ -29,6 +29,27 @@
                 {% endfor %}
             {% endif %}
         {% endfor %}
+        {% if gameweek.deadline_passed %}
+            <h2>Other bets</h2>
+            {% for betpage in gameweek.betpage_set.all %}
+                {% if user != betpage.owner %}
+                    <h3>{{ user.username }}</h3>
+                    {% for bets_list in betpage.bets %}
+                        {% for bet in bets_list.value %}
+                                <p>Stake: {% include_block bet.stake %}</p>
+                                <ul>
+                                {% for gameresult in bet.gameresults %}
+                                    <li>{% include_block gameresult.game %} - {% include_block gameresult.result %}</li>
+                                {% endfor %}
+                                </ul>
+                        {% endfor %}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+    {% if gameweek.results_complete %}
+        <h2>Results</h2>
     {% endif %}
 {% else %}
     <p>No data available.</p>
