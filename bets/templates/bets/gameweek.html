@@ -16,6 +16,7 @@
         </tr>
     {% endfor %}
     </table>
+    </br></br>
     {% if user.is_authenticated %}
         <h2>My bets</h2>
         {% for betpage in gameweek.betpage_set.all %}
@@ -51,6 +52,7 @@
             {% endfor %}
         {% endif %}
     {% endif %}
+    </br></br>
     {% if gameweek.results_complete %}
         <h2>Results</h2>
         <table>
