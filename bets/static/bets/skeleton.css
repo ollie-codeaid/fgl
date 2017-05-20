@@ -125,7 +125,8 @@ body {
   line-height: 1.6;
   font-weight: 400;
   font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: #222; }
+  color: #222;
+  text-align: center; }
 
 
 /* Typography
@@ -325,7 +326,7 @@ pre > code {
 th,
 td {
   padding: 12px 15px;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid #E1E1E1; }
 th:first-child,
 td:first-child {
@@ -349,7 +350,9 @@ pre,
 blockquote,
 dl,
 figure,
-table,
+table {
+  margin-left:auto;
+  margin-right:auto;  },
 p,
 ul,
 ol,
