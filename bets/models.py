@@ -22,6 +22,24 @@ class Season(models.Model):
     def __str__(self):
         return self.name
 
+    def calculate_winnings_to_gameweek(self, gameweek):
+        # needs work, won't calculate banked winnings correctly
+        winnings_map = {}
+        for gameweekit in self.gameweek_set.all():
+            if gameweekit.deadline < gameweek.deadline:
+                for k, v in gameweekit.calculate_winnings().items():
+                    if k in winnings_map:
+                        winnings_map[k]['Banked'] += v
+                    else:
+                        winnings_map[k] = {}
+                        winnings_map[k] = {'Banked':v}
+        for k, v in gameweek.calculate_winnings().items():
+            if k not in winnings_map:
+                winnings_map[k] = {'Banked':0.0}
+            winnings_map[k]['Week'] = v
+            winnings_map[k]['Provisional'] = v + winnings_map[k]['Banked']
+        return winnings_map
+
 @register_snippet
 class Gameweek(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE)
@@ -39,10 +57,19 @@ class Gameweek(models.Model):
         for game in self.game_set.all():
             if game.result_set.count > 0:
                 results_count += 1
-        return self.game_set.count == results_count
+        return results_count == self.game_set.count()
 
-    #def calculate_results(self):
-        #for betpage in self.betpage_set.all():   
+    def calculate_winnings(self):
+        winnings_map = {}
+        for betpage in self.betpage_set.all():
+            if betpage.owner in winnings_map:
+                winnings_map[betpage.owner] += betpage.calculate_winnings()
+            else:
+                winnings_map[betpage.owner] = betpage.calculate_winnings()
+        return winnings_map
+
+    def calculate_season_winnings(self):
+        return self.season.calculate_winnings_to_gameweek(self)
 
 @register_snippet
 class Game(models.Model):

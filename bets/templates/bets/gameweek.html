@@ -16,7 +16,6 @@
     {% if user.is_authenticated %}
         <h2>My bets</h2>
         {% for betpage in gameweek.betpage_set.all %}
-            <p>Winnings: {{ betpage.calculate_winnings }}</p>
             {% if user == betpage.owner %}
                 {% for bets_list in betpage.bets %}
                     {% for bet in bets_list.value %}
@@ -51,6 +50,12 @@
     {% endif %}
     {% if gameweek.results_complete %}
         <h2>Results</h2>
+        <table>
+        <tr><th></th><th>This week</th><th>Provisional</th><th>Banked</th></tr>
+        {% for k,v in gameweek.calculate_season_winnings.items %}
+            <tr><td>{{ k }}</td><td>{{ v.Week }}</td><td>{{ v.Provisional }}</td><td>{{ v.Banked }}</td></tr>
+        {% endfor %}
+        </table>
     {% endif %}
 {% else %}
     <p>No data available.</p>
