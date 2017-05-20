@@ -41,6 +41,9 @@ class Gameweek(models.Model):
                 results_count += 1
         return self.game_set.count == results_count
 
+    #def calculate_results(self):
+        #for betpage in self.betpage_set.all():   
+
 @register_snippet
 class Game(models.Model):
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
@@ -55,6 +58,22 @@ class Game(models.Model):
 
     def __str__(self):
         return self.hometeam + " vs " + self.awayteam
+
+    def get_numerator(self, result):
+        if result == 'H':
+            return self.homenumerator
+        elif result == 'D':
+            return self.drawnumerator
+        else:
+            return self.awaynumerator
+
+    def get_denominator(self, result):
+        if result == 'H':
+            return self.homedenominator
+        elif result == 'D':
+            return self.drawdenominator
+        else:
+            return self.awaydenominator
 
 @register_snippet
 class Result(models.Model):
@@ -80,3 +99,31 @@ class BetPage(Page):
         FieldPanel('gameweek'),
         StreamFieldPanel('bets')
     ]
+
+    def calculate_winnings(self):
+        winnings = 0.0
+        for bets_list in self.bets:
+            for bet in bets_list.value:
+               stake = 0
+               numerator = 1
+               denominator = 1
+
+               for block in bet.items():
+                   if block[0] == 'stake':
+                       stake += int(block[1])
+                   elif block[0] == 'gameresults':
+                       for gameresult in block[1]:
+                           result_actual = "pending"
+                           result_predict = ""
+                           for grblock in gameresult.items():
+                               if grblock[0] == 'game':
+                                   for result in grblock[1].result_set.all():
+                                       result_actual = result.result
+                                       numerator = numerator * (grblock[1].get_numerator(result_actual) + grblock[1].get_denominator(result_actual))
+                                       denominator = denominator * grblock[1].get_denominator(result_actual)
+                               if grblock[0] == 'result':
+                                   result_predict = grblock[1]
+                           if result_actual != result_predict:
+                               numerator = 0
+               winnings += stake * (numerator / denominator) - stake
+        return winnings

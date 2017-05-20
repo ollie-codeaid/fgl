@@ -16,6 +16,7 @@
     {% if user.is_authenticated %}
         <h2>My bets</h2>
         {% for betpage in gameweek.betpage_set.all %}
+            <p>Winnings: {{ betpage.calculate_winnings }}</p>
             {% if user == betpage.owner %}
                 {% for bets_list in betpage.bets %}
                     {% for bet in bets_list.value %}
