@@ -22,6 +22,20 @@ class Season(models.Model):
     def __str__(self):
         return self.name
 
+    def get_latest_winnings(self):
+        gameweek = self.get_latest_gameweek()
+        return self.calculate_winnings_to_gameweek(gameweek)
+
+    def get_latest_gameweek(self):
+        gameweek_latest = None
+        for gameweek in self.gameweek_set.all():
+            if gameweek_latest:
+                if gameweek_latest.deadline < gameweek.deadline:
+                    gameweek_latest = gameweek
+            else:
+                gameweek_latest = gameweek
+        return gameweek_latest
+
     def calculate_winnings_to_gameweek(self, gameweek):
         # needs work, won't calculate banked winnings correctly
         winnings_map = {}
