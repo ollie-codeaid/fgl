@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 from django.db import models
 
@@ -122,6 +122,9 @@ class Result(models.Model):
     RESULTS = (('H', 'Home'), ('D', 'Draw'), ('A', 'Away'))
     result = models.CharField(max_length=1, choices=RESULTS, default='H')
 
+    def __str__(self):
+        return str(self.game) + " - " + str(self.result)
+
 class BetPage(Page):
     gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.SET_NULL)
     bets = StreamField([('bets_list', blocks.ListBlock(blocks.StructBlock([
@@ -166,5 +169,5 @@ class BetPage(Page):
                                    result_predict = grblock[1]
                            if result_actual != result_predict:
                                numerator = 0
-               winnings += stake * (numerator / denominator) - stake
-        return winnings
+               winnings += stake * (numerator / denominator)
+        return winnings - 100
