@@ -144,4 +144,5 @@ BASE_URL = 'http://example.com'
 
 ALLOWED_HOSTS = [
     u'192.168.15.152',
+    u'olliefgl.pythonanywhere.com',
 ]
