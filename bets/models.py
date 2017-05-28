@@ -150,6 +150,16 @@ class BetPage(Page):
         StreamFieldPanel('bets')
     ]
 
+    def get_game_count(self):
+        count = 0
+        for bets_list in self.bets:
+            for bet in bets_list.value:
+                for block in bet.items():
+                    if block[0] == 'gameresults':
+                        count += len(block[1])
+
+        return count
+
     def calculate_winnings(self):
         winnings = 0.0
         debug = ""
