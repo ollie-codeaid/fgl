@@ -59,7 +59,7 @@
             <tbody>
             {% for bet in gameweek.bet_set.all %}
                 {% if user != bet.owner %}
-                <tr><td rowspan="{{ betpage.get_game_count }}">{{ bet.owner.username }}</td>
+                <tr><td rowspan="{{ bet.get_game_count }}">{{ bet.owner.username }}</td>
                     {% for bets_list in bet.bets %}
                         {% for bet_portion in bets_list.value %}
                         <td rowspan="{{ bet_portion.gameresults|length }}">{% include_block bet_portion.stake %}</td>
