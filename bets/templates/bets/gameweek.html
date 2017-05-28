@@ -34,20 +34,26 @@
             {% if user == betpage.owner %}
                 {% for bets_list in betpage.bets %}
                     <table>
-                    <tr><th>Stake</th><th>Results</th></tr>
+                    <thead><tr><th>Stake</th><th>Results</th></tr></thead>
                     {% for bet in bets_list.value %}
-                        <tr><td>{% include_block bet.stake %}</td>
-                        <td><ul style="list-style-type:none">
+                        <tbody>
+                        <tr><td rowspan="{{ bet.gameresults|length }}">{% include_block bet.stake %}</td>
                         {% for gameresult in bet.gameresults %}
-                            <li>{% include_block gameresult.game %} - {% include_block gameresult.result %}</li>
+                            {% if forloop.last %}
+                                <td>{% include_block gameresult.game %} - {% include_block gameresult.result %}</td>
+                            {% else %}
+                                <td>{% include_block gameresult.game %} - {% include_block gameresult.result %}</td></tr><tr>
+                            {% endif %}
                         {% endfor %}
-                        </ul></td></tr>
+                        </tr>
+                        </tbody>
                     {% endfor %}
                     </table>
                 {% endfor %}
             {% endif %}
         {% endfor %}
         {% if gameweek.deadline_passed %}
+        </br></br>
             <h2>Other bets</h2>
             {% for betpage in gameweek.betpage_set.all %}
                 {% if user != betpage.owner %}
