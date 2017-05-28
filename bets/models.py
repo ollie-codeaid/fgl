@@ -131,6 +131,26 @@ class Result(models.Model):
     def __str__(self):
         return str(self.game) + " - " + str(self.result)
 
+@register_snippet
+class Bet(models.Model):
+    gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.SET_NULL)
+    bets = StreamField([('bets_list', blocks.ListBlock(blocks.StructBlock([
+        ('stake', blocks.DecimalBlock(required=True)),
+        ('gameresults', blocks.ListBlock(blocks.StructBlock([
+            ('game', SnippetChooserBlock(Game, required=True)),
+            ('result', blocks.ChoiceBlock(choices=[
+                ('H', 'Home'),
+                ('D', 'Draw'),
+                ('A', 'Away')
+            ]))
+        ])))
+     ])))])
+
+    content_panels = Page.content_panels + [
+        FieldPanel('gameweek'),
+        StreamFieldPanel('bets')
+    ]
+
 class BetPage(Page):
     gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.SET_NULL)
     bets = StreamField([('bets_list', blocks.ListBlock(blocks.StructBlock([
