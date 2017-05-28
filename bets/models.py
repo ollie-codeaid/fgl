@@ -185,4 +185,4 @@ class BetPage(Page):
                winnings += stake * (numerator / denominator)
                debug += "; winnings += " + str(stake) + " * (" + str(numerator) + "/" + str(denominator) + ")"
                debug += " = " + str(stake * (numerator / denominator))
-        return winnings - 100
+        return float("{0:.2f}".format(winnings - 100))
