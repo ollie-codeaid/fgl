@@ -10,7 +10,6 @@ from django.utils.timezone import now
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.wagtailcore import blocks
 from wagtail.wagtailcore.fields import StreamField
-from wagtail.wagtailcore.models import Page
 from wagtail.wagtailsnippets.blocks import SnippetChooserBlock
 from wagtail.wagtailsnippets.models import register_snippet
 
@@ -75,11 +74,11 @@ class Gameweek(models.Model):
 
     def calculate_winnings(self):
         winnings_map = {}
-        for betpage in self.betpage_set.all():
-            if betpage.owner in winnings_map:
-                winnings_map[betpage.owner] += betpage.calculate_winnings()
+        for bet in self.bet_set.all():
+            if bet.owner in winnings_map:
+                winnings_map[bet.owner] += bet.calculate_winnings()
             else:
-                winnings_map[betpage.owner] = betpage.calculate_winnings()
+                winnings_map[bet.owner] = bet.calculate_winnings()
         return winnings_map
 
     def calculate_season_winnings(self):
@@ -133,6 +132,7 @@ class Result(models.Model):
 
 @register_snippet
 class Bet(models.Model):
+    owner = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.SET_NULL)
     bets = StreamField([('bets_list', blocks.ListBlock(blocks.StructBlock([
         ('stake', blocks.DecimalBlock(required=True)),
@@ -146,26 +146,8 @@ class Bet(models.Model):
         ])))
      ])))])
 
-    content_panels = Page.content_panels + [
-        FieldPanel('gameweek'),
-        StreamFieldPanel('bets')
-    ]
-
-class BetPage(Page):
-    gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.SET_NULL)
-    bets = StreamField([('bets_list', blocks.ListBlock(blocks.StructBlock([
-        ('stake', blocks.DecimalBlock(required=True)),
-        ('gameresults', blocks.ListBlock(blocks.StructBlock([
-            ('game', SnippetChooserBlock(Game, required=True)),
-            ('result', blocks.ChoiceBlock(choices=[
-                ('H', 'Home'),
-                ('D', 'Draw'),
-                ('A', 'Away')
-            ]))
-        ])))
-     ])))])
-
-    content_panels = Page.content_panels + [
+    panels = [
+        FieldPanel('owner'),
         FieldPanel('gameweek'),
         StreamFieldPanel('bets')
     ]
@@ -184,12 +166,12 @@ class BetPage(Page):
         winnings = 0.0
         debug = ""
         for bets_list in self.bets:
-            for bet in bets_list.value:
+            for bet_portion in bets_list.value:
                stake = 0
                numerator = 1
                denominator = 1
 
-               for block in bet.items():
+               for block in bet_portion.items():
                    if block[0] == 'stake':
                        debug += ";stake: " + block[1]
                        stake += int(block[1])

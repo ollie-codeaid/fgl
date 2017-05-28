@@ -30,15 +30,15 @@
     </br></br>
     {% if user.is_authenticated %}
         <h2>My bets</h2>
-        {% for betpage in gameweek.betpage_set.all %}
-            {% if user == betpage.owner %}
-                {% for bets_list in betpage.bets %}
+        {% for bet in gameweek.bet_set.all %}
+            {% if user == bet.owner %}
+                {% for bets_list in bet.bets %}
                     <table>
                     <thead><tr><th>Stake</th><th>Results</th></tr></thead>
-                    {% for bet in bets_list.value %}
+                    {% for bet_portion in bets_list.value %}
                         <tbody>
-                        <tr><td rowspan="{{ bet.gameresults|length }}">{% include_block bet.stake %}</td>
-                        {% for gameresult in bet.gameresults %}
+                        <tr><td rowspan="{{ bet_portion.gameresults|length }}">{% include_block bet_portion.stake %}</td>
+                        {% for gameresult in bet_portion.gameresults %}
                             {% if forloop.last %}
                                 <td>{% include_block gameresult.game %} - {% include_block gameresult.result %}</td>
                             {% else %}
@@ -57,13 +57,13 @@
             <h2>Other bets</h2>
             <table><thead><tr><th></th><th>Stake</th><th>Result</th></tr></thead>
             <tbody>
-            {% for betpage in gameweek.betpage_set.all %}
-                {% if user != betpage.owner %}
-                <tr><td rowspan="{{ betpage.get_game_count }}">{{ betpage.owner.username }}</td>
-                    {% for bets_list in betpage.bets %}
-                        {% for bet in bets_list.value %}
-                        <td rowspan="{{ bet.gameresults|length }}">{% include_block bet.stake %}</td>
-                            {% for gameresult in bet.gameresults %}
+            {% for bet in gameweek.bet_set.all %}
+                {% if user != bet.owner %}
+                <tr><td rowspan="{{ betpage.get_game_count }}">{{ bet.owner.username }}</td>
+                    {% for bets_list in bet.bets %}
+                        {% for bet_portion in bets_list.value %}
+                        <td rowspan="{{ bet_portion.gameresults|length }}">{% include_block bet_portion.stake %}</td>
+                            {% for gameresult in bet_portion.gameresults %}
                                 <td>{% include_block gameresult.game %} - {% include_block gameresult.result %}
                                 {% if forloop.last %}
                                     </td>
