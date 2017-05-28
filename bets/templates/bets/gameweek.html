@@ -33,14 +33,17 @@
         {% for betpage in gameweek.betpage_set.all %}
             {% if user == betpage.owner %}
                 {% for bets_list in betpage.bets %}
+                    <table>
+                    <tr><th>Stake</th><th>Results</th></tr>
                     {% for bet in bets_list.value %}
-                            <p>Stake: {% include_block bet.stake %}</p>
-                            <ul>
-                            {% for gameresult in bet.gameresults %}
-                                <li>{% include_block gameresult.game %} - {% include_block gameresult.result %}</li>
-                            {% endfor %}
-                            </ul>
+                        <tr><td>{% include_block bet.stake %}</td>
+                        <td><ul style="list-style-type:none">
+                        {% for gameresult in bet.gameresults %}
+                            <li>{% include_block gameresult.game %} - {% include_block gameresult.result %}</li>
+                        {% endfor %}
+                        </ul></td></tr>
                     {% endfor %}
+                    </table>
                 {% endfor %}
             {% endif %}
         {% endfor %}
@@ -48,7 +51,7 @@
             <h2>Other bets</h2>
             {% for betpage in gameweek.betpage_set.all %}
                 {% if user != betpage.owner %}
-                    <h3>{{ user.username }}</h3>
+                    <h3>{{ betpage.owner.username }}</h3>
                     {% for bets_list in betpage.bets %}
                         {% for bet in bets_list.value %}
                                 <p>Stake: {% include_block bet.stake %}</p>
