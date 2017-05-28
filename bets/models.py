@@ -152,6 +152,9 @@ class Bet(models.Model):
         StreamFieldPanel('bets')
     ]
 
+    def __str__(self):
+        return str(self.owner) + ", " + str(self.gameweek)
+
     def get_game_count(self):
         count = 0
         for bets_list in self.bets:
