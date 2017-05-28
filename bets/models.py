@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
+from __future__ import absolute_import, unicode_literals, division
 
 from django.db import models
 
@@ -116,6 +116,12 @@ class Game(models.Model):
         else:
             return self.awaydenominator
 
+    def get_result(self):
+        aresult = ""
+        for result in self.result_set.all():
+            aresult = result.result
+        return aresult
+
 @register_snippet
 class Result(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
@@ -146,6 +152,7 @@ class BetPage(Page):
 
     def calculate_winnings(self):
         winnings = 0.0
+        debug = ""
         for bets_list in self.bets:
             for bet in bets_list.value:
                stake = 0
@@ -154,20 +161,28 @@ class BetPage(Page):
 
                for block in bet.items():
                    if block[0] == 'stake':
+                       debug += ";stake: " + block[1]
                        stake += int(block[1])
                    elif block[0] == 'gameresults':
                        for gameresult in block[1]:
                            result_actual = "pending"
                            result_predict = ""
+                           debug += ";gameresult: "
                            for grblock in gameresult.items():
                                if grblock[0] == 'game':
                                    for result in grblock[1].result_set.all():
                                        result_actual = result.result
-                                       numerator = numerator * (grblock[1].get_numerator(result_actual) + grblock[1].get_denominator(result_actual))
-                                       denominator = denominator * grblock[1].get_denominator(result_actual)
+                                       gnumerator = grblock[1].get_numerator(result_actual)
+                                       gdenominator = grblock[1].get_denominator(result_actual)
+                                       debug += "; result_actual: " + result_actual + "; gnumerator: " + str(gnumerator) + "; gdenominator: " + str(gdenominator)
+                                       numerator = numerator * (gnumerator + gdenominator)
+                                       denominator = denominator * gdenominator
                                if grblock[0] == 'result':
                                    result_predict = grblock[1]
+                                   debug += "; result_predict: " + result_predict
                            if result_actual != result_predict:
                                numerator = 0
                winnings += stake * (numerator / denominator)
+               debug += "; winnings += " + str(stake) + " * (" + str(numerator) + "/" + str(denominator) + ")"
+               debug += " = " + str(stake * (numerator / denominator))
         return winnings - 100

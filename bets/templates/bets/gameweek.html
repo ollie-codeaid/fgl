@@ -5,7 +5,7 @@
 {% if gameweek %}
     <h1>Gameweek {{ gameweek.number }}</h1>
     <h2>Deadline: {{ gameweek.deadline }}</h2>
-    <table><tr><th></th><th>Home</th><th>Draw</th><th>Away</th></tr>
+    <table><tr><th></th><th>Home</th><th>Draw</th><th>Away</th><th></th><th>Result</th></tr>
     {% for game in gameweek.game_set.all %}
         <tr>
         <td>{{ game.hometeam }}</td>
@@ -13,6 +13,7 @@
         <td>{{ game.drawnumerator }}/{{ game.drawdenominator }}</td>
         <td>{{ game.awaynumerator }}/{{ game.awaydenominator }}</td>
         <td>{{ game.awayteam }}</td>
+        <td>{{ game.get_result }}</td>
         </tr>
     {% endfor %}
     </table>
