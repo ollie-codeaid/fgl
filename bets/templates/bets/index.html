@@ -1,3 +1,7 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+<h1>Let's get ready to GAMBLE<h1>
 {% if season_list %}
     <ul>
     {% for season in season_list %}
