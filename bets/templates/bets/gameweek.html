@@ -82,9 +82,11 @@
             {% endfor %}
             </tbody></table>
         {% endif %}
+    {% else %}
+    <a href="/admin/login/?next={{ request.path }}">Log in?</a>
     {% endif %}
 </br></br>
-<a href="/bets/{{ gameweek.season.id }}/">Back to season</a></li>
+<a href="/bets/{{ gameweek.season.id }}/">Back to season</a>
 {% else %}
     <p>No data available.</p>
 {% endif %}

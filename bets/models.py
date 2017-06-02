@@ -72,6 +72,12 @@ class Gameweek(models.Model):
                 results_count += 1
         return results_count == self.game_set.count()
 
+    def user_vote_set(self):
+        users_voted = set()
+        for bet in self.bet_set.all():
+            users_voted.add(bet.owner)
+        return users_voted
+
     def calculate_winnings(self):
         winnings_map = {}
         for bet in self.bet_set.all():
