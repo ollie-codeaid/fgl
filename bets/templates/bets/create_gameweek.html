@@ -1,0 +1,21 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+<form method="post" action="">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table>
+        <thead>
+            <tr><td></td><td>Home</td><td>Draw</td><td>Away</td><td></td>
+            </tr>
+        </thead>
+        {% for form in formset.forms %}
+            <tr><td>{{ form.hometeam }}</td>
+                <td>{{ form.homenumerator }}/{{ form.homedenominator }}</td>
+                <td>{{ form.drawnumerator }}/{{ form.drawdenominator }}</td>
+                <td>{{ form.awaynumerator }}/{{ form.awaydenominator }}</td>
+                <td>{{ form.awayteam }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</form>
