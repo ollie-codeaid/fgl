@@ -16,4 +16,4 @@ class GameForm(ModelForm):
                 'awaynumerator', 'awaydenominator',
                 ]
 
-GameweekGameFormSet = inlineformset_factory(Gameweek, Game, form=GameForm, extra=2)
+GameweekGameFormSet = inlineformset_factory(Gameweek, Game, form=GameForm, extra=4)

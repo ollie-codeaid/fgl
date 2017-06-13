@@ -1,16 +1,17 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+<h1>Add new gameweek</h1>
 <form method="post" action="">
     {% csrf_token %}
-    {{ formset.management_form }}
+    {{ form.as_p }}
     <table>
         <thead>
             <tr><td></td><td>Home</td><td>Draw</td><td>Away</td><td></td>
             </tr>
         </thead>
         {% for form in formset.forms %}
-            <tr><td>{{ form.hometeam }}</td>
+            <tr class="formset_row"><td>{{ form.hometeam }}</td>
                 <td>{{ form.homenumerator }}/{{ form.homedenominator }}</td>
                 <td>{{ form.drawnumerator }}/{{ form.drawdenominator }}</td>
                 <td>{{ form.awaynumerator }}/{{ form.awaydenominator }}</td>
@@ -18,4 +19,14 @@
             </tr>
         {% endfor %}
     </table>
+    <input type="submit"/>
 </form>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="{% static 'formset/jquery.formset.js' %}"></script>
+<script type="text/javascript">
+    $('.formset_row').formset({
+            addText: 'add game',
+            deleteText: 'remove',
+            prefix: 'gameweekgame_set'
+    });
+</script>
