@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.generic import CreateView
 
 from .models import Season, Gameweek
-from .forms import GameweekForm, GameweekGameFormSet
+from .forms import GameweekForm, GameFormSet
 
 # Create your views here.
 def index(request):
@@ -27,11 +27,16 @@ def gameweek(request, gameweek_id):
 
 def create_gameweek(request, season_id):
     if request.method == 'POST':
+        if 'add_game' in request.POST:
+            copy = request.POST.copy()
+            copy['game_set-TOTAL_FORMS'] = int(copy['game_set-TOTAL_FORMS']) + 1
+            game_set = GameFormSet(copy, prefix='game_set')
+        else:
+            game_set = GameFormSet(request.POST)
         form = GameweekForm(request.POST)
-        formset = GameweekGameFormSet(request.POST)
     else:
-        form = GameweekForm(request.POST)
-        formset = GameweekGameFormSet()
+        form = GameweekForm()
+        game_set = GameFormSet(prefix='game_set')
     context = { 'form': form, 
-            'formset': formset}
+            'game_set': game_set}
     return render(request, 'bets/create_gameweek.html', context)
