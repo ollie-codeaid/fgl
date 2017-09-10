@@ -22,7 +22,7 @@ class Season(models.Model):
         return self.name
 
     def get_next_gameweek_id(self):
-        return len(self.gameweek_set) + 1
+        return len(self.gameweek_set.all()) + 1
 
     def get_latest_winnings(self):
         gameweek = self.get_latest_gameweek()

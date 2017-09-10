@@ -37,8 +37,9 @@ def create_gameweek(request, season_id):
 
         if gameweek_form.is_valid() and game_formset.is_valid():
             season = get_object_or_404(Season, pk=season_id)
+            gameweek_number = season.get_next_gameweek_id()
             deadline = gameweek_form.cleaned_data.get('deadline')
-            gameweek = Gameweek(season=season, number=0, deadline=deadline)
+            gameweek = Gameweek(season=season, number=gameweek_number, deadline=deadline)
             gameweek.save()
 
             new_games = []
@@ -83,31 +84,3 @@ def create_gameweek(request, season_id):
 
     return render(request, 'bets/create_gameweek.html', context)
 
-
-
-
-
-#def create_gameweek(request, season_id):
-#   form = GameweekForm()
-#   game_set = GameFormSet(prefix='game_set')
-#   
-#   if request.method == 'POST':
-#       if 'add_game' in request.POST:
-#           form = GameweekForm(request.POST)
-#           copy = request.POST.copy()
-#           copy['game_set-TOTAL_FORMS'] = int(copy['game_set-TOTAL_FORMS']) + 1
-#           game_set = GameFormSet(copy, prefix='game_set')
-#       else:
-#           form = GameweekForm(request.POST, season_id=season_id)
-#           game_set = GameFormSet(request.POST)
-#           if not 'remove_games' in request.POST:
-#               if form.is_valid() and game_set.is_valid():
-#                   form.save()
-#                   game_set.save()
-#                  season = get_object_or_404(Season, pk=season_id)
-#                  context = {'season': season}
-#                   return render(request, 'bets/season.html', context)
-#   
-#   context = { 'form': form, 
-#           'game_set': game_set}
-#   return render(request, 'bets/create_gameweek.html', context)
