@@ -27,6 +27,39 @@ def gameweek(request, gameweek_id):
     context = {'gameweek': gameweek}
     return render(request, 'bets/gameweek.html', context)
 
+def _process_new_games(game_formset, gameweek, request):
+    new_games = []
+
+    for game_form in game_formset:
+        home = game_form.cleaned_data.get('hometeam')
+        away = game_form.cleaned_data.get('awayteam')
+        homenumerator = game_form.cleaned_data.get('homenumerator')
+        homedenominator = game_form.cleaned_data.get('homedenominator')
+        drawnumerator = game_form.cleaned_data.get('drawnumerator')
+        drawdenominator = game_form.cleaned_data.get('drawdenominator')
+        awaynumerator = game_form.cleaned_data.get('awaynumerator')
+        awaydenominator = game_form.cleaned_data.get('awaydenominator')
+
+        new_games.append(Game(
+            gameweek=gameweek,
+            hometeam=home, awayteam=away,
+            homenumerator=homenumerator, homedenominator=homedenominator,
+            drawnumerator=drawnumerator, drawdenominator=drawdenominator,
+            awaynumerator=awaynumerator, awaydenominator=awaydenominator))
+
+    try:
+        with transaction.atomic():
+            Game.objects.filter(gameweek=gameweek).delete()
+            Game.objects.bulk_create(new_games)
+
+            messages.success(request, 'Successfully created gameweek.')
+
+    except IntegrityError as err:
+        messages.error(request, 'Error saving gameweek.')
+        messages.error(request, err)
+        return redirect(reverse('update-gameweek', args=(gameweek.id)))
+    
+
 def create_gameweek(request, season_id):
     gameweek_form = GameweekForm()
     GameFormSet =formset_factory(GameForm, formset=BaseGameFormSet)
@@ -41,37 +74,8 @@ def create_gameweek(request, season_id):
             deadline = gameweek_form.cleaned_data.get('deadline')
             gameweek = Gameweek(season=season, number=gameweek_number, deadline=deadline)
             gameweek.save()
-
-            new_games = []
-
-            for game_form in game_formset:
-                home = game_form.cleaned_data.get('hometeam')
-                away = game_form.cleaned_data.get('awayteam')
-                homenumerator = game_form.cleaned_data.get('homenumerator')
-                homedenominator = game_form.cleaned_data.get('homedenominator')
-                drawnumerator = game_form.cleaned_data.get('drawnumerator')
-                drawdenominator = game_form.cleaned_data.get('drawdenominator')
-                awaynumerator = game_form.cleaned_data.get('awaynumerator')
-                awaydenominator = game_form.cleaned_data.get('awaydenominator')
-
-                new_games.append(Game(
-                    gameweek=gameweek,
-                    hometeam=home, awayteam=away,
-                    homenumerator=homenumerator, homedenominator=homedenominator,
-                    drawnumerator=drawnumerator, drawdenominator=drawdenominator,
-                    awaynumerator=awaynumerator, awaydenominator=awaydenominator))
-
-            try:
-                with transaction.atomic():
-                    Game.objects.filter(gameweek=gameweek).delete()
-                    Game.objects.bulk_create(new_games)
-
-                    messages.success(request, 'Successfully created gameweek.')
-
-            except IntegrityError as err:
-                messages.error(request, 'Error saving gameweek.')
-                messages.error(request, err)
-                return redirect(reverse('create-gameweek', args=(season_id)))
+            
+            _process_new_games(game_formset, gameweek, request)
 
     else:
         gameweek_form = GameweekForm()
@@ -111,36 +115,7 @@ def update_gameweek(request, gameweek_id):
             gameweek.deadline = gameweek_form.cleaned_data.get('deadline')
             gameweek.save()
 
-            new_games = []
-
-            for game_form in game_formset:
-                home = game_form.cleaned_data.get('hometeam')
-                away = game_form.cleaned_data.get('awayteam')
-                homenumerator = game_form.cleaned_data.get('homenumerator')
-                homedenominator = game_form.cleaned_data.get('homedenominator')
-                drawnumerator = game_form.cleaned_data.get('drawnumerator')
-                drawdenominator = game_form.cleaned_data.get('drawdenominator')
-                awaynumerator = game_form.cleaned_data.get('awaynumerator')
-                awaydenominator = game_form.cleaned_data.get('awaydenominator')
-
-                new_games.append(Game(
-                    gameweek=gameweek,
-                    hometeam=home, awayteam=away,
-                    homenumerator=homenumerator, homedenominator=homedenominator,
-                    drawnumerator=drawnumerator, drawdenominator=drawdenominator,
-                    awaynumerator=awaynumerator, awaydenominator=awaydenominator))
-
-            try:
-                with transaction.atomic():
-                    Game.objects.filter(gameweek=gameweek).delete()
-                    Game.objects.bulk_create(new_games)
-
-                    messages.success(request, 'Successfully created gameweek.')
-
-            except IntegrityError as err:
-                messages.error(request, 'Error saving gameweek.')
-                messages.error(request, err)
-                return redirect(reverse('update-gameweek', args=(gameweek_id)))
+            _process_new_games(game_formset, gameweek, request)
 
     else:
         gameweek_form = GameweekForm(initial={'deadline': gameweek.deadline})
