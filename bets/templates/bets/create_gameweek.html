@@ -1,6 +1,21 @@
 {% load staticfiles %}
-<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
-<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script type="text/javascript">
+        $('.game-formset').formset({
+                addText: 'Add game',
+                deleteText: 'Remove'
+        });
+        $(function(){
+            $("#id_deadline").datepicker();
+        });
+    </script>
+    <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/redmond/jquery-ui.css"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+</head>
 <h1>Add Gameweek</h1>
 {% if messages %}
     {% for message in messages %}
@@ -10,7 +25,9 @@
 
 <form method="post">
     {% csrf_token %}
+    <p class="date-picker">
     {{ gameweek_form.as_p }}
+    </p>
     {% for error in gameweek_form.non_form_errors %}
     <p>{{ error }}</p>
     {% endfor %}
@@ -43,11 +60,3 @@
     <input type="submit" value="Add Gameweek" class="button"/>
 </form>
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<script src="{% static 'js/jquery.formset.js' %}"></script>
-<script type="text/javascript">
-    $('.game-formset').formset({
-            addText: 'Add game',
-            deleteText: 'Remove'
-    });
-</script>
