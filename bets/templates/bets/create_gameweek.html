@@ -1,27 +1,53 @@
-{% load static %}
+{% load staticfiles %}
 <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
-<h1>Add new gameweek</h1>
-<form method="post" action="">
+<h1>Add Gameweek</h1>
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <table id="id_games_table">
+    {{ gameweek_form.as_p }}
+    {% for error in gameweek_form.non_form_errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+    <table>
         <thead>
-            <tr><td></td><td>Home</td><td>Draw</td><td>Away</td><td></td>
+            <tr><td></td><td class="inputnumber">Home</td><td class="inputnumber">Draw</td><td class="inputnumber">Away</td><td></td>
             </tr>
         </thead>
         <tbody>
-        {% for game_form in game_set.forms %}
-        <tr><td>{{ game_form.hometeam }}</td>
-                <td>{{ game_form.homenumerator }}/{{ game_form.homedenominator }}</td>
-                <td>{{ game_form.drawnumerator }}/{{ game_form.drawdenominator }}</td>
-                <td>{{ game_form.awaynumerator }}/{{ game_form.awaydenominator }}</td>
-                <td>{{ game_form.awayteam }}</td><td>{{ game_form.DELETE }}</td>
-            </tr>
+        {% for game_form in game_formset.forms %}
+        <tr class="game-formset">
+            <td>{{ game_form.hometeam }}</td>
+            <td class="inputnumber">{{ game_form.homenumerator }}/{{ game_form.homedenominator }}</td>
+            <td class="inputnumber">{{ game_form.drawnumerator }}/{{ game_form.drawdenominator }}</td>
+            <td class="inputnumber">{{ game_form.awaynumerator }}/{{ game_form.awaydenominator }}</td>
+            <td>{{ game_form.awayteam }}</td>
+            <td>
+    {% for error in game_form.non_form_errors %}
+    {{ error }}
+    {% endfor %}</td>
+        </tr>
         {% endfor %}
         </tbody>
     </table>
-    {{ game_set.management_form }}
-    <input type="submit" name="add_game" value="Add another game" /></br>
-    <input type="submit"/>
+    {% for error in game_formset.non_form_errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+    {{ game_formset.management_form }}
+    </br>
+    <input type="submit" value="Add Gameweek" class="button"/>
 </form>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="{% static 'js/jquery.formset.js' %}"></script>
+<script type="text/javascript">
+    $('.game-formset').formset({
+            addText: 'Add game',
+            deleteText: 'Remove'
+    });
+</script>

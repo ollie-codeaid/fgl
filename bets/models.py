@@ -21,6 +21,9 @@ class Season(models.Model):
     def __str__(self):
         return self.name
 
+    def get_next_gameweek_id(self):
+        return len(self.gameweek_set) + 1
+
     def get_latest_winnings(self):
         gameweek = self.get_latest_gameweek()
         return self.calculate_winnings_to_gameweek(gameweek)

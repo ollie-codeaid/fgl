@@ -1,0 +1,9 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+<h1>Add Gameweek</h1>
+<form method="post" action="">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Create"/>
+</form>
