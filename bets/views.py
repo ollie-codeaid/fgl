@@ -84,3 +84,71 @@ def create_gameweek(request, season_id):
 
     return render(request, 'bets/create_gameweek.html', context)
 
+
+def update_gameweek(request, gameweek_id):
+    gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
+    season = gameweek.season
+    
+    GameFormSet =formset_factory(GameForm, formset=BaseGameFormSet)
+
+    current_games = [{
+        'gameweek': g.gameweek,
+        'hometeam': g.hometeam,
+        'awayteam': g.awayteam,
+        'homenumerator': g.homenumerator,
+        'homedenominator': g.homedenominator,
+        'drawnumerator': g.drawnumerator,
+        'drawdenominator': g.drawdenominator,
+        'awaynumerator': g.awaynumerator,
+        'awaydenominator': g.awaydenominator
+        } for g in gameweek.game_set.all()]
+
+    if request.method == 'POST':
+        gameweek_form = GameweekForm(request.POST)
+        game_formset = GameFormSet(request.POST)
+
+        if gameweek_form.is_valid() and game_formset.is_valid():
+            gameweek.deadline = gameweek_form.cleaned_data.get('deadline')
+            gameweek.save()
+
+            new_games = []
+
+            for game_form in game_formset:
+                home = game_form.cleaned_data.get('hometeam')
+                away = game_form.cleaned_data.get('awayteam')
+                homenumerator = game_form.cleaned_data.get('homenumerator')
+                homedenominator = game_form.cleaned_data.get('homedenominator')
+                drawnumerator = game_form.cleaned_data.get('drawnumerator')
+                drawdenominator = game_form.cleaned_data.get('drawdenominator')
+                awaynumerator = game_form.cleaned_data.get('awaynumerator')
+                awaydenominator = game_form.cleaned_data.get('awaydenominator')
+
+                new_games.append(Game(
+                    gameweek=gameweek,
+                    hometeam=home, awayteam=away,
+                    homenumerator=homenumerator, homedenominator=homedenominator,
+                    drawnumerator=drawnumerator, drawdenominator=drawdenominator,
+                    awaynumerator=awaynumerator, awaydenominator=awaydenominator))
+
+            try:
+                with transaction.atomic():
+                    Game.objects.filter(gameweek=gameweek).delete()
+                    Game.objects.bulk_create(new_games)
+
+                    messages.success(request, 'Successfully created gameweek.')
+
+            except IntegrityError as err:
+                messages.error(request, 'Error saving gameweek.')
+                messages.error(request, err)
+                return redirect(reverse('update-gameweek', args=(gameweek_id)))
+
+    else:
+        gameweek_form = GameweekForm(initial={'deadline': gameweek.deadline})
+        game_formset = GameFormSet(initial=current_games)
+
+    context = {
+        'gameweek_form': gameweek_form,
+        'game_formset': game_formset
+    }
+
+    return render(request, 'bets/create_gameweek.html', context)
