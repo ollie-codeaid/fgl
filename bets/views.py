@@ -87,6 +87,7 @@ def create_gameweek(request, season_id):
         game_formset = GameFormSet()
 
     context = {
+        'season_id': season_id,
         'gameweek_form': gameweek_form,
         'game_formset': game_formset
     }
@@ -127,6 +128,7 @@ def update_gameweek(request, gameweek_id):
         game_formset = GameFormSet(initial=current_games)
 
     context = {
+        'season_id': season.id,
         'gameweek_form': gameweek_form,
         'game_formset': game_formset
     }
