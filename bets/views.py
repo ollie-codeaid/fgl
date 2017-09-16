@@ -162,7 +162,7 @@ def add_gameweek_results(request, gameweek_id):
             except IntegrityError as err:
                 messages.error(request, 'Error saving gameweek.')
                 messages.error(request, err)
-                return redirect('add-gameweek-results', gameweek_id=gameweek.id)))
+                return redirect('add-gameweek-results', gameweek_id=gameweek.id)
 
     else:
         results = [{ 'game': g } for g in gameweek.game_set.all()]
