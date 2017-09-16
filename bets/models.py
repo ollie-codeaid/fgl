@@ -13,6 +13,7 @@ from wagtail.wagtailcore.fields import StreamField
 from wagtail.wagtailsnippets.blocks import SnippetChooserBlock
 from wagtail.wagtailsnippets.models import register_snippet
 
+
 # Create your models here.
 @register_snippet
 class Season(models.Model):

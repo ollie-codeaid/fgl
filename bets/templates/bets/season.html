@@ -1,4 +1,5 @@
 {% load static %}
+{% load auth_extras %}
 <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
 {% if season %}
@@ -16,7 +17,9 @@
         <tr><td>{{ k }}</td><td>{{ v.Week }}</td><td>{{ v.Provisional }}</td><td>{{ v.Banked }}</td></tr>
     {% endfor %}
     </table>
-    <a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a>
+    {% if request.user|has_group:"Commissioners" %}
+        <a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a>
+    {% endif %}
 {% else %}
     <p>No data available.</p>
 {% endif %}
