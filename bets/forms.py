@@ -57,6 +57,9 @@ class BaseGameFormSet(BaseFormSet):
                         code='missing_home'
                     )
 
+                teams.append(home)
+                teams.append(away)
+
 class ResultForm(ModelForm):
     class Meta:
         model = Result
@@ -65,7 +68,7 @@ class ResultForm(ModelForm):
 class BaseResultFormSet(BaseFormSet):
     def clean(self):
         """
-        Adds validation to check that no duplicate results exist
+        Adds validation to check that no duplicate games exist
         """
         if any(self.errors):
             return
@@ -76,7 +79,7 @@ class BaseResultFormSet(BaseFormSet):
         for form in self.forms:
             if form.cleaned_data:
                 game = form.cleaned_data['game']
-
+                
                 if game in games:
                     duplicates = True
 
@@ -85,3 +88,5 @@ class BaseResultFormSet(BaseFormSet):
                         'Games must be unique',
                         code='duplicate_games'
                     )
+
+                games.append(game)

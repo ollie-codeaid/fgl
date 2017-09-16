@@ -157,11 +157,12 @@ def add_gameweek_results(request, gameweek_id):
                     Result.objects.bulk_create(results)
 
                     messages.success(request, 'Successfully created gameweek.')
+                    return redirect('gameweek', gameweek_id=gameweek.id)
 
             except IntegrityError as err:
                 messages.error(request, 'Error saving gameweek.')
                 messages.error(request, err)
-                return redirect(reverse('add-gameweek-results', args=(gameweek.id)))
+                return redirect('add-gameweek-results', gameweek_id=gameweek.id)))
 
     else:
         results = [{ 'game': g } for g in gameweek.game_set.all()]

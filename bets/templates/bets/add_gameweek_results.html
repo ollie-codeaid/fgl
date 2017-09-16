@@ -1,4 +1,6 @@
 {% load staticfiles %}
+<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
 <h1>Add Results</h1>
 <a href="/bets/gameweek/{{ gameweek_id }}/">Back to gameweek</a>
 {% if messages %}
@@ -14,7 +16,7 @@
     {% endfor %}
     <table>
         <thead>
-            <tr><td></td><td>Game</td><td>Result</td></tr>
+            <tr><td>Game</td><td>Result</td></tr>
         </thead>
         <tbody>
         {% for result_form in result_formset.forms %}
