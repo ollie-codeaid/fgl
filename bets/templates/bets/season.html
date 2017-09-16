@@ -9,6 +9,9 @@
         <li><a href="/bets/gameweek/{{ gameweek.id }}/">{{ gameweek }}</a></li>
     {% endfor %}
     </ul>
+    {% if request.user|has_group:"Commissioners" %}
+        <a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a>
+    {% endif %}
     </br></br>
     <h2>Latest Results</h2>
     <table>
@@ -17,9 +20,6 @@
         <tr><td>{{ k }}</td><td>{{ v.Week }}</td><td>{{ v.Provisional }}</td><td>{{ v.Banked }}</td></tr>
     {% endfor %}
     </table>
-    {% if request.user|has_group:"Commissioners" %}
-        <a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a>
-    {% endif %}
 {% else %}
     <p>No data available.</p>
 {% endif %}

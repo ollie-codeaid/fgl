@@ -1,10 +1,14 @@
 {% load static %}
+{% load auth_extras %}
 <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
 {% load wagtailcore_tags %}
 {% if gameweek %}
     <h1>Gameweek {{ gameweek.number }}</h1>
     <h2>Deadline: {{ gameweek.deadline }}</h2>
+    {% if request.user|has_group:"Commissioners" %}
+        <a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a>
+    {% endif %}
     <table><tr><th></th><th>Home</th><th>Draw</th><th>Away</th><th></th><th>Result</th></tr>
     {% for game in gameweek.game_set.all %}
         <tr>
@@ -87,7 +91,6 @@
     {% endif %}
 </br></br>
 <a href="/bets/{{ gameweek.season.id }}/">Back to season</a>
-<a href="/bets/gameweek/{{ gameweek.id }}/update/">Update</a>
 {% else %}
     <p>No data available.</p>
 {% endif %}
