@@ -65,6 +65,12 @@ class Gameweek(models.Model):
     def __str__(self):
         return str(self.number)
 
+    def has_bets(self):
+        if len(self.bet_set.all()) > 0:
+            return True
+        else:
+            return False
+
     def deadline_passed(self):
         return now() > self.deadline
 

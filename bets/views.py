@@ -28,6 +28,11 @@ def gameweek(request, gameweek_id):
     return render(request, 'bets/gameweek.html', context)
 
 def _process_new_games(game_formset, gameweek, request):
+
+    if gameweek.has_bets():
+        messages.error(request, 'Cannot update gameweek that already has bets, speak to Ollie if required')
+        return redirect(reverse('update-gameweek', args=(gameweek.id)))
+    
     new_games = []
 
     for game_form in game_formset:
