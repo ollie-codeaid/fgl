@@ -8,8 +8,8 @@ from django.forms.formsets import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic import CreateView, UpdateView
-from .models import Season, Gameweek, Game
-from .forms import GameweekForm, GameForm, BaseGameFormSet
+from .models import Season, Gameweek, Game, Result
+from .forms import GameweekForm, GameForm, BaseGameFormSet, ResultForm, BaseResultFormSet
 
 # Create your views here.
 def index(request):
@@ -134,3 +134,42 @@ def update_gameweek(request, gameweek_id):
     }
 
     return render(request, 'bets/create_gameweek.html', context)
+
+
+def add_gameweek_results(request, gameweek_id): 
+    gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
+    ResultFormSet = formset_factory(ResultForm, formset=BaseResultFormSet, extra=0)
+
+    if request.method == 'POST':
+        result_formset = ResultFormSet(request.POST)
+        if result_formset.is_valid():
+            results = []
+            for result_form in result_formset:
+                game = result_form.cleaned_data.get('game')
+                result = result_form.cleaned_data.get('result')
+
+                results.append(Result(game=game, result=result))
+
+            try:
+                with transaction.atomic():
+                    for game in gameweek.game_set.all():
+                        Result.objects.filter(game=game).delete()
+                    Result.objects.bulk_create(results)
+
+                    messages.success(request, 'Successfully created gameweek.')
+
+            except IntegrityError as err:
+                messages.error(request, 'Error saving gameweek.')
+                messages.error(request, err)
+                return redirect(reverse('add-gameweek-results', args=(gameweek.id)))
+
+    else:
+        results = [{ 'game': g } for g in gameweek.game_set.all()]
+        result_formset = ResultFormSet(initial=results)
+
+    context = {
+        'gameweek_id': gameweek_id,
+        'result_formset': result_formset
+    }
+
+    return render(request, 'bets/add_gameweek_results.html', context)

@@ -3,7 +3,7 @@ from django.forms.formsets import BaseFormSet
 from django.forms.widgets import DateTimeInput
 from django.shortcuts import get_object_or_404
 
-from .models import Gameweek, Game
+from .models import Gameweek, Game, Result
 
 class GameweekForm(ModelForm):
     class Meta:
@@ -57,3 +57,31 @@ class BaseGameFormSet(BaseFormSet):
                         code='missing_home'
                     )
 
+class ResultForm(ModelForm):
+    class Meta:
+        model = Result
+        fields = ['game', 'result']
+
+class BaseResultFormSet(BaseFormSet):
+    def clean(self):
+        """
+        Adds validation to check that no duplicate results exist
+        """
+        if any(self.errors):
+            return
+
+        games = []
+        duplicates = False
+
+        for form in self.forms:
+            if form.cleaned_data:
+                game = form.cleaned_data['game']
+
+                if game in games:
+                    duplicates = True
+
+                if duplicates:
+                    raise forms.ValidationError(
+                        'Games must be unique',
+                        code='duplicate_games'
+                    )
