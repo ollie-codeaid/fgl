@@ -1,0 +1,49 @@
+{% load staticfiles %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+</head>
+<h1>Add Bet</h1>
+<a href="/bets/{{ season_id }}/">Back to season</a>
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ accumulator_form.as_p }}
+    </p>
+    {% for error in accumulator_form.non_form_errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+    <table>
+        <thead>
+            <tr class="betpart-formset"><td>Game</td><td>Result</td>
+            </tr>
+        </thead>
+        <tbody>
+        {% for betpart_form in betpart_formset.forms %}
+        <tr>
+            <td>{{ betpart_form.game }}</td>
+            <td>{{ betpart_form.result }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% for error in betpart_formset.non_form_errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+    {{ betpart_formset.management_form }}
+    </br>
+    <input type="submit" value="Add Bet" class="button"/>
+</form>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script type="text/javascript">
+        $('.betpart-formset').formset({
+                addText: 'Add game',
+                deleteText: 'Remove'
+        });
+    </script>

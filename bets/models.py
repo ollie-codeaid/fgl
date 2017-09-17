@@ -147,6 +147,35 @@ class Result(models.Model):
         return str(self.game) + " - " + str(self.result)
 
 @register_snippet
+class BetContainer(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
+
+@register_snippet
+class Accumulator(models.Model):
+    bet_container = models.ForeignKey(BetContainer, on_delete=models.CASCADE)
+    stake = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
+
+@register_snippet
+class BetPart(models.Model):
+    accumulator = models.ForeignKey(Accumulator, on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    RESULTS = (('H', 'Home'), ('D', 'Draw'), ('A', 'Away'))
+    result = models.CharField(max_length=1, choices=RESULTS, default='H')
+
+    def is_correct(self):
+        if len(self.game.result_set.all()) != 1:
+            return False
+        
+        result = next(iter(self.game.result_set.all()))
+
+        if result.result == self.result:
+            return True
+        else:
+            return False
+
+
+@register_snippet
 class Bet(models.Model):
     owner = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.SET_NULL)

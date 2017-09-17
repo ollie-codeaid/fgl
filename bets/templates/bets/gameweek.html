@@ -8,8 +8,9 @@
     <h2>Deadline: {{ gameweek.deadline }}</h2>
     {% if request.user|has_group:"Commissioners" %}
         <a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a></br>
-        <a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a>
+        <a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a></br>
     {% endif %}
+    <a href="/bets/gameweek/{{ gameweek.id }}/manage_bet_container/">Manage bets</a>
     <table><tr><th></th><th>Home</th><th>Draw</th><th>Away</th><th></th><th>Result</th></tr>
     {% for game in gameweek.game_set.all %}
         <tr>

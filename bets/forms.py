@@ -3,7 +3,7 @@ from django.forms.formsets import BaseFormSet
 from django.forms.widgets import DateTimeInput
 from django.shortcuts import get_object_or_404
 
-from .models import Gameweek, Game, Result
+from .models import Gameweek, Game, Result, BetContainer, Accumulator, BetPart
 
 class GameweekForm(ModelForm):
     class Meta:
@@ -90,3 +90,14 @@ class BaseResultFormSet(BaseFormSet):
                     )
 
                 games.append(game)
+
+class AccumulatorForm(ModelForm):
+    class Meta:
+        model = Accumulator
+        fields = ['stake']
+
+class BetPartForm(ModelForm):
+    class Meta:
+        model = BetPart
+        fields = ['game', 'result']
+

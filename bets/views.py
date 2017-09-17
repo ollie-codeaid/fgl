@@ -8,8 +8,8 @@ from django.forms.formsets import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic import CreateView, UpdateView
-from .models import Season, Gameweek, Game, Result
-from .forms import GameweekForm, GameForm, BaseGameFormSet, ResultForm, BaseResultFormSet
+from .models import Season, Gameweek, Game, Result, BetContainer
+from .forms import GameweekForm, GameForm, BaseGameFormSet, ResultForm, BaseResultFormSet, AccumulatorForm, BetPartForm
 
 # Create your views here.
 def index(request):
@@ -174,3 +174,70 @@ def add_gameweek_results(request, gameweek_id):
     }
 
     return render(request, 'bets/add_gameweek_results.html', context)
+
+def manage_bet_container(request, gameweek_id):
+    gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
+    owner = request.user
+
+    if len(BetContainer.objects.filter(gameweek=gameweek).filter(owner=owner)) > 1:
+        messages.error(request, 'Error on bet creation, user already has bets.')
+        messages.error(request, err)
+        return redirect('gameweek', gameweek_id=gameweek.id)
+    elif len(BetContainer.objects.filter(gameweek=gameweek).filter(owner=owner)) == 1:
+        bet_container = next(iter(BetContainer.objects.filter(gameweek=gameweek).filter(owner=owner)))
+    else:
+        bet_container = BetContainer(gameweek=gameweek, owner=owner)
+        bet_container.save()
+
+    return redirect('bet-container', bet_container.pk)
+
+def bet_container(request, bet_container_id):
+    bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
+    context = {'bet_container': bet_container}
+    return render(request, 'bets/bet_container.html', context)
+
+def add_bet(request, bet_container_id):
+    accumulator_form = AccumulatorForm()
+    BetPartFormSet = formset_factory(BetPartForm, formset=BaseGameFormSet)
+
+    if request.method == 'POST':
+        accumulator_form = AccumulatorForm(request.POST)
+        betpart_formset = BetPartFormSet(request.POST)
+
+        if accumulator_form.is_valid() and betpart_formset.is_valid():
+            bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
+            stake = accumulator_form.cleaned_data.get('stake')
+            accumulator = Accumulator(bet_container=bet_container, stake=stake)
+            accumulator.save()
+            
+            new_betparts = []
+
+            for betpart_form in betpart_formset:
+                game = betpart_form.cleaned_data.get('game')
+                result = result_form.cleaned_data.get('result')
+
+                new_betparts.append(BetPart(accumulator=accumulator, game=game, result=result))
+
+            try:
+                with transaction.atomic():
+                    BetPart.objects.bulk_create(new_betparts)
+
+                messages.success(request, 'Successfully created bet.')
+                return redirect('bet-container', bet_container_id=bet_container_id)
+
+            except IntegrityError as err:
+                messages.error(request, 'Error saving bet.')
+                messages.error(request, err)
+                return redirect('bet-container', bet_container_id=bet_container_id)
+
+    else:
+        accumulator_form = AccumulatorForm()
+        betpart_formset = BetPartFormSet()
+
+    context = {
+        'bet_container_id': bet_container_id,
+        'accumulator_form': accumulator_form,
+        'betpart_formset': betpart_formset
+    }
+
+    return render(request, 'bets/create_bet.html', context)
