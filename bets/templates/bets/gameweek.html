@@ -10,7 +10,6 @@
         <a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a></br>
         <a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a></br>
     {% endif %}
-    <a href="/bets/gameweek/{{ gameweek.id }}/manage_bet_container/">Manage bets</a>
     <table><tr><th></th><th>Home</th><th>Draw</th><th>Away</th><th></th><th>Result</th></tr>
     {% for game in gameweek.game_set.all %}
         <tr>
@@ -36,6 +35,7 @@
     </br></br>
     {% if user.is_authenticated %}
         <h2>My bets</h2>
+        <a href="/bets/gameweek/{{ gameweek.id }}/manage_bet_container/">Manage bets</a>
         {% for bet in gameweek.bet_set.all %}
             {% if user == bet.owner %}
                 {% for bets_list in bet.bets %}

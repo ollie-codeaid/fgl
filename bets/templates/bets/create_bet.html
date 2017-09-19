@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
 </head>
 <h1>Add Bet</h1>
-<a href="/bets/{{ season_id }}/">Back to season</a>
+<a href="/bets/bets/{{ bet_container_id }}/my_bets/">Back to bets</a>
 {% if messages %}
     {% for message in messages %}
         <p>{{ message }}</p>
@@ -20,14 +20,15 @@
     {% endfor %}
     <table>
         <thead>
-            <tr class="betpart-formset"><td>Game</td><td>Result</td>
+            <tr><td>Game</td><td>Result</td>
             </tr>
         </thead>
         <tbody>
         {% for betpart_form in betpart_formset.forms %}
-        <tr>
+        <tr class="betpart-formset">
             <td>{{ betpart_form.game }}</td>
             <td>{{ betpart_form.result }}</td>
+            <td></td>
         </tr>
         {% endfor %}
         </tbody>

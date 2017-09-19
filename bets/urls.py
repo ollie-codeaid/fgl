@@ -10,5 +10,6 @@ urlpatterns = [
     url(r'^gameweek/(?P<gameweek_id>[0-9]+)/add_results/$', views.add_gameweek_results, name='add-gameweek-results'),
     url(r'^gameweek/(?P<gameweek_id>[0-9]+)/manage_bet_container/$', views.manage_bet_container, name='manage-bet-container'),
     url(r'^bets/(?P<bet_container_id>[0-9]+)/my_bets/$', views.bet_container, name='bet-container'),
-    url(r'^bets/(?P<bet_container_id>[0-9]+)/add_bet/$', views.add_bet, name='add-bet')
+    url(r'^bets/(?P<bet_container_id>[0-9]+)/add_bet/$', views.add_bet, name='add-bet'),
+    url(r'^bets/(?P<accumulator_id>[0-9]+)/update_bet/$', views.update_bet, name='update-bet'),
 ]
