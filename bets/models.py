@@ -163,9 +163,6 @@ class BetPart(models.Model):
     RESULTS = (('H', 'Home'), ('D', 'Draw'), ('A', 'Away'))
     result = models.CharField(max_length=1, choices=RESULTS, default='H')
     
-    def print_for_table(self):
-        return '<td>' + str(self.game) + '</td><td>' + str(self.result) + '</td>'
-
     def is_correct(self):
         if len(self.game.result_set.all()) != 1:
             return False
