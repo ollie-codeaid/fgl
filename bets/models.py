@@ -18,6 +18,7 @@ from wagtail.wagtailsnippets.models import register_snippet
 @register_snippet
 class Season(models.Model):
     name = models.CharField(max_length=255)
+    weekly_allowance = models.DecimalField(default=100.0, decimal_places=2, max_digits=99)
 
     def __str__(self):
         return self.name
@@ -151,10 +152,45 @@ class BetContainer(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
 
+    def calc_winnings(self):
+        winnings = 0.0
+        for accumulator in self.accumulator_set.all():
+            winnings += accumulator.calc_winnings()
+
+        return winnings - self.gameweek.season.weekly_allowance
+
 @register_snippet
 class Accumulator(models.Model):
     bet_container = models.ForeignKey(BetContainer, on_delete=models.CASCADE)
     stake = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
+
+    def calc_winnings(self):
+        correct = True
+        odds = 1.0
+        for betpart in self.betpart_set.all():
+            if not betpart.is_correct():
+                correct = False
+                break
+            else:
+                game = betpart.game
+                result = betpart.result
+                num = 1
+                denom = 1
+                if result == 'H':
+                    num = game.home_enumerator
+                    denom = game.home_denominator
+                elif result == 'D':
+                    num = game.draw_enumerator
+                    denom = game.draw_denominator
+                elif result == 'A':
+                    num = game.away_enumerator
+                    denom = game.away_denominator
+                odds = odds * (num + denom) / denom
+
+        if correct:
+            return odds * self.stake
+        else:
+            return 0.0
 
 @register_snippet
 class BetPart(models.Model):
