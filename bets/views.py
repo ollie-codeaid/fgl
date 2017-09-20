@@ -100,7 +100,7 @@ def update_gameweek(request, gameweek_id):
     gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
     season = gameweek.season
     
-    GameFormSet =formset_factory(GameForm, formset=BaseGameFormSet)
+    GameFormSet =formset_factory(GameForm, formset=BaseGameFormSet, extra=0)
 
     current_games = [{
         'gameweek': g.gameweek,
@@ -248,7 +248,7 @@ def update_bet(request, accumulator_id):
     current_betparts = [{ 'game':bp.game, 'result':bp.result } for bp in accumulator.betpart_set.all()]
     bet_container_id = accumulator.bet_container.id
 
-    BetPartFormSet = formset_factory(BetPartForm, formset=BaseResultFormSet)
+    BetPartFormSet = formset_factory(BetPartForm, formset=BaseResultFormSet, extra=0)
 
     if request.method == 'POST':
         accumulator_form = AccumulatorForm(request.POST)
