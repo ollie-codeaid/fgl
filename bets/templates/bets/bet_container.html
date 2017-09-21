@@ -5,13 +5,21 @@
     <h1>Manage Bets</h1>
     <a href="/bets/gameweek/{{ bet_container.gameweek.id }}/">Back to gameweek</a></br>
     <table>
-        <tr><th>Game</th><th>Result</th><th></th></tr>
+        <thead><tr><th>Stake</th><th>Game</th><th>Result</th><th></th></tr></thead>
+    <tbody>
     {% for accumulator in bet_container.accumulator_set.all %}
-        {% for betpart in accumulator.betpart_set.all %}
-        <tr><td>{{ betpart.game }}</td><td>{{ betpart.result }}</td><td></td></tr>
+        <tr>
+            <td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
+            {% for betpart in accumulator.betpart_set.all %}
+                <td>{{ betpart.game }}</td>
+                <td>{{ betpart.result }}</td>
+            </tr>
+            <tr>
         {% endfor %}
+        </tr>
         <tr><td></td><td></td><td><a href="/bets/bets/{{ accumulator.id }}/update_bet">Change bet</a></td></tr>
     {% endfor %}
+    </tbody>
     </table>
     <a href="/bets/bets/{{ bet_container.id }}/add_bet/">Add bet</a></br>
 {% endif %}
