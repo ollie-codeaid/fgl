@@ -7,6 +7,7 @@ from django.db import IntegrityError, transaction
 from django.forms.formsets import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
+from django.utils.functional import curry
 from django.views.generic import CreateView, UpdateView
 from .models import Season, Gameweek, Game, Result, BetContainer, Accumulator, BetPart
 from .forms import GameweekForm, GameForm, BaseGameFormSet, ResultForm, BaseResultFormSet, AccumulatorForm, BetPartForm
@@ -198,15 +199,18 @@ def bet_container(request, bet_container_id):
     return render(request, 'bets/bet_container.html', context)
 
 def add_bet(request, bet_container_id):
-    accumulator_form = AccumulatorForm()
+    accumulator_form = AccumulatorForm()        
+    bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
+    gameweek = bet_container.gameweek
+
     BetPartFormSet = formset_factory(BetPartForm, formset=BaseResultFormSet)
+    BetPartFormSet.form = staticmethod(curry(BetPartForm, gameweek=gameweek))
 
     if request.method == 'POST':
         accumulator_form = AccumulatorForm(request.POST)
         betpart_formset = BetPartFormSet(request.POST)
 
         if accumulator_form.is_valid() and betpart_formset.is_valid():
-            bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
             stake = accumulator_form.cleaned_data.get('stake')
             accumulator = Accumulator(bet_container=bet_container, stake=stake)
             accumulator.save()
@@ -248,7 +252,11 @@ def update_bet(request, accumulator_id):
     current_betparts = [{ 'game':bp.game, 'result':bp.result } for bp in accumulator.betpart_set.all()]
     bet_container_id = accumulator.bet_container.id
 
+    bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
+    gameweek = bet_container.gameweek
+
     BetPartFormSet = formset_factory(BetPartForm, formset=BaseResultFormSet, extra=0)
+    BetPartFormSet.form = staticmethod(curry(BetPartForm, gameweek=gameweek))
 
     if request.method == 'POST':
         accumulator_form = AccumulatorForm(request.POST)

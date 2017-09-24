@@ -97,6 +97,10 @@ class AccumulatorForm(ModelForm):
         fields = ['stake']
 
 class BetPartForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        gameweek = kwargs.pop('gameweek')
+        super(BetPartForm, self).__init__(*args, **kwargs)
+        self.fields['game'].queryset = Game.objects.filter(gameweek=gameweek)
     class Meta:
         model = BetPart
         fields = ['game', 'result']
