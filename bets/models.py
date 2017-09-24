@@ -91,11 +91,11 @@ class Gameweek(models.Model):
 
     def calculate_winnings(self):
         winnings_map = {}
-        for bet in self.bet_set.all():
-            if bet.owner in winnings_map:
-                winnings_map[bet.owner] += bet.calculate_winnings()
+        for betcontainer in self.betcontainer_set.all():
+            if betcontainer.owner in winnings_map:
+                winnings_map[betcontainer.owner] += betcontainer.calc_winnings()
             else:
-                winnings_map[bet.owner] = bet.calculate_winnings()
+                winnings_map[betcontainer.owner] = betcontainer.calc_winnings()
         return winnings_map
 
     def calculate_season_winnings(self):
@@ -165,7 +165,7 @@ class BetContainer(models.Model):
         for accumulator in self.accumulator_set.all():
             winnings += accumulator.calc_winnings()
 
-        return winnings - self.gameweek.season.weekly_allowance
+        return float("{0:.2f}".format(winnings - float(self.gameweek.season.weekly_allowance)))
 
 @register_snippet
 class Accumulator(models.Model):
@@ -185,18 +185,18 @@ class Accumulator(models.Model):
                 num = 1
                 denom = 1
                 if result == 'H':
-                    num = game.home_enumerator
-                    denom = game.home_denominator
+                    num = game.homenumerator
+                    denom = game.homedenominator
                 elif result == 'D':
-                    num = game.draw_enumerator
-                    denom = game.draw_denominator
+                    num = game.drawnumerator
+                    denom = game.drawdenominator
                 elif result == 'A':
-                    num = game.away_enumerator
-                    denom = game.away_denominator
+                    num = game.awaynumerator
+                    denom = game.awaydenominator
                 odds = odds * (num + denom) / denom
 
         if correct:
-            return odds * self.stake
+            return odds * float(self.stake)
         else:
             return 0.0
 
