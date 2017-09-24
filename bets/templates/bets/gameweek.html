@@ -36,41 +36,38 @@
     {% if user.is_authenticated %}
         <h2>My bets</h2>
         <a href="/bets/gameweek/{{ gameweek.id }}/manage_bet_container/">Manage bets</a>
-        {% for bet in gameweek.bet_set.all %}
-            {% if user == bet.owner %}
-                {% for bets_list in bet.bets %}
+        {% for betcontainer in gameweek.betcontainer_set.all %}
+            {% if user == betcontainer.owner %}
                     <table>
                     <thead><tr><th>Stake</th><th>Results</th></tr></thead>
-                    {% for bet_portion in bets_list.value %}
+                    {% for accumulator in betcontainer.accumulator_set.all %}
                         <tbody>
-                        <tr><td rowspan="{{ bet_portion.gameresults|length }}">{% include_block bet_portion.stake %}</td>
-                        {% for gameresult in bet_portion.gameresults %}
+                        <tr><td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
+                        {% for betpart in accumulator.betpart_set.all %}
                             {% if forloop.last %}
-                                <td>{% include_block gameresult.game %} - {% include_block gameresult.result %}</td>
+                            <td>{{ betpart.game }} - {{ betpart.result }}</td>
                             {% else %}
-                                <td>{% include_block gameresult.game %} - {% include_block gameresult.result %}</td></tr><tr>
+                            <td>{{ betpart.game }} - {{ betpart.result }}</td></tr><tr>
                             {% endif %}
                         {% endfor %}
                         </tr>
                         </tbody>
                     {% endfor %}
                     </table>
-                {% endfor %}
             {% endif %}
         {% endfor %}
         {% if gameweek.deadline_passed %}
         </br></br>
             <h2>Other bets</h2>
-            <table><thead><tr><th></th><th>Stake</th><th>Result</th></tr></thead>
+            <table><thead><tr><th></th><th>Stake</th><th>Results</th></tr></thead>
             <tbody>
-            {% for bet in gameweek.bet_set.all %}
-                {% if user != bet.owner %}
-                <tr><td rowspan="{{ bet.get_game_count }}">{{ bet.owner.username }}</td>
-                    {% for bets_list in bet.bets %}
-                        {% for bet_portion in bets_list.value %}
-                        <td rowspan="{{ bet_portion.gameresults|length }}">{% include_block bet_portion.stake %}</td>
-                            {% for gameresult in bet_portion.gameresults %}
-                                <td>{% include_block gameresult.game %} - {% include_block gameresult.result %}
+            {% for betcontainer in gameweek.betcontainer_set.all %}
+                {% if user != betcontainer.owner %}
+                <tr><td rowspan="{{ betcontainer.get_game_count }}">{{ betcontainer.owner.username }}</td>
+                    {% for accumulator in betcontainer.accumulator_set.all %}
+                    <td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
+                            {% for betpart in accumulator.betpart_set.all %}
+                            <td>{{ betpart.game }} - {{ betpart.result }}
                                 {% if forloop.last %}
                                     </td>
                                 {% else %}
@@ -82,7 +79,6 @@
                             {% else %}
                                 </tr><tr>
                             {% endif %}
-                        {% endfor %}
                     {% endfor %}
                 {% endif %}
             {% endfor %}

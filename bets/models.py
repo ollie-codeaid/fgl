@@ -152,6 +152,14 @@ class BetContainer(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
 
+    def get_game_count(self):
+        game_count = 0
+        for accumulator in self.accumulator_set.all():
+            for betpart in accumulator.betpart_set.all():
+                game_count += 1
+
+        return game_count
+
     def calc_winnings(self):
         winnings = 0.0
         for accumulator in self.accumulator_set.all():
