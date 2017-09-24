@@ -7,10 +7,6 @@ from django import forms
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 
-from wagtail.wagtailadmin.edit_handlers import FieldPanel, StreamFieldPanel
-from wagtail.wagtailcore import blocks
-from wagtail.wagtailcore.fields import StreamField
-from wagtail.wagtailsnippets.blocks import SnippetChooserBlock
 from wagtail.wagtailsnippets.models import register_snippet
 
 
@@ -217,5 +213,3 @@ class BetPart(models.Model):
             return True
         else:
             return False
-
-
