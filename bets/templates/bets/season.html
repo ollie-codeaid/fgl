@@ -6,7 +6,7 @@
     <h1>{{ season.name }}</h1>
     <ul>
     {% for gameweek in season.gameweek_set.all %}
-        <li><a href="/bets/gameweek/{{ gameweek.id }}/">{{ gameweek }}</a></li>
+        <li><a href="/bets/gameweek/{{ gameweek.id }}/">{{ gameweek.number }}</a></li>
     {% endfor %}
     </ul>
     {% if request.user|has_group:"Commissioners" %}

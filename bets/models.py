@@ -168,7 +168,7 @@ class BetContainer(models.Model):
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(gameweek) + ',' + owner.username
+        return str(self.gameweek) + ',' + self.owner.username
 
     def get_allowance_used(self):
         allowance_used = 0.0
@@ -198,7 +198,7 @@ class Accumulator(models.Model):
     stake = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
 
     def __str__(self):
-        name = str(self.bet_container) + ',' + str(stake)
+        name = str(self.bet_container) + ',' + str(self.stake)
         for betpart in self.betpart_set.all():
             name = name + ',' + str(betpart)
 
@@ -240,7 +240,7 @@ class BetPart(models.Model):
     result = models.CharField(max_length=1, choices=RESULTS, default='H')
     
     def __str__(self):
-        return str(game) + ',' + str(result)
+        return str(self.game) + ',' + str(self.result)
 
     def is_correct(self):
         if len(self.game.result_set.all()) != 1:
