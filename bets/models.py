@@ -37,21 +37,27 @@ class Season(models.Model):
         return gameweek_latest
 
     def calculate_winnings_to_gameweek(self, gameweek):
-        # needs work, won't calculate banked winnings correctly
+        # needs work, possibly incredibly non-performant :(
         winnings_map = {}
-        for gameweekit in self.gameweek_set.all():
-            if gameweekit.deadline < gameweek.deadline:
-                for k, v in gameweekit.calculate_winnings().items():
-                    if k in winnings_map:
-                        winnings_map[k]['Banked'] += v
-                    else:
-                        winnings_map[k] = {}
-                        winnings_map[k] = {'Banked':v}
-        for k, v in gameweek.calculate_winnings().items():
-            if k not in winnings_map:
-                winnings_map[k] = {'Banked':0.0}
-            winnings_map[k]['Week'] = v
-            winnings_map[k]['Provisional'] = v + winnings_map[k]['Banked']
+
+        if gameweek.number == 1:
+            for k,v in gameweek.calculate_winnings().items():
+                winnings_map[k] = {'Week': v, 'Provisional': v, 'Banked': 0.0}
+        else:
+            last_week_number = gameweek.number - 1
+            last_week = self.season.gameweek_set.filter(number=last_week_number)[0]
+            last_week_map = self.calculate_winnings_to_gameweek(last_week)
+            
+            for k,v in gameweek.calculate_winnings().items():
+                winnings_map[k] = {}
+                winnings_map[k]['Week'] = v
+
+                allowance = gameweek.get_allowance(k)
+                allowance_used = gameweek.betcontainer_set.filter(user=k)[0]
+
+                winnings_map[k]['Banked'] = last_week_map[k]['Banked'] + float(allowance) - float(allowance_used)
+                winnings_map[k]['Provisional'] = last_week_map[k]['Banked'] + v
+
         return winnings_map
 
 @register_snippet
@@ -84,6 +90,19 @@ class Gameweek(models.Model):
         for bet in self.bet_set.all():
             users_voted.add(bet.owner)
         return users_voted
+
+    def get_allowance_by_user(self, user):
+        allowance = self.season.weekly_allowance
+
+        if self.number > 1:
+            last_week_number = self.number - 1
+            last_week = self.season.gameweek_set.filter(number=last_week_number)[0]
+            last_week_winnings = last_week.calculate_winnings()[user]
+
+            if last_week_winnings > 0:
+                allowance += last_week_winnings
+
+        return allowance
 
     def calculate_winnings(self):
         winnings_map = {}
@@ -147,6 +166,13 @@ class Result(models.Model):
 class BetContainer(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
+
+    def get_allowance_used(self):
+        allowance_used = 0.0
+        for accumulator in self.accumulator_set.all():
+            allowance_used += accumulator.stake
+
+        return allowance_used
 
     def get_game_count(self):
         game_count = 0
