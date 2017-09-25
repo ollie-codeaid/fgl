@@ -67,7 +67,7 @@ class Gameweek(models.Model):
     deadline = models.DateTimeField("bets deadline")
 
     def __str__(self):
-        return str(self.number)
+        return str(self.season) + ',' + str(self.number)
 
     def has_bets(self):
         if len(self.bet_set.all()) > 0:
@@ -167,6 +167,9 @@ class BetContainer(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return str(gameweek) + ',' + owner.username
+
     def get_allowance_used(self):
         allowance_used = 0.0
         for accumulator in self.accumulator_set.all():
@@ -193,6 +196,13 @@ class BetContainer(models.Model):
 class Accumulator(models.Model):
     bet_container = models.ForeignKey(BetContainer, on_delete=models.CASCADE)
     stake = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
+
+    def __str__(self):
+        name = str(self.bet_container) + ',' + str(stake)
+        for betpart in self.betpart_set.all():
+            name = name + ',' + str(betpart)
+
+        return name
 
     def calc_winnings(self):
         correct = True
@@ -229,6 +239,9 @@ class BetPart(models.Model):
     RESULTS = (('H', 'Home'), ('D', 'Draw'), ('A', 'Away'))
     result = models.CharField(max_length=1, choices=RESULTS, default='H')
     
+    def __str__(self):
+        return str(game) + ',' + str(result)
+
     def is_correct(self):
         if len(self.game.result_set.all()) != 1:
             return False
