@@ -37,6 +37,11 @@ class Season(models.Model):
                 gameweek_latest = gameweek
         return gameweek_latest
 
+    def get_latest_user_balances(self):
+        latest_gameweek = self.get_latest_gameweek()
+
+        return latest_gameweek.balancemap_set.all()[0].balance_set.all()
+
     def calculate_winnings_to_gameweek(self, gameweek):
         # needs work, possibly incredibly non-performant :(
         winnings_map = {}

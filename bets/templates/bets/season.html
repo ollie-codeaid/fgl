@@ -16,8 +16,11 @@
     <h2>Latest Results</h2>
     <table>
     <tr><th></th><th>Latest week</th><th>Provisional</th><th>Banked</th></tr>
-    {% for k,v in season.get_latest_winnings.items %}
-        <tr><td>{{ k }}</td><td>{{ v.Week }}</td><td>{{ v.Provisional }}</td><td>{{ v.Banked }}</td></tr>
+    {% for userbalance in season.get_latest_user_balances %}
+        <tr><td>{{ userbalance.user }}</td>
+            <td>{{ userbalance.week }}</td>
+            <td>{{ userbalance.provisional }}</td>
+            <td>{{ userbalance.banked }}</td></tr>
     {% endfor %}
     </table>
 {% else %}
