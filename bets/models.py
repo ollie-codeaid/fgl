@@ -42,30 +42,6 @@ class Season(models.Model):
 
         return latest_gameweek.balancemap_set.all()[0].balance_set.all()
 
-    def calculate_winnings_to_gameweek(self, gameweek):
-        # needs work, possibly incredibly non-performant :(
-        winnings_map = {}
-
-        if gameweek.number == 1:
-            for k,v in gameweek.calculate_winnings().items():
-                winnings_map[k] = {'Week': v, 'Provisional': v, 'Banked': 0.0}
-        else:
-            last_week_number = gameweek.number - 1
-            last_week = self.season.gameweek_set.filter(number=last_week_number)[0]
-            last_week_map = self.calculate_winnings_to_gameweek(last_week)
-            
-            for k,v in gameweek.calculate_winnings().items():
-                winnings_map[k] = {}
-                winnings_map[k]['Week'] = v
-
-                allowance = gameweek.get_allowance(k)
-                allowance_used = gameweek.betcontainer_set.filter(user=k)[0]
-
-                winnings_map[k]['Banked'] = last_week_map[k]['Banked'] + float(allowance) - float(allowance_used)
-                winnings_map[k]['Provisional'] = last_week_map[k]['Banked'] + v
-
-        return winnings_map
-
 @register_snippet
 class Gameweek(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE)
