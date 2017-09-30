@@ -40,6 +40,13 @@ class Season(models.Model):
     def get_latest_user_balances(self):
         latest_gameweek = self.get_latest_gameweek()
 
+        while not latest_gameweek.results_complete():
+            number = latest_gameweek.number
+            if number == 1:
+                return None
+            else:
+                latest_gameweek = season.gameweek_set.filter(number=number-1)[0]
+
         return latest_gameweek.balancemap_set.all()[0].balance_set.all()
 
 @register_snippet
