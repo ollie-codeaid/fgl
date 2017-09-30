@@ -123,7 +123,7 @@ class Gameweek(models.Model):
         else:
             balancemap = self.balancemap_set.all()[0]
 
-            if len(balancemap.balance_set.filter(user=user) == 0):
+            if len(balancemap.balance_set.filter(user=user)) == 0:
                 return None
             else:
                 return balancemap.balance_set.filter(user=user)[0]
@@ -238,6 +238,9 @@ class BetContainer(models.Model):
 
     def __str__(self):
         return str(self.gameweek) + ',' + self.owner.username
+
+    def get_balance(self):
+        return self.gameweek.get_balance_by_user(user=self.owner)
 
     def get_allowance_unused(self):
         allowance_unused=self.gameweek.get_allowance_by_user(self.owner)

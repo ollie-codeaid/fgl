@@ -27,8 +27,11 @@
         <h2>Results</h2>
         <table>
         <tr><th></th><th>This week</th><th>Provisional</th><th>Banked</th></tr>
-        {% for k,v in gameweek.calculate_season_winnings.items %}
-            <tr><td>{{ k }}</td><td>{{ v.Week }}</td><td>{{ v.Provisional }}</td><td>{{ v.Banked }}</td></tr>
+        {% for betcontainer in gameweek.betcontainer_set.all %}
+            <tr><td>{{ betcontainer.owner }}</td>
+                <td>{{ betcontainer.get_balance.week }}</td>
+                <td>{{ betcontainer.get_balance.provisional }}</td>
+                <td>{{ betcontainer.get_balance.banked }}</td></tr>
         {% endfor %}
         </table>
     {% endif %}
