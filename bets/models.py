@@ -5,6 +5,7 @@ from django.db import models
 
 from django import forms
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.utils.timezone import now
 
 from wagtail.wagtailsnippets.models import register_snippet
@@ -69,6 +70,64 @@ class Gameweek(models.Model):
     def __str__(self):
         return str(self.season) + ',' + str(self.number)
 
+    def set_balance_by_user(self, user, week_winnings, week_unused):
+        if len(self.balancemap_set.all()) == 0:
+            balancemap = BalanceMap(gameweek=self)
+            balancemap.save()
+
+            if self.number==1:
+                user_balance = Balance(balancemap=balancemap, 
+                        user=user, 
+                        week=week_winnings, 
+                        provisional=week_winnings)
+            else:
+                last_banked = self.get_banked_by_user(user, self.number-1)
+
+                user_balance = Balance(balancemap=balancemap, 
+                        user=user, 
+                        week=week_winnings,
+                        provisional=last_banked + week_winnings,
+                        banked=last_banked + week_unused)
+
+            user_balance.save()
+        else:
+            balancemap = self.balancemap_set.all()[0]
+            old_user_balance = balancemap.balance_set.filter(user=user)[0]
+
+            if self.number==1:
+                user_balance = Balance(balancemap=balancemap, 
+                        user=user, 
+                        week=week_winnings, 
+                        provisional=week_winnings)
+            else:
+                last_banked = self.get_banked_by_user(user, self.number-1)
+
+                user_balance = Balance(balancemap=balancemap, 
+                        user=user, 
+                        week=week_winnings,
+                        provisional=last_banked + week_winnings,
+                        banked=last_banked + week_unused)
+            with transaction.atomic():
+                old_user_balance.delete()
+                user_balance.save()
+
+    def get_banked_by_user(self, user, number):
+        season = self.season
+        last_gameweek = season.gameweek_set.filter(number=number)[0]
+        user_balance = last_gameweek.get_balance_by_user(user)
+        return user_balance.banked
+
+    def get_balance_by_user(self, user):
+        if len(self.balancemap_set.all()) == 0:
+            return None
+        else:
+            balancemap = self.balancemap_set.all()[0]
+
+            if len(balancemap.balance_set.filter(user=user) == 0):
+                return None
+            else:
+                return balancemap.balance_set.filter(user=user)[0]
+
     def has_bets(self):
         if len(self.bet_set.all()) > 0:
             return True
@@ -115,6 +174,16 @@ class Gameweek(models.Model):
 
     def calculate_season_winnings(self):
         return self.season.calculate_winnings_to_gameweek(self)
+
+class BalanceMap(models.Model):
+    gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
+
+class Balance(models.Model):
+    balancemap = models.ForeignKey(BalanceMap, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    week = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
+    provisional = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
+    banked = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
 
 @register_snippet
 class Game(models.Model):
@@ -170,12 +239,12 @@ class BetContainer(models.Model):
     def __str__(self):
         return str(self.gameweek) + ',' + self.owner.username
 
-    def get_allowance_used(self):
-        allowance_used = 0.0
+    def get_allowance_unused(self):
+        allowance_unused=self.gameweek.get_allowance_by_user(self.owner)
         for accumulator in self.accumulator_set.all():
-            allowance_used += accumulator.stake
+            allowance_unused -= accumulator.stake
 
-        return allowance_used
+        return allowance_unused
 
     def get_game_count(self):
         game_count = 0

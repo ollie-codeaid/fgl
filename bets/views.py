@@ -8,7 +8,6 @@ from django.forms.formsets import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.functional import curry
-from django.views.generic import CreateView, UpdateView
 from .models import Season, Gameweek, Game, Result, BetContainer, Accumulator, BetPart
 from .forms import GameweekForm, GameForm, BaseGameFormSet, ResultForm, BaseResultFormSet, AccumulatorForm, BetPartForm
 
@@ -158,7 +157,11 @@ def add_gameweek_results(request, gameweek_id):
                         Result.objects.filter(game=game).delete()
                     Result.objects.bulk_create(results)
 
-                    messages.success(request, 'Successfully created gameweek.')
+                    for betcontainer in gameweek.betcontainer_set.all():
+                        gameweek.set_balance_by_user(user=betcontainer.owner,
+                                week_winnings=betcontainer.calc_winnings(),
+                                week_unused=betcontainer.get_allowance_unused())
+
                     return redirect('gameweek', gameweek_id=gameweek.id)
 
             except IntegrityError as err:
