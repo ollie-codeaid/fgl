@@ -132,12 +132,6 @@ class Gameweek(models.Model):
                 results_count += 1
         return results_count == self.game_set.count()
 
-    def user_vote_set(self):
-        users_voted = set()
-        for bet in self.bet_set.all():
-            users_voted.add(bet.owner)
-        return users_voted
-
     def get_allowance_by_user(self, user):
         allowance = self.season.weekly_allowance
 
@@ -150,18 +144,6 @@ class Gameweek(models.Model):
                 allowance += last_week_winnings
 
         return allowance
-
-    def calculate_winnings(self):
-        winnings_map = {}
-        for betcontainer in self.betcontainer_set.all():
-            if betcontainer.owner in winnings_map:
-                winnings_map[betcontainer.owner] += betcontainer.calc_winnings()
-            else:
-                winnings_map[betcontainer.owner] = betcontainer.calc_winnings()
-        return winnings_map
-
-    def calculate_season_winnings(self):
-        return self.season.calculate_winnings_to_gameweek(self)
 
 class BalanceMap(models.Model):
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
@@ -205,10 +187,7 @@ class Game(models.Model):
             return self.awaydenominator
 
     def get_result(self):
-        aresult = ""
-        for result in self.result_set.all():
-            aresult = result.result
-        return aresult
+        return self.result_set.all()[0]
 
 @register_snippet
 class Result(models.Model):
