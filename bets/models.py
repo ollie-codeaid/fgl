@@ -87,7 +87,8 @@ class Gameweek(models.Model):
                             balance.week - self.season.weekly_allowance)
 
     def set_balance_by_user(self, user, week_winnings, week_unused):
-        if len(self.balancemap_set.all()) == 0:
+        if (len(self.balancemap_set.all()) == 0 
+                or len(self.balancemap_set.all()[0].balance_set.filter(user=user)) == 0):
             balancemap = BalanceMap(gameweek=self)
             balancemap.save()
 
@@ -173,6 +174,18 @@ class Gameweek(models.Model):
                 allowance += last_week_winnings
 
         return allowance
+
+    def get_rollable_allowances(self):
+        if self.number == 1:
+            return None
+        else:
+            prev_gameweek = self.season.gameweek_set.filter(number=self.number-1)[0]
+            prev_balances = prev_gameweek.balancemap_set.all()[0]
+            rollable_allowances = {}
+            for balance in prev_balances.balance_set.all():
+                if balance.week > 0.0:
+                    rollable_allowances[balance.user] = balance.week
+            return rollable_allowances
 
 class BalanceMap(models.Model):
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
