@@ -5,7 +5,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
 </head>
 <h1>Add Gameweek</h1>
-<a href="/bets/{{ season_id }}/">Back to season</a>
+<a href="/bets/{{ season_id }}/">Back to season</a></br></br>
 {% if messages %}
     {% for message in messages %}
         <p>{{ message }}</p>
@@ -14,9 +14,9 @@
 
 <form method="post">
     {% csrf_token %}
-    <p class="date-picker">
-    {{ gameweek_form.as_p }}
-    </p>
+    <p class="date-picker">Deadline date: {{ gameweek_form.deadline_date }}</p>
+    <p>Deadline time: {{ gameweek_form.deadline_time }}</p>
+    <p>Spiel: {{ gameweek_form.spiel }}</p>
     {% for error in gameweek_form.non_form_errors %}
     <p>{{ error }}</p>
     {% endfor %}
@@ -57,6 +57,6 @@
                 deleteText: 'Remove'
         });
         $(function(){
-            $("#id_deadline").datepicker();
+            $("#id_deadline_date").datepicker();
         });
     </script>

@@ -8,7 +8,7 @@ from .models import Gameweek, Game, Result, BetContainer, Accumulator, BetPart
 class GameweekForm(ModelForm):
     class Meta:
         model = Gameweek
-        fields = ['deadline']
+        fields = ['deadline_date', 'deadline_time', 'spiel']
 
 class GameForm(ModelForm):
     class Meta:

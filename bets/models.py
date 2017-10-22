@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals, division
 
+import datetime
+
 from django.db import models
 
 from django import forms
@@ -10,7 +12,7 @@ from django.utils.timezone import now
 
 from wagtail.wagtailsnippets.models import register_snippet
 
-
+#
 # Create your models here.
 @register_snippet
 class Season(models.Model):
@@ -33,6 +35,9 @@ class Season(models.Model):
         return self.gameweek_set.filter(number=latest_gameweek_number)[0]
 
     def get_latest_user_balances(self):
+        if self.get_next_gameweek_id() == 1:
+            return None
+
         latest_gameweek = self.get_latest_gameweek()
 
         if latest_gameweek.results_complete():
@@ -46,7 +51,7 @@ class Season(models.Model):
         return gameweek.balancemap_set.all()[0].balance_set.all()
 
     def can_create_gameweek(self):
-        if self.gameweek_set:
+        if self.get_next_gameweek_id() > 1:
             if not self.get_latest_gameweek().results_complete():
                 return False
         return True
@@ -55,7 +60,12 @@ class Season(models.Model):
 class Gameweek(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE)
     number = models.IntegerField(default=0)
-    deadline = models.DateTimeField("bets deadline")
+    deadline_date = models.DateField(default=datetime.date(
+        datetime.datetime.now().year,
+        datetime.datetime.now().month,
+        datetime.datetime.now().day))
+    deadline_time = models.TimeField(default=datetime.time(12, 00))
+    spiel = models.TextField(default=None)
 
     def __str__(self):
         return str(self.season) + ',' + str(self.number)
@@ -141,8 +151,8 @@ class Gameweek(models.Model):
             return False
 
     def deadline_passed(self):
-        return now() > self.deadline
-
+        return datetime.now().date() >= self.deadline_date and datetime.now().time() >= self.deadline_time
+           
     def results_complete(self):
         results_count = 0
         for game in self.game_set.all():
