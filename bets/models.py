@@ -151,7 +151,8 @@ class Gameweek(models.Model):
             return False
 
     def deadline_passed(self):
-        return datetime.now().date() >= self.deadline_date and datetime.now().time() >= self.deadline_time
+        return (datetime.datetime.now().date() >= self.deadline_date
+                and datetime.datetime.now().time() >= self.deadline_time)
            
     def results_complete(self):
         results_count = 0

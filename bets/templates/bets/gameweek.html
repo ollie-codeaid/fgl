@@ -5,7 +5,7 @@
 {% load wagtailcore_tags %}
 {% if gameweek %}
     <h1>Gameweek {{ gameweek.number }}</h1>
-    <h2>Deadline: {{ gameweek.deadline }}</h2>
+    <h2>Deadline: {{ gameweek.deadline_date }}, {{ gameweek.deadline_time }}</h2>
     {% if request.user|has_group:"Commissioners" %}
         {% if gameweek.deadline_passed %}
             {% if gameweek.is_latest %}
