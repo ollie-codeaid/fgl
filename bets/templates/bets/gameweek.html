@@ -8,7 +8,9 @@
     <h2>Deadline: {{ gameweek.deadline }}</h2>
     {% if request.user|has_group:"Commissioners" %}
         {% if gameweek.deadline_passed %}
-            <a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a></br>
+            {% if gameweek.is_latest %}
+                <a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a></br>
+            {% endif %}
         {% else %}
             <a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a></br>
         {% endif %}

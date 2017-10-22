@@ -46,7 +46,6 @@ class Season(models.Model):
         return gameweek.balancemap_set.all()[0].balance_set.all()
 
     def can_create_gameweek(self):
-
         if self.gameweek_set:
             if not self.get_latest_gameweek().results_complete():
                 return False
@@ -60,6 +59,22 @@ class Gameweek(models.Model):
 
     def __str__(self):
         return str(self.season) + ',' + str(self.number)
+
+    def is_latest(self):
+        return self.number == len(self.season.gameweek_set.all())
+
+    def update_no_bet_users(self):
+        if self.number > 1:
+            users = []
+            for betcontainer in self.betcontainer_set.all():
+                users.append(betcontainer.owner)
+
+            prev_gameweek = self.season.gameweek_set.filter(number=self.number-1)[0]
+            for balance in prev_gameweek.balancemap_set.all()[0].balance_set.all():
+                if balance.user not in users:
+                    self.set_balance_by_user(balance.user,
+                            self.season.weekly_allowance * -1,
+                            balance.week - self.season.weekly_allowance)
 
     def set_balance_by_user(self, user, week_winnings, week_unused):
         if len(self.balancemap_set.all()) == 0:

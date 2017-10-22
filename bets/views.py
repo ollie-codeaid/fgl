@@ -161,6 +161,8 @@ def add_gameweek_results(request, gameweek_id):
                                 week_winnings=betcontainer.calc_winnings(),
                                 week_unused=betcontainer.get_allowance_unused())
 
+                    gameweek.update_no_bet_users()
+
                     return redirect('gameweek', gameweek_id=gameweek.id)
 
             except IntegrityError as err:
