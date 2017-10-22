@@ -13,7 +13,10 @@
             <a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a></br>
         {% endif %}
     {% endif %}
-    <table><tr><th></th><th>Home</th><th>Draw</th><th>Away</th><th></th><th>Result</th></tr>
+    <table>
+        <tr><th></th><th>Home</th><th>Draw</th><th>Away</th><th></th>
+            {% if gameweek.results_complete %}<th>Result</th>{% endif %}
+        </tr>
     {% for game in gameweek.game_set.all %}
         <tr>
         <td>{{ game.hometeam }}</td>
@@ -21,7 +24,9 @@
         <td>{{ game.drawnumerator }}/{{ game.drawdenominator }}</td>
         <td>{{ game.awaynumerator }}/{{ game.awaydenominator }}</td>
         <td>{{ game.awayteam }}</td>
-        <td>{{ game.get_result.result }}</td>
+        {% if gameweek.results_complete %}
+            <td>{{ game.get_result.result }}</td>
+        {% endif %}
         </tr>
     {% endfor %}
     </table>

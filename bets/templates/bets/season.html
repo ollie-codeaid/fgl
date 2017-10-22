@@ -10,7 +10,9 @@
     {% endfor %}
     </ul>
     {% if request.user|has_group:"Commissioners" %}
-        <a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a>
+        {% if season.can_create_gameweek %}
+            <a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a>
+        {% endif %}
     {% endif %}
     </br></br>
     <h2>Latest Results</h2>

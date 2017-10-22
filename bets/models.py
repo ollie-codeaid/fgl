@@ -28,26 +28,29 @@ class Season(models.Model):
         return self.calculate_winnings_to_gameweek(gameweek)
 
     def get_latest_gameweek(self):
-        gameweek_latest = None
-        for gameweek in self.gameweek_set.all():
-            if gameweek_latest:
-                if gameweek_latest.deadline < gameweek.deadline:
-                    gameweek_latest = gameweek
-            else:
-                gameweek_latest = gameweek
-        return gameweek_latest
+        latest_gameweek_number = len(self.gameweek_set.all())
+
+        return self.gameweek_set.filter(number=latest_gameweek_number)[0]
 
     def get_latest_user_balances(self):
         latest_gameweek = self.get_latest_gameweek()
 
-        while not latest_gameweek.results_complete():
+        if latest_gameweek.results_complete():
+            gameweek = latest_gameweek
+        else:
             number = latest_gameweek.number
             if number == 1:
                 return None
-            else:
-                latest_gameweek = season.gameweek_set.filter(number=number-1)[0]
+            gameweek = self.gameweek_set.filter(number=number-1)[0]
+            
+        return gameweek.balancemap_set.all()[0].balance_set.all()
 
-        return latest_gameweek.balancemap_set.all()[0].balance_set.all()
+    def can_create_gameweek(self):
+
+        if self.gameweek_set:
+            if not self.get_latest_gameweek().results_complete():
+                return False
+        return True
 
 @register_snippet
 class Gameweek(models.Model):
@@ -117,7 +120,7 @@ class Gameweek(models.Model):
                 return balancemap.balance_set.filter(user=user)[0]
 
     def has_bets(self):
-        if len(self.bet_set.all()) > 0:
+        if len(self.betcontainer_set.all()) > 0:
             return True
         else:
             return False
@@ -128,9 +131,9 @@ class Gameweek(models.Model):
     def results_complete(self):
         results_count = 0
         for game in self.game_set.all():
-            if game.result_set.count > 0:
+            if len(game.result_set.all()) > 0:
                 results_count += 1
-        return results_count == self.game_set.count()
+        return results_count == len(self.game_set.all())
 
     def get_allowance_by_user(self, user):
         allowance = self.season.weekly_allowance
