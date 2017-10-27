@@ -3,7 +3,8 @@
 <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
 {% if bet_container %}
     <h1>Manage Bets</h1>
-    <a href="/bets/gameweek/{{ bet_container.gameweek.id }}/">Back to gameweek</a></br>
+    <a href="/bets/gameweek/{{ bet_container.gameweek.id }}/">Back to gameweek</a></br></br>
+    <h2>Weekly allowance: {{ bet_container.get_allowance }}</h2>
     <table>
         <thead><tr><th>Stake</th><th>Game</th><th>Result</th><th></th></tr></thead>
     <tbody>

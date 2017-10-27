@@ -48,8 +48,8 @@
         </br></br>
         <h2>Rollable</h2>
         <table>
-        {% for row in gameweek.get_rollable_allowance %}
-            <tr><td>{{ row.key }}</td><td>{{ row.value }}</td></tr>
+        {% for user,rollable in gameweek.get_rollable_allowances.items %}
+            <tr><td>{{ user }}</td><td>{{ rollable }}</td></tr>
         {% endfor %}
         </table>
     {% endif %}

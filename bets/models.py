@@ -172,15 +172,10 @@ class Gameweek(models.Model):
     def get_allowance_by_user(self, user):
         allowance = self.season.weekly_allowance
 
-        if self.number > 1:
-            last_week_number = self.number - 1
-            last_week = self.season.gameweek_set.filter(number=last_week_number)[0]
-            last_week_winnings = last_week.calculate_winnings()[user]
-
-            if last_week_winnings > 0:
-                allowance += last_week_winnings
-
-        return allowance
+        if user in self.get_rollable_allowances():
+            return allowance + self.get_rollable_allowances()[user]
+        else:
+            return allowance
 
     def get_rollable_allowances(self):
         if self.number == 1:
@@ -257,6 +252,9 @@ class BetContainer(models.Model):
 
     def get_balance(self):
         return self.gameweek.get_balance_by_user(user=self.owner)
+
+    def get_allowance(self):
+        return self.gameweek.get_allowance_by_user(self.owner)
 
     def get_allowance_unused(self):
         allowance_unused=self.gameweek.get_allowance_by_user(self.owner)
