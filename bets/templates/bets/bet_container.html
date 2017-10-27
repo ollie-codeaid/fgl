@@ -4,7 +4,7 @@
 {% if bet_container %}
     <h1>Manage Bets</h1>
     <a href="/bets/gameweek/{{ bet_container.gameweek.id }}/">Back to gameweek</a></br></br>
-    <h2>Weekly allowance: {{ bet_container.get_allowance }}</h2>
+    <h3>Weekly allowance: {{ bet_container.get_allowance }}</h3>
     <table>
         <thead><tr><th>Stake</th><th>Game</th><th>Result</th><th></th></tr></thead>
     <tbody>
@@ -22,5 +22,7 @@
     {% endfor %}
     </tbody>
     </table>
+    </br></br>
+    <h3>Total stake used: {{ bet_container.get_allowance_used }}</h3>
     <a href="/bets/bets/{{ bet_container.id }}/add_bet/">Add bet</a></br>
 {% endif %}

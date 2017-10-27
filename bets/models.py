@@ -256,12 +256,14 @@ class BetContainer(models.Model):
     def get_allowance(self):
         return self.gameweek.get_allowance_by_user(self.owner)
 
-    def get_allowance_unused(self):
-        allowance_unused=self.gameweek.get_allowance_by_user(self.owner)
+    def get_allowance_used(self):
+        allowance_used = 0.0
         for accumulator in self.accumulator_set.all():
-            allowance_unused -= accumulator.stake
+            allowance_used += accumulator.stake
+        return allowance_used
 
-        return allowance_unused
+    def get_allowance_unused(self):
+        return allowance - allowance_used
 
     def get_game_count(self):
         game_count = 0
