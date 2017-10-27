@@ -104,4 +104,3 @@ class BetPartForm(ModelForm):
     class Meta:
         model = BetPart
         fields = ['game', 'result']
-

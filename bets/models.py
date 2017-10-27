@@ -259,7 +259,7 @@ class BetContainer(models.Model):
     def get_allowance_used(self):
         allowance_used = 0.0
         for accumulator in self.accumulator_set.all():
-            allowance_used += accumulator.stake
+            allowance_used += float(accumulator.stake)
         return allowance_used
 
     def get_allowance_unused(self):

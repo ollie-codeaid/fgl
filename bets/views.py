@@ -31,7 +31,7 @@ def _process_new_games(game_formset, gameweek, request):
 
     if gameweek.has_bets():
         messages.error(request, 'Cannot update gameweek that already has bets, speak to Ollie if required')
-        return redirect(reverse('update-gameweek', args=(gameweek.id)))
+        return redirect('gameweek', gameweek_id=gameweek.id)
     
     new_games = []
 
@@ -130,6 +130,7 @@ def update_gameweek(request, gameweek_id):
             gameweek.save()
 
             _process_new_games(game_formset, gameweek, request)
+            return redirect('gameweek', gameweek_id=gameweek.id)
 
     else:
         gameweek_form = GameweekForm(
@@ -227,6 +228,12 @@ def add_bet(request, bet_container_id):
 
         if accumulator_form.is_valid() and betpart_formset.is_valid():
             stake = accumulator_form.cleaned_data.get('stake')
+            remaining_allowance = float(bet_container.get_allowance()) - bet_container.get_allowance_used()
+            
+            if float(stake) > remaining_allowance:
+                messages.error(request, 'Stake greater than remaining allowance: {0}'.format(remaining_allowance))
+                return redirect('add-bet', bet_container_id=bet_container_id)
+
             accumulator = Accumulator(bet_container=bet_container, stake=stake)
             accumulator.save()
             
@@ -278,7 +285,14 @@ def update_bet(request, accumulator_id):
         betpart_formset = BetPartFormSet(request.POST)
 
         if accumulator_form.is_valid() and betpart_formset.is_valid():
-            accumulator.stake = accumulator_form.cleaned_data.get('stake')
+            stake = accumulator_form.cleaned_data.get('stake')
+            remaining_allowance = float(bet_container.get_allowance()) - bet_container.get_allowance_used()
+            
+            if float(stake) > remaining_allowance:
+                messages.error(request, 'Stake change greater than remaining allowance: {0}'.format(remaining_allowance))
+                return redirect('update-bet', accumulator_id=accumulator_id)
+
+            accumulator.stake = stake
             accumulator.save()
             
             new_betparts = []
