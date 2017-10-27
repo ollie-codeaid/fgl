@@ -87,10 +87,17 @@ class Gameweek(models.Model):
                             balance.week - self.season.weekly_allowance)
 
     def set_balance_by_user(self, user, week_winnings, week_unused):
-        if (len(self.balancemap_set.all()) == 0 
-                or len(self.balancemap_set.all()[0].balance_set.filter(user=user)) == 0):
+        if len(self.balancemap_set.all()) == 0:
             balancemap = BalanceMap(gameweek=self)
             balancemap.save()
+        else:
+            balancemap = self.balancemap_set.all()[0]
+
+        if len(self.balancemap_set.all()[0].balance_set.filter(user=user)) == 0:
+
+            if len(self.balancemap_set.all()) == 0:
+                balancemap = BalanceMap(gameweek=self)
+                balancemap.save()
 
             if self.number==1:
                 user_balance = Balance(balancemap=balancemap, 
@@ -108,7 +115,6 @@ class Gameweek(models.Model):
 
             user_balance.save()
         else:
-            balancemap = self.balancemap_set.all()[0]
             old_user_balance = balancemap.balance_set.filter(user=user)[0]
 
             if self.number==1:
@@ -152,9 +158,10 @@ class Gameweek(models.Model):
             return False
 
     def deadline_passed(self):
-        return (datetime.datetime.now().date() >= self.deadline_date
+        return ((datetime.datetime.now().date() == self.deadline_date
                 and datetime.datetime.now().time() >= self.deadline_time)
-           
+                or datetime.datetime.now().date() > self.deadline_date)
+    
     def results_complete(self):
         results_count = 0
         for game in self.game_set.all():
