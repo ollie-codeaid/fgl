@@ -136,7 +136,7 @@ def update_gameweek(request, gameweek_id):
         gameweek_form = GameweekForm(
                 initial={'deadline_date': gameweek.deadline_date,
                          'deadline_time': gameweek.deadline_time,
-                         'spiel': spiel })
+                         'spiel': gameweek.spiel })
         game_formset = GameFormSet(initial=current_games)
 
     context = {

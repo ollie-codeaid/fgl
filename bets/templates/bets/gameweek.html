@@ -5,6 +5,13 @@
 {% load wagtailcore_tags %}
 {% if gameweek %}
     <h1>Gameweek {{ gameweek.number }}</h1>
+
+    {% if request.user|has_group:"Commissioners" and messages %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
     <h2>Deadline: {{ gameweek.deadline_date }}, {{ gameweek.deadline_time }}</h2>
     {% if request.user|has_group:"Commissioners" %}
         {% if gameweek.deadline_passed %}
