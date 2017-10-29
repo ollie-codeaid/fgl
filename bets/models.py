@@ -65,7 +65,7 @@ class Gameweek(models.Model):
         datetime.datetime.now().month,
         datetime.datetime.now().day))
     deadline_time = models.TimeField(default=datetime.time(12, 00))
-    spiel = models.TextField(default=None)
+    spiel = models.TextField(default=None, blank=True)
 
     def __str__(self):
         return str(self.season) + ',' + str(self.number)
