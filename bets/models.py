@@ -93,6 +93,11 @@ class Gameweek(models.Model):
         else:
             balancemap = self.balancemap_set.all()[0]
 
+        if week_winnings < 0.0:
+            enforce_banked = week_winnings
+        else:
+            enforce_banked = 0
+
         if len(self.balancemap_set.all()[0].balance_set.filter(user=user)) == 0:
 
             if len(self.balancemap_set.all()) == 0:
@@ -103,7 +108,8 @@ class Gameweek(models.Model):
                 user_balance = Balance(balancemap=balancemap, 
                         user=user, 
                         week=week_winnings, 
-                        provisional=week_winnings)
+                        provisional=week_winnings,
+                        banked=enforce_banked)
             else:
                 last_banked = self.get_banked_by_user(user, self.number-1)
 
@@ -111,7 +117,7 @@ class Gameweek(models.Model):
                         user=user, 
                         week=week_winnings,
                         provisional=last_banked + week_winnings,
-                        banked=last_banked + week_unused)
+                        banked=last_banked + week_unused + enforce_banked)
 
             user_balance.save()
         else:
@@ -121,7 +127,8 @@ class Gameweek(models.Model):
                 user_balance = Balance(balancemap=balancemap, 
                         user=user, 
                         week=week_winnings, 
-                        provisional=week_winnings)
+                        provisional=week_winnings,
+                        banked=enforce_banked)
             else:
                 last_banked = self.get_banked_by_user(user, self.number-1)
 
@@ -129,7 +136,7 @@ class Gameweek(models.Model):
                         user=user, 
                         week=week_winnings,
                         provisional=last_banked + week_winnings,
-                        banked=last_banked + week_unused)
+                        banked=last_banked + week_unused + enforce_banked)
             with transaction.atomic():
                 old_user_balance.delete()
                 user_balance.save()
@@ -171,8 +178,9 @@ class Gameweek(models.Model):
 
     def get_allowance_by_user(self, user):
         allowance = self.season.weekly_allowance
+        rollable_allowances = self.get_rollable_allowances()
 
-        if user in self.get_rollable_allowances():
+        if rollable_allowances and user in rollable_allowances:
             return allowance + self.get_rollable_allowances()[user]
         else:
             return allowance
@@ -263,7 +271,7 @@ class BetContainer(models.Model):
         return allowance_used
 
     def get_allowance_unused(self):
-        return allowance - allowance_used
+        return float(self.get_allowance()) - self.get_allowance_used()
 
     def get_game_count(self):
         game_count = 0
