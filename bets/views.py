@@ -285,10 +285,11 @@ def update_bet(request, accumulator_id):
         betpart_formset = BetPartFormSet(request.POST)
 
         if accumulator_form.is_valid() and betpart_formset.is_valid():
+            old_stake = float(accumulator.stake)
             stake = accumulator_form.cleaned_data.get('stake')
             remaining_allowance = float(bet_container.get_allowance()) - bet_container.get_allowance_used()
             
-            if float(stake) > remaining_allowance:
+            if float(stake) > remaining_allowance + old_stake:
                 messages.error(request, 'Stake change greater than remaining allowance: {0}'.format(remaining_allowance))
                 return redirect('update-bet', accumulator_id=accumulator_id)
 
