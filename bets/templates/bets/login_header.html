@@ -1,0 +1,9 @@
+<div class="row login">
+    <div class="two columns offset-by-ten">
+        {% if request.user.is_authenticated %}
+            <h3><a href="/admin/logout/?next={{ request.path }}">Log out</a></h3>
+        {% else %}
+            <h3><a href="/admin/login/?next={{ request.path }}">Log in</a></h3>
+        {% endif %}
+    </div>
+</div>

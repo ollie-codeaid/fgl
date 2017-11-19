@@ -1,9 +1,11 @@
 {% load static %}
 {% load auth_extras %}
+{% load bets_extras %}
 <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
 {% load wagtailcore_tags %}
 {% if gameweek %}
+    {% login_header request %}
     <h1>Gameweek {{ gameweek.number }}</h1>
 
     {% if request.user|has_group:"Commissioners" and messages %}
@@ -114,8 +116,6 @@
             {% endfor %}
             </tbody></table>
         {% endif %}
-    {% else %}
-    <a href="/admin/login/?next={{ request.path }}">Log in?</a>
     {% endif %}
 </br></br>
 <a href="/bets/{{ gameweek.season.id }}/">Back to season</a>

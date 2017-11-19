@@ -1,8 +1,10 @@
 {% load static %}
 {% load auth_extras %}
+{% load bets_extras %}
 <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
 {% if season %}
+    {% login_header request %}
     <h1>{{ season.name }}</h1>
     <ul>
     {% for gameweek in season.gameweek_set.all %}
