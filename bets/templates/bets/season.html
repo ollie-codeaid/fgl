@@ -1,32 +1,61 @@
 {% load static %}
 {% load auth_extras %}
 {% load bets_extras %}
-<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
-<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
-{% if season %}
-    {% login_header request %}
-    <h1>{{ season.name }}</h1>
-    <ul>
-    {% for gameweek in season.gameweek_set.all %}
-        <li><a href="/bets/gameweek/{{ gameweek.id }}/">{{ gameweek.number }}</a></li>
-    {% endfor %}
-    </ul>
-    {% if request.user|has_group:"Commissioners" %}
-        {% if season.can_create_gameweek %}
-            <a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a>
-        {% endif %}
-    {% endif %}
-    </br></br>
-    <h2>Latest Results</h2>
-    <table>
-    <tr><th></th><th>Latest week</th><th>Provisional</th><th>Banked</th></tr>
-    {% for userbalance in season.get_latest_user_balances %}
-        <tr><td>{{ userbalance.user }}</td>
-            <td>{{ userbalance.week }}</td>
-            <td>{{ userbalance.provisional }}</td>
-            <td>{{ userbalance.banked }}</td></tr>
-    {% endfor %}
-    </table>
-{% else %}
-    <p>No data available.</p>
-{% endif %}
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/style.css' %}"/>
+	</head>
+	<body>
+		<div class="container">
+			{% if season %}
+			{% login_header request %}
+			<div class="row">
+				<div class="twelve columns">
+			    	<h1>{{ season.name }}</h1>
+			    </div>
+			</div>
+			<div class="row">
+			    <div class="twelve columns">
+				    <ul>
+				    {% for gameweek in season.gameweek_set.all %}
+				        <li><a href="/bets/gameweek/{{ gameweek.id }}/">{{ gameweek.number }}</a></li>
+				    {% endfor %}
+				    </ul>
+				</div>
+			</div>
+			{% if request.user|has_group:"Commissioners" %}
+			<div class="row">
+				<div class="twelve columns">
+			        {% if season.can_create_gameweek %}
+			        <a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a>
+			        {% endif %}
+			    </div>
+			</div>
+			{% endif %}
+			<div class="row">
+				<div class="twelve columns">
+				    <h2>Latest Results</h2>
+				    <table>
+					    <tr>
+					    	<th></th>
+					    	<th>Latest week</th>
+					    	<th>Provisional</th>
+					    	<th>Banked</th>
+					    </tr>
+				    	{% for userbalance in season.get_latest_user_balances %}
+				        <tr>
+				        	<td>{{ userbalance.user }}</td>
+				            <td>{{ userbalance.week }}</td>
+				            <td>{{ userbalance.provisional }}</td>
+				            <td>{{ userbalance.banked }}</td>
+				        </tr>
+				    	{% endfor %}
+				    </table>
+				</div>
+			</div>
+		{% endif %}
+		</div>
+	</body>
+</html>

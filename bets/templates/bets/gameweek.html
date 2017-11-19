@@ -1,124 +1,217 @@
 {% load static %}
 {% load auth_extras %}
 {% load bets_extras %}
-<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
-<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
 {% load wagtailcore_tags %}
-{% if gameweek %}
-    {% login_header request %}
-    <h1>Gameweek {{ gameweek.number }}</h1>
-
-    {% if request.user|has_group:"Commissioners" and messages %}
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
-    {% endif %}
-
-    <h2>Deadline: {{ gameweek.deadline_date }}, {{ gameweek.deadline_time }}</h2>
-    {% if request.user|has_group:"Commissioners" %}
-        {% if gameweek.deadline_passed %}
-            {% if gameweek.is_latest %}
-                <a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a></br>
-            {% endif %}
-        {% else %}
-            <a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a></br>
-        {% endif %}
-    {% endif %}
-    <table>
-        <tr><th></th><th>Home</th><th>Draw</th><th>Away</th><th></th>
-            {% if gameweek.results_complete %}<th>Result</th>{% endif %}
-        </tr>
-    {% for game in gameweek.game_set.all %}
-        <tr>
-        <td>{{ game.hometeam }}</td>
-        <td>{{ game.homenumerator }}/{{ game.homedenominator }}</td>
-        <td>{{ game.drawnumerator }}/{{ game.drawdenominator }}</td>
-        <td>{{ game.awaynumerator }}/{{ game.awaydenominator }}</td>
-        <td>{{ game.awayteam }}</td>
-        {% if gameweek.results_complete %}
-            <td>{{ game.get_result.result }}</td>
-        {% endif %}
-        </tr>
-    {% endfor %}
-    </table>
-    {% if gameweek.results_complete %}
-        </br></br>
-        <h2>Results</h2>
-        <table>
-        <tr><th></th><th>This week</th><th>Provisional</th><th>Banked</th></tr>
-        {% for betcontainer in gameweek.betcontainer_set.all %}
-            <tr><td>{{ betcontainer.owner }}</td>
-                <td>{{ betcontainer.get_balance.week }}</td>
-                <td>{{ betcontainer.get_balance.provisional }}</td>
-                <td>{{ betcontainer.get_balance.banked }}</td></tr>
-        {% endfor %}
-        </table>
-    {% elif gameweek.number > 1 %}
-        </br></br>
-        <h2>Rollable</h2>
-        <table>
-        {% for user,rollable in gameweek.get_rollable_allowances.items %}
-            <tr><td>{{ user }}</td><td>{{ rollable }}</td></tr>
-        {% endfor %}
-        </table>
-    {% endif %}
-    </br></br>
-    {% if user.is_authenticated %}
-        <h2>My bets</h2>
-        {% if not gameweek.deadline_passed %}
-            <a href="/bets/gameweek/{{ gameweek.id }}/manage_bet_container/">Manage bets</a>
-        {% endif %}
-        {% for betcontainer in gameweek.betcontainer_set.all %}
-            {% if user == betcontainer.owner %}
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/style.css' %}"/>
+	</head>
+	<body>
+		<div class="container">
+		{% if gameweek %}
+		    {% login_header request %}
+		    <div class="row">
+		    	<div class="twelve columns">
+		    		<h1>Gameweek {{ gameweek.number }}</h1>
+		    	</div>
+		    </div>
+			<div class="row">
+				<div class="twelve columns">
+			    	{% if request.user|has_group:"Commissioners" and messages %}
+			        {% for message in messages %}
+		            <p>{{ message }}</p>
+			        {% endfor %}
+			    	{% endif %}
+		    </div>
+			<div class="row">
+				<div class="twelve columns">
+		    		<h2>Deadline: {{ gameweek.deadline_date }}, {{ gameweek.deadline_time }}</h2>
+		    	</div>
+		    </div>
+			<div class="row">
+				<div class="twelve columns">
+				    {% if request.user|has_group:"Commissioners" %}
+			        {% if gameweek.deadline_passed %}
+		            {% if gameweek.is_latest %}
+	                <a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a>
+		            {% endif %}
+			        {% else %}
+		            <a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a>
+			        {% endif %}
+				    {% endif %}
+		    	</div>
+		    </div>
+			<div class="row">
+				<div class="twelve columns">
+				    <table>
+				        <tr>
+				        	<th></th>
+				        	<th>Home</th>
+				        	<th>Draw</th>
+				        	<th>Away</th>
+				        	<th></th>
+				            {% if gameweek.results_complete %}
+				            <th>Result</th>
+				            {% endif %}
+				        </tr>
+				    	{% for game in gameweek.game_set.all %}
+				        <tr>
+				        	<td>{{ game.hometeam }}</td>
+				        	<td>{{ game.homenumerator }}/{{ game.homedenominator }}</td>
+				        	<td>{{ game.drawnumerator }}/{{ game.drawdenominator }}</td>
+				        	<td>{{ game.awaynumerator }}/{{ game.awaydenominator }}</td>
+				        	<td>{{ game.awayteam }}</td>
+				        	{% if gameweek.results_complete %}
+				            <td>{{ game.get_result.result }}</td>
+				        	{% endif %}
+				        </tr>
+				    	{% endfor %}
+				    </table>
+		    	</div>
+		    </div>
+			{% if gameweek.results_complete %}
+			<div class="row">
+				<div class="twelve columns">
+			        <h2>Results</h2>
+		    	</div>
+		    </div>
+			<div class="row">
+				<div class="twelve columns">
+			        <table>
+				        <tr>
+				        	<th></th>
+				        	<th>This week</th>
+				        	<th>Provisional</th>
+				        	<th>Banked</th>
+				        </tr>
+				        {% for betcontainer in gameweek.betcontainer_set.all %}
+			            <tr>
+			            	<td>{{ betcontainer.owner }}</td>
+			                <td>{{ betcontainer.get_balance.week }}</td>
+			                <td>{{ betcontainer.get_balance.provisional }}</td>
+			                <td>{{ betcontainer.get_balance.banked }}</td>
+			            </tr>
+				        {% endfor %}
+			        </table>
+		    	</div>
+		    </div>
+		    {% elif gameweek.number > 1 %}
+			<div class="row">
+				<div class="twelve columns">
+		        	<h2>Rollable</h2>
+		    	</div>
+		    </div>
+			<div class="row">
+				<div class="twelve columns">
+			        <table>
+			        	{% for user,rollable in gameweek.get_rollable_allowances.items %}
+			            <tr>
+			            	<td>{{ user }}</td>
+			            	<td>{{ rollable }}</td>
+			            </tr>
+			        	{% endfor %}
+			        </table>
+		    	</div>
+		    </div>
+		    {% endif %}
+		    {% if user.is_authenticated %}
+			<div class="row">
+				<div class="twelve columns">
+		        	<h2>My bets</h2>
+		    	</div>
+		    </div>
+			<div class="row">
+				<div class="twelve columns">
+			        {% if not gameweek.deadline_passed %}
+			        <a href="/bets/gameweek/{{ gameweek.id }}/manage_bet_container/">Manage bets</a>
+			        {% endif %}
+			        {% for betcontainer in gameweek.betcontainer_set.all %}
+		            {% if user == betcontainer.owner %}
                     <table>
-                        <thead><tr><th>Stake</th><th>Game</th><th>Result</th></tr></thead>
-                    {% for accumulator in betcontainer.accumulator_set.all %}
+                        <thead>
+                        	<tr>
+                        		<th>Stake</th>
+                        		<th>Game</th>
+                        		<th>Result</th>
+                        	</tr>
+                        </thead>
+                    	{% for accumulator in betcontainer.accumulator_set.all %}
                         <tbody>
-                        <tr><td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
-                        {% for betpart in accumulator.betpart_set.all %}
-                            {% if forloop.last %}
-                            <td>{{ betpart.game }}</td><td>{{ betpart.result }}</td>
-                            {% else %}
-                            <td>{{ betpart.game }}</td><td>{{ betpart.result }}</td></tr><tr>
-                            {% endif %}
-                        {% endfor %}
-                        </tr>
+                        	<tr>
+                        		<td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
+                        		{% for betpart in accumulator.betpart_set.all %}
+	                            {% if forloop.last %}
+                            	<td>{{ betpart.game }}</td>
+                            	<td>{{ betpart.result }}</td>
+	                            {% else %}
+                            	<td>{{ betpart.game }}</td>
+                            	<td>{{ betpart.result }}</td>
+	                        </tr>
+	                        <tr>
+	                            {% endif %}
+                        		{% endfor %}
+                        	</tr>
                         </tbody>
-                    {% endfor %}
+                    	{% endfor %}
                     </table>
-            {% endif %}
-        {% endfor %}
-        {% if gameweek.deadline_passed %}
-        </br></br>
-            <h2>Other bets</h2>
-            <table><thead><tr><th></th><th>Stake</th><th>Game</th><th>Result</th></tr></thead>
-            <tbody>
-            {% for betcontainer in gameweek.betcontainer_set.all %}
-                {% if user != betcontainer.owner %}
-                <tr><td rowspan="{{ betcontainer.get_game_count }}">{{ betcontainer.owner.username }}</td>
-                    {% for accumulator in betcontainer.accumulator_set.all %}
-                    <td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
-                            {% for betpart in accumulator.betpart_set.all %}
-                            <td>{{ betpart.game }}</td><td>{{ betpart.result }}
+		            {% endif %}
+			        {% endfor %}
+		    	</div>
+		    </div>
+		    {% if gameweek.deadline_passed %}
+			<div class="row">
+				<div class="twelve columns">
+		            <h2>Other bets</h2>
+		    	</div>
+		    </div>
+			<div class="row">
+				<div class="twelve columns">
+		            <table>
+		            	<thead>
+		            		<tr>
+		            			<th></th>
+		            			<th>Stake</th>
+		            			<th>Game</th>
+		            			<th>Result</th>
+		            		</tr>
+		            	</thead>
+			            <tbody>
+			            	{% for betcontainer in gameweek.betcontainer_set.all %}
+			            	{% if user != betcontainer.owner %}
+			                <tr>
+			                	<td rowspan="{{ betcontainer.get_game_count }}">{{ betcontainer.owner.username }}</td>
+			                    {% for accumulator in betcontainer.accumulator_set.all %}
+			                    <td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
+	                            {% for betpart in accumulator.betpart_set.all %}
+	                            <td>{{ betpart.game }}</td>
+	                            <td>{{ betpart.result }}
                                 {% if forloop.last %}
-                                    </td>
+                               	</td>
                                 {% else %}
-                                    </td></tr><tr>
+                                </td>
+                            </tr>
+                            <tr>
                                 {% endif %}
-                            {% endfor %}
-                            {% if forloop.last %}
-                                </tr>
-                            {% else %}
-                                </tr><tr>
-                            {% endif %}
-                    {% endfor %}
-                {% endif %}
-            {% endfor %}
-            </tbody></table>
-        {% endif %}
-    {% endif %}
-</br></br>
-<a href="/bets/{{ gameweek.season.id }}/">Back to season</a>
-{% else %}
-    <p>No data available.</p>
-{% endif %}
+	                            {% endfor %}
+	                            {% if forloop.last %}
+	                        </tr>
+	                            {% else %}
+		                    </tr>
+		                    <tr>
+	                            {% endif %}
+			                    {% endfor %}
+			                	{% endif %}
+			            		{% endfor %}
+			            </tbody>
+			        </table>
+		        	{% endif %}
+		    		{% endif %}
+		    	</div>
+		    </div>
+			<a href="/bets/{{ gameweek.season.id }}/">Back to season</a>
+			{% endif %}
+		</div>
+	</body>
+</html>

@@ -1,36 +1,42 @@
 {% load staticfiles %}
-<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
-<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
-<h1>Add Results</h1>
-<a href="/bets/gameweek/{{ gameweek_id }}/">Back to gameweek</a>
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
-
-<form method="post">
-    {% csrf_token %}
-    {% for error in result_formset.non_form_errors %}
-    <p>{{ error }}</p>
-    {% endfor %}
-    <table>
-        <thead>
-            <tr><td>Game</td><td>Result</td></tr>
-        </thead>
-        <tbody>
-        {% for result_form in result_formset.forms %}
-        <tr>
-            <td>{{ result_form.game }}</td>
-            <td>{{ result_form.result }}</td>
-    {% for error in result_form.non_form_errors %}
-    {{ error }}
-    {% endfor %}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {{ result_formset.management_form }}
-    </br>
-    <input type="submit" value="Add results" class="button"/>
-</form>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+	</head>
+	<body>
+		<h1>Add Results</h1>
+		<a href="/bets/gameweek/{{ gameweek_id }}/">Back to gameweek</a>
+		{% if messages %}
+		    {% for message in messages %}
+		        <p>{{ message }}</p>
+		    {% endfor %}
+		{% endif %}
+		
+		<form method="post">
+		    {% csrf_token %}
+		    {% for error in result_formset.non_form_errors %}
+		    <p>{{ error }}</p>
+		    {% endfor %}
+		    <table>
+		        <thead>
+		            <tr><td>Game</td><td>Result</td></tr>
+		        </thead>
+		        <tbody>
+		        {% for result_form in result_formset.forms %}
+		        <tr>
+		            <td>{{ result_form.game }}</td>
+		            <td>{{ result_form.result }}</td>
+		    {% for error in result_form.non_form_errors %}
+		    {{ error }}
+		    {% endfor %}</td>
+		        </tr>
+		        {% endfor %}
+		        </tbody>
+		    </table>
+		    {{ result_formset.management_form }}
+		    </br>
+		    <input type="submit" value="Add results" class="button"/>
+		</form>
+	</body>
+</html>
