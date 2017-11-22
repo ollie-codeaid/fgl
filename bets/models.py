@@ -45,30 +45,10 @@ class Season(models.Model):
         else:
             return self.gameweek_set.filter(number=gameweek.number-1)[0]
 
-    def get_latest_winnings(self):
-        gameweek = self.get_latest_gameweek()
-        return self.calculate_winnings_to_gameweek(gameweek)
-
     def get_latest_gameweek(self):
         latest_gameweek_number = len(self.gameweek_set.all())
 
         return self.gameweek_set.filter(number=latest_gameweek_number)[0]
-
-    def get_latest_user_balances(self):
-        if self.get_next_gameweek_id() == 1:
-            return None
-
-        latest_gameweek = self.get_latest_gameweek()
-
-        if latest_gameweek.results_complete():
-            gameweek = latest_gameweek
-        else:
-            number = latest_gameweek.number
-            if number == 1:
-                return None
-            gameweek = self.gameweek_set.filter(number=number-1)[0]
-            
-        return gameweek.balancemap_set.all()[0].balance_set.all()
 
     def can_create_gameweek(self):
         if self.get_next_gameweek_id() > 1:
@@ -89,9 +69,6 @@ class Gameweek(models.Model):
 
     def __str__(self):
         return str(self.season) + ',' + str(self.number)
-
-    def is_latest(self):
-        return self.number == len(self.season.gameweek_set.all())
 
     def update_no_bet_users(self):
         if self.number > 1:
@@ -296,8 +273,7 @@ class BetContainer(models.Model):
     def get_game_count(self):
         game_count = 0
         for accumulator in self.accumulator_set.all():
-            for betpart in accumulator.betpart_set.all():
-                game_count += 1
+            game_count += len(accumulator.betpart_set.all())
 
         return game_count
 
