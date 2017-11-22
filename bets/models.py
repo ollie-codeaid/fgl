@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 
 from wagtail.wagtailsnippets.models import register_snippet
+from __builtin__ import True
 
 #
 # Create your models here.
@@ -22,6 +23,27 @@ class Season(models.Model):
 
     def get_next_gameweek_id(self):
         return len(self.gameweek_set.all()) + 1
+
+    def balances_available(self):
+        latest_gameweek_number = len(self.gameweek_set.all())
+        
+        if latest_gameweek_number == 0:
+            # No balances if no gameweek
+            return False
+        elif latest_gameweek_number > 1:
+            # Must be balances if gameweek 1 complete
+            return True
+        else:
+            # Check if gameweek 1 complete
+            gameweek = self.gameweek_set.filter(number=1)[0]
+            return gameweek.results_complete()
+        
+    def get_latest_complete_gameweek(self):
+        gameweek = self.get_latest_gameweek()
+        if gameweek.results_complete():
+            return gameweek
+        else:
+            return self.gameweek_set.filter(number=gameweek.number-1)[0]
 
     def get_latest_winnings(self):
         gameweek = self.get_latest_gameweek()

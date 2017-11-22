@@ -1,0 +1,20 @@
+<div class="row">
+	<div class="twelve columns">
+        <table>
+	        <tr>
+	        	<th></th>
+	        	<th>Weekly</th>
+	        	<th>Provisional</th>
+	        	<th>Banked</th>
+	        </tr>
+	        {% for betcontainer in gameweek.betcontainer_set.all %}
+            <tr>
+            	<td>{{ betcontainer.owner }}</td>
+                <td>{{ betcontainer.get_balance.week }}</td>
+                <td>{{ betcontainer.get_balance.provisional }}</td>
+                <td>{{ betcontainer.get_balance.banked }}</td>
+            </tr>
+	        {% endfor %}
+        </table>
+	</div>
+</div>

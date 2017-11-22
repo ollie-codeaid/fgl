@@ -34,6 +34,8 @@
 			    </div>
 			</div>
 			{% endif %}
+			{% if season.balances_available %}
+			{% user_balances season.get_latest_complete_gameweek %}
 			<div class="row">
 				<div class="twelve columns">
 				    <h2>Latest Results</h2>
