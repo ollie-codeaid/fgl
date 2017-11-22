@@ -35,29 +35,14 @@
 			</div>
 			{% endif %}
 			{% if season.balances_available %}
-			{% user_balances season.get_latest_complete_gameweek %}
 			<div class="row">
 				<div class="twelve columns">
-				    <h2>Latest Results</h2>
-				    <table>
-					    <tr>
-					    	<th></th>
-					    	<th>Weekly</th>
-					    	<th>Provisional</th>
-					    	<th>Banked</th>
-					    </tr>
-				    	{% for userbalance in season.get_latest_user_balances %}
-				        <tr>
-				        	<td>{{ userbalance.user }}</td>
-				            <td>{{ userbalance.week }}</td>
-				            <td>{{ userbalance.provisional }}</td>
-				            <td>{{ userbalance.banked }}</td>
-				        </tr>
-				    	{% endfor %}
-				    </table>
-				</div>
-			</div>
-		{% endif %}
+			        <h2>Latest Results</h2>
+		    	</div>
+		    </div>
+			{% user_balances season.get_latest_complete_gameweek %}
+			{% endif %}
+			{% endif %}
 		</div>
 	</body>
 </html>
