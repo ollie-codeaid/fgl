@@ -1,53 +1,68 @@
 {% load staticfiles %}
-<head>
-    <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/redmond/jquery-ui.css"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
-</head>
-<h1>Add Gameweek</h1>
-<a href="/bets/{{ season_id }}/">Back to season</a></br></br>
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
-
-<form method="post">
-    {% csrf_token %}
-    <p class="date-picker">Deadline date: {{ gameweek_form.deadline_date }}</p>
-    <p>Deadline time: {{ gameweek_form.deadline_time }}</p>
-    <p>Spiel: {{ gameweek_form.spiel }}</p>
-    {% for error in gameweek_form.non_form_errors %}
-    <p>{{ error }}</p>
-    {% endfor %}
-    <table>
-        <thead>
-            <tr><td></td><td class="inputnumber">Home</td><td class="inputnumber">Draw</td><td class="inputnumber">Away</td><td></td>
-            </tr>
-        </thead>
-        <tbody>
-        {% for game_form in game_formset.forms %}
-        <tr class="game-formset">
-            <td>{{ game_form.hometeam }}</td>
-            <td class="inputnumber">{{ game_form.homenumerator }}/{{ game_form.homedenominator }}</td>
-            <td class="inputnumber">{{ game_form.drawnumerator }}/{{ game_form.drawdenominator }}</td>
-            <td class="inputnumber">{{ game_form.awaynumerator }}/{{ game_form.awaydenominator }}</td>
-            <td>{{ game_form.awayteam }}</td>
-            <td>
-    {% for error in game_form.non_form_errors %}
-    {{ error }}
-    {% endfor %}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% for error in game_formset.non_form_errors %}
-    <p>{{ error }}</p>
-    {% endfor %}
-    {{ game_formset.management_form }}
-    </br>
-    <input type="submit" value="Add Gameweek" class="button"/>
-</form>
+{% load bets_extras %}
+<html>
+	<head>
+	    <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/redmond/jquery-ui.css"/>
+	    <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+	    <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+	</head>
+	<body>
+		<div class="container">
+			{% login_header request %}
+			<div class="row">
+				<div class="twelve columns">
+					<h1>Add Gameweek</h1>
+					<a href="/bets/{{ season_id }}/">Back to season</a></br></br>
+					{% if messages %}
+					    {% for message in messages %}
+					        <p>{{ message }}</p>
+					    {% endfor %}
+					{% endif %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="twelve columns">
+					<form method="post">
+					    {% csrf_token %}
+					    <p class="date-picker">Deadline date: {{ gameweek_form.deadline_date }}</p>
+					    <p>Deadline time: {{ gameweek_form.deadline_time }}</p>
+					    <p>Spiel: {{ gameweek_form.spiel }}</p>
+					    {% for error in gameweek_form.non_form_errors %}
+					    <p>{{ error }}</p>
+					    {% endfor %}
+					    <table>
+					        <thead>
+					            <tr>
+					            	<td></td>
+					            	<td class="inputnumber">Home</td>
+					            	<td class="inputnumber">Draw</td>
+					            	<td class="inputnumber">Away</td>
+					            	<td></td>
+					            </tr>
+					        </thead>
+					        <tbody>
+					        {% for game_form in game_formset.forms %}
+					        <tr class="game-formset">
+					            <td>{{ game_form.hometeam }}</td>
+					            <td class="inputnumber">{{ game_form.homenumerator }}/{{ game_form.homedenominator }}</td>
+					            <td class="inputnumber">{{ game_form.drawnumerator }}/{{ game_form.drawdenominator }}</td>
+					            <td class="inputnumber">{{ game_form.awaynumerator }}/{{ game_form.awaydenominator }}</td>
+					            <td>{{ game_form.awayteam }}</td>
+					            <td></td>
+					        </tr>
+					        {% endfor %}
+					        </tbody>
+					    </table>
+					    {% for error in game_formset.non_form_errors %}
+					    <p>{{ error }}</p>
+					    {% endfor %}
+					    {{ game_formset.management_form }}
+					    <input type="submit" value="Add Gameweek" class="button"/>
+					</form>
+				</div>
+			</div>
+		</div>
+	</body>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <script src="{% static 'js/jquery.formset.js' %}"></script>
@@ -60,3 +75,4 @@
             $("#id_deadline_date").datepicker();
         });
     </script>
+</html>

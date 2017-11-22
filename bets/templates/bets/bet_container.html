@@ -1,28 +1,64 @@
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
-<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
-{% if bet_container %}
-    <h1>Manage Bets</h1>
-    <a href="/bets/gameweek/{{ bet_container.gameweek.id }}/">Back to gameweek</a></br></br>
-    <h3>Weekly allowance: {{ bet_container.get_allowance }}</h3>
-    <table>
-        <thead><tr><th>Stake</th><th>Game</th><th>Result</th><th></th></tr></thead>
-    <tbody>
-    {% for accumulator in bet_container.accumulator_set.all %}
-        <tr>
-            <td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
-            {% for betpart in accumulator.betpart_set.all %}
-                <td>{{ betpart.game }}</td>
-                <td>{{ betpart.result }}</td>
-            </tr>
-            <tr>
-        {% endfor %}
-        </tr>
-        <tr><td></td><td></td><td><a href="/bets/bets/{{ accumulator.id }}/update_bet">Change bet</a></td></tr>
-    {% endfor %}
-    </tbody>
-    </table>
-    </br></br>
-    <h3>Total stake used: {{ bet_container.get_allowance_used }}</h3>
-    <a href="/bets/bets/{{ bet_container.id }}/add_bet/">Add bet</a></br>
-{% endif %}
+{% load bets_extras %}
+<html>
+	<header>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+	</header>
+	<body>
+		<div class="container">
+			{% if bet_container %}
+		    {% login_header request %}
+			<div class="row">
+				<div class="twelve columns">
+			    	<h1>Manage Bets</h1>
+				    <a href="/bets/gameweek/{{ bet_container.gameweek.id }}/">Back to gameweek</a>
+			    </div>
+			</div>
+			<div class="row">
+				<div class="twelve columns">
+				    <h3>Weekly allowance: {{ bet_container.get_allowance }}</h3>
+			    </div>
+			</div>
+			<div class="row">
+				<div class="twelve columns">
+				    <table>
+				        <thead>
+				        	<tr>
+				        		<th>Stake</th>
+				        		<th>Game</th>
+				        		<th>Result</th>
+				        		<th></th>
+				        	</tr>
+				        </thead>
+				    	<tbody>
+				    		{% for accumulator in bet_container.accumulator_set.all %}
+			        		<tr>
+					            <td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
+					            {% for betpart in accumulator.betpart_set.all %}
+					                <td>{{ betpart.game }}</td>
+					                <td>{{ betpart.result }}</td>
+					        </tr>
+					        <tr>
+					        	{% endfor %}
+					        </tr>
+				        	<tr>
+				        		<td></td>
+				        		<td></td>
+				        		<td><a href="/bets/bets/{{ accumulator.id }}/update_bet">Change bet</a></td>
+				        	</tr>
+				    		{% endfor %}
+				    	</tbody>
+				    </table>
+			    </div>
+			</div>
+			<div class="row">
+				<div class="twelve columns">
+				    <h3>Total stake used: {{ bet_container.get_allowance_used }}</h3>
+				    <a href="/bets/bets/{{ bet_container.id }}/add_bet/">Add bet</a>
+			    </div>
+			</div>
+			{% endif %}
+		</div>
+	</body>
+</html>
