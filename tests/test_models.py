@@ -1,30 +1,65 @@
 from django.test import TestCase
 
-from bets.models import Season
-import mock
+from bets.models import Season, Gameweek, Game, BetContainer, Balance
+from django.contrib.auth.models import User
+from mock import Mock, patch
+from datetime import date, time
+
+def _create_test_season():
+    season = Season(name='test', 
+                    weekly_allowance=100.0)
+    season.save()
+    return season
+
+def _create_test_gameweek(season):
+    gameweek = Gameweek(season=season, 
+                        number=season.get_next_gameweek_id(), 
+                        deadline_date=date(2017, 11, 1), 
+                        deadline_time=time(12, 00), 
+                        spiel='')
+    gameweek.save()
+    return gameweek
+
+def _create_test_game(gameweek):
+    game = Game(gameweek=gameweek,
+                hometeam='Chelsea',
+                awayteam='Liverpool',
+                homenumerator=1, homedenominator=50,
+                drawnumerator=1, drawdenominator=20,
+                awaynumerator=100, awaydenominator=1)
+    game.save()
+    return game
+    
+def _create_test_bet_container(gameweek, user):
+    betcontainer = BetContainer(gameweek=gameweek,
+                                owner=user)
+    betcontainer.save()
+    return betcontainer
+    
+def _create_mock_user(username):
+    # might have to be clever later on with user name
+    return Mock(spec=User)
 
 class SeasonTest(TestCase):
 
     def test_get_next_gameweek_id(self):
-        season = Season(name='test', weekly_allowance=100.0)
+        season = _create_test_season()
         
         number = season.get_next_gameweek_id()
         self.assertEqual(1, number)
         
-        mockGameweekSet = mock.Mock()
-        # Make sure len returns 2
-        mockGameweekSet.all.return_value = [1,2]
+        _create_test_gameweek(season)
+        _create_test_gameweek(season)
         
-        with mock.patch('bets.models.Season.gameweek_set', mockGameweekSet):
-            number = season.get_next_gameweek_id()
-            self.assertEqual(3, number)
+        number = season.get_next_gameweek_id()
+        self.assertEqual(3, number)
             
     def test_balances_available(self):
-        season = Season(name='test', weekly_allowance=100.0)
+        season = _create_test_season()
         
-        mockGameweekSet = mock.Mock()
+        mockGameweekSet = Mock()
         
-        with mock.patch('bets.models.Season.gameweek_set', mockGameweekSet):
+        with patch('bets.models.Season.gameweek_set', mockGameweekSet):
             
             # Make sure len returns 0
             mockGameweekSet.all.return_value = []
@@ -35,28 +70,28 @@ class SeasonTest(TestCase):
             self.assertTrue(season.balances_available())
             
             # Make sure len returns 1
-            mockGameweek = mock.Mock()
+            mockGameweek = Mock()
             mockGameweek.results_complete.return_value = True
             mockGameweekSet.all.return_value = [1,]
             mockGameweekSet.filter.return_value = [mockGameweek]
             self.assertTrue(season.balances_available())
             
     def test_get_latest_complete_gameweek(self):
-        season = Season(name='test', weekly_allowance=100.0)
-        mockGameweekLatest = mock.Mock()
+        season = _create_test_season()
+        mockGameweekLatest = Mock()
         
-        with mock.patch('bets.models.Season.get_latest_gameweek', return_value=mockGameweekLatest):
+        with patch('bets.models.Season.get_latest_gameweek', return_value=mockGameweekLatest):
             mockGameweekLatest.results_complete.return_value = True
             result = season.get_latest_complete_gameweek()
             
             self.assertEqual(mockGameweekLatest, result)
             
             mockGameweekLatest.number = 2
-            mockOtherGameweek = mock.Mock()
-            mockGameweekSet = mock.Mock()
+            mockOtherGameweek = Mock()
+            mockGameweekSet = Mock()
             mockGameweekSet.filter.return_value = [mockOtherGameweek]
             
-            with mock.patch('bets.models.Season.gameweek_set', mockGameweekSet):
+            with patch('bets.models.Season.gameweek_set', mockGameweekSet):
                 mockGameweekLatest.results_complete.return_value = False
                 result = season.get_latest_complete_gameweek()
                 
@@ -64,4 +99,49 @@ class SeasonTest(TestCase):
                 # For good measure
                 self.assertNotEqual(mockOtherGameweek, mockGameweekLatest)
             
-            
+    def test_get_latest_gameweek(self):
+        season = _create_test_season()
+        gameweek1 = _create_test_gameweek(season)
+        gameweek2 = _create_test_gameweek(season)
+        
+        result = season.get_latest_gameweek()
+        
+        self.assertEqual(gameweek2, result)
+        
+    def test_can_create_gameweek(self):
+        season = _create_test_season()
+        self.assertTrue(season.can_create_gameweek())
+        
+        gameweek = _create_test_gameweek(season)
+        _create_test_game(gameweek)
+        self.assertFalse(season.can_create_gameweek())
+        
+class GameweekTest(TestCase):
+    
+    @patch('bets.models.Gameweek._get_users_with_bets')
+    @patch('bets.models.Gameweek._get_last_gameweek')
+    @patch('bets.models.Gameweek.set_balance_by_user')
+    def test_update_no_bet_users(self, setBalanceMethod, lastGameweekMethod, usersMethod):
+        ollie = Mock(spec=User)
+        liam = Mock(spec=User)
+        
+        ollieBalance = Mock(spec=Balance)
+        ollieBalance.user = ollie
+        liamBalance = Mock(spec=Balance)
+        liamBalance.user = liam
+        liamBalance.week = 50.0
+        
+        lastGameweek = Mock()
+        lastGameweek._get_balance_set.return_value = [ ollieBalance, liamBalance ]
+        
+        usersMethod.return_value = [ ollie ]
+        lastGameweekMethod.return_value = lastGameweek
+        
+        season = _create_test_season()
+        gameweekOne = _create_test_gameweek(season)
+        gameweekTwo = _create_test_gameweek(season)
+        
+        gameweekTwo.update_no_bet_users()
+        
+        self.assertEqual(1, setBalanceMethod.call_count)
+        setBalanceMethod.assert_any_call(liam, -100.0, -50.0)

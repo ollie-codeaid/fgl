@@ -7,9 +7,12 @@ from django.db import models
 
 from django.contrib.auth.models import User
 from django.db import transaction
+import logging
 
 from wagtail.wagtailsnippets.models import register_snippet
 from __builtin__ import True
+
+logger = logging.getLogger(__name__)
 
 #
 # Create your models here.
@@ -70,14 +73,27 @@ class Gameweek(models.Model):
     def __str__(self):
         return str(self.season) + ',' + str(self.number)
 
+    def _get_users_with_bets(self):
+        users = []
+        for betcontainer in self.betcontainer_set.all():
+            users.append(betcontainer.owner)
+        return users
+    
+    def _get_last_gameweek(self):
+        return self.season.gameweek_set.filter(number=self.number-1)[0]
+    
+    def _get_balance_set(self):
+        return self.balancemap_set.all()[0].balance_set.all()
+
     def update_no_bet_users(self):
         if self.number > 1:
-            users = []
-            for betcontainer in self.betcontainer_set.all():
-                users.append(betcontainer.owner)
-
-            prev_gameweek = self.season.gameweek_set.filter(number=self.number-1)[0]
-            for balance in prev_gameweek.balancemap_set.all()[0].balance_set.all():
+            users = self._get_users_with_bets()
+            prev_gameweek = self._get_last_gameweek()
+            prev_balance_set = prev_gameweek._get_balance_set()
+            
+            logger.error(prev_balance_set)
+            
+            for balance in prev_balance_set:
                 if balance.user not in users:
                     self.set_balance_by_user(balance.user,
                             self.season.weekly_allowance * -1,
