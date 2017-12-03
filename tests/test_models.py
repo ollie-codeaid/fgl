@@ -145,3 +145,34 @@ class GameweekTest(TestCase):
         
         self.assertEqual(1, setBalanceMethod.call_count)
         setBalanceMethod.assert_any_call(liam, -100.0, -50.0)
+        
+    def test__get_balance_map(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+        
+        self.assertEqual(0, len(gameweek.balancemap_set.all()))
+        
+        balancemap = gameweek._get_balancemap()
+        self.assertEqual(1, len(gameweek.balancemap_set.all()))
+        
+        self.assertEqual(balancemap, gameweek._get_balancemap())
+        
+    def test__calc_enforce_banked(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+        
+        self.assertEqual(0.0, gameweek._calc_enforce_banked(10.0))
+        self.assertEqual(-10.0, gameweek._calc_enforce_banked(-10.0))
+        
+    @patch('bets.models.Gameweek.get_banked_by_user')
+    def test__get_last_banked(self, getBankedMethod):
+        season = _create_test_season()
+        gameweek1 = _create_test_gameweek(season)
+        
+        user = Mock()
+        self.assertEqual(0.0, gameweek1._get_last_banked(user))
+        
+        gameweek2 = _create_test_gameweek(season)
+        getBankedMethod.return_value = 100.0
+        self.assertEqual(100.0, gameweek2._get_last_banked(user))
+        getBankedMethod.assert_any_call(user, 1)

@@ -14,7 +14,6 @@ from __builtin__ import True
 
 logger = logging.getLogger(__name__)
 
-#
 # Create your models here.
 @register_snippet
 class Season(models.Model):
@@ -98,61 +97,50 @@ class Gameweek(models.Model):
                     self.set_balance_by_user(balance.user,
                             self.season.weekly_allowance * -1,
                             balance.week - self.season.weekly_allowance)
-
-    def set_balance_by_user(self, user, week_winnings, week_unused):
+                    
+    def _get_balancemap(self):
+        # Should have exactly one balancemap per gameweek
+        # If it does not exist then create it
         if len(self.balancemap_set.all()) == 0:
             balancemap = BalanceMap(gameweek=self)
             balancemap.save()
         else:
             balancemap = self.balancemap_set.all()[0]
-
+        return balancemap
+    
+    def _calc_enforce_banked(self, week_winnings):
+        # If user made a loss then that has to be realized immediately
         if week_winnings < 0.0:
             enforce_banked = week_winnings
         else:
             enforce_banked = 0
-
-        if len(self.balancemap_set.all()[0].balance_set.filter(user=user)) == 0:
-
-            if len(self.balancemap_set.all()) == 0:
-                balancemap = BalanceMap(gameweek=self)
-                balancemap.save()
-
-            if self.number==1:
-                user_balance = Balance(balancemap=balancemap, 
-                        user=user, 
-                        week=week_winnings, 
-                        provisional=week_winnings,
-                        banked=enforce_banked)
-            else:
-                last_banked = self.get_banked_by_user(user, self.number-1)
-
-                user_balance = Balance(balancemap=balancemap, 
-                        user=user, 
-                        week=week_winnings,
-                        provisional=last_banked + week_winnings,
-                        banked=last_banked + week_unused + enforce_banked)
-
-            user_balance.save()
+        return enforce_banked
+    
+    def _get_last_banked(self, user):
+        # If Gameweek 1 then last banked must be 0
+        if self.number==1:
+            last_banked = 0.0
         else:
-            old_user_balance = balancemap.balance_set.filter(user=user)[0]
+            last_banked = self.get_banked_by_user(user, self.number-1)
+        return last_banked
 
-            if self.number==1:
-                user_balance = Balance(balancemap=balancemap, 
-                        user=user, 
-                        week=week_winnings, 
-                        provisional=week_winnings,
-                        banked=enforce_banked)
-            else:
-                last_banked = self.get_banked_by_user(user, self.number-1)
+    def set_balance_by_user(self, user, week_winnings, week_unused):
+        balancemap = self._get_balancemap()
+        enforce_banked = self._calc_enforce_banked(week_winnings)
 
-                user_balance = Balance(balancemap=balancemap, 
-                        user=user, 
-                        week=week_winnings,
-                        provisional=last_banked + week_winnings,
-                        banked=last_banked + week_unused + enforce_banked)
-            with transaction.atomic():
+        last_banked = self._get_last_banked(user)
+        
+        user_balance = Balance(balancemap=balancemap, 
+                user=user, 
+                week=week_winnings,
+                provisional=last_banked + week_winnings,
+                banked=last_banked + week_unused + enforce_banked)
+        
+        with transaction.atomic():
+            if len(balancemap.user_has_balance(user)):
+                old_user_balance = balancemap.balance_set.filter(user=user)[0]
                 old_user_balance.delete()
-                user_balance.save()
+            user_balance.save()
 
     def get_banked_by_user(self, user, number):
         season = self.season
@@ -212,6 +200,9 @@ class Gameweek(models.Model):
 
 class BalanceMap(models.Model):
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
+    
+    def user_has_balance(self, user):
+        return len(self.balance_set.filter(user=user)) > 0
 
 class Balance(models.Model):
     balancemap = models.ForeignKey(BalanceMap, on_delete=models.CASCADE)
