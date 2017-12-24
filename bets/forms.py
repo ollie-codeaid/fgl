@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 from django.forms.formsets import BaseFormSet
-from django.forms.widgets import DateTimeInput
+from django.forms.widgets import DateInput, TimeInput, Textarea
 from django.shortcuts import get_object_or_404
 
 from .models import Gameweek, Game, Result, BetContainer, Accumulator, BetPart
@@ -9,6 +9,11 @@ class GameweekForm(ModelForm):
     class Meta:
         model = Gameweek
         fields = ['deadline_date', 'deadline_time', 'spiel']
+        widgets = {
+            'deadline_date' : DateInput(attrs={ 'class': 'u-full-width' }),
+            'deadline_time' : TimeInput(attrs={ 'class': 'u-full-width' }),
+            'spiel' : Textarea(attrs={ 'class': 'u-full-width' }),
+        }
 
 class GameForm(ModelForm):
     class Meta:
