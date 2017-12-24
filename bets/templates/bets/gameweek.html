@@ -32,6 +32,13 @@
 	    		<h2>Deadline: {{ gameweek.deadline_date }}, {{ gameweek.deadline_time }}</h2>
 	    	</div>
 	    </div>
+        {% if gameweek.spiel %}
+        <div class="row">
+            <div class="two columns"></div>
+            <div class="eight columns">{{ gameweek.spiel }}</div>
+            <div class="two columns"></div>
+        </div>
+        {% endif %}
 		<div class="row">
 			<div class="twelve columns">
 			    {% if request.user|has_group:"Commissioners" %}
