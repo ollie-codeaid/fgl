@@ -198,6 +198,40 @@ class Gameweek(models.Model):
                     rollable_allowances[balance.user] = balance.week
             return rollable_allowances
 
+    def get_ordered_results(self):
+        balancemap = self.balancemap_set.all()[0]
+        results = []
+
+        if self.number == 1:
+            for balance in balancemap.balance_set.order_by('-provisional'):
+                results.append( [balance.user, balance.week, balance.provisional, balance.banked, '-'] )
+        else:
+            prev_gameweek = self._get_last_gameweek()
+            prev_results = prev_gameweek.get_ordered_results()
+            position = 0
+            position_map = {}
+            for result in prev_results:
+                position_map[prev_results[0]] = position
+                position += 1
+
+            position = 0
+            for balance in balancemap.balance_set.order_by('-provisional'):
+                if balance.user not in position_map:
+                    move = '-'
+                else:
+                    old_position = position_map[balance.user]
+                    if old_position > position:
+                        move = '/\\'
+                    elif old_position == position:
+                        move = '-'
+                    else:
+                        move = '\\/'
+
+                results.append( [balance.user, balance.week, balance.provisional, balance.banked, move] )
+                position += 1
+
+        return results
+
 class BalanceMap(models.Model):
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
     

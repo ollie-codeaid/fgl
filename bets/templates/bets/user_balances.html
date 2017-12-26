@@ -6,13 +6,13 @@
 	        	<th>Weekly</th>
 	        	<th>Provisional</th>
 	        	<th>Banked</th>
+                <th></th>
 	        </tr>
-	        {% for betcontainer in gameweek.betcontainer_set.all %}
+	        {% for result in gameweek.get_ordered_results %}
             <tr>
-            	<td>{{ betcontainer.owner }}</td>
-                <td>{{ betcontainer.get_balance.week }}</td>
-                <td>{{ betcontainer.get_balance.provisional }}</td>
-                <td>{{ betcontainer.get_balance.banked }}</td>
+                {% for el in result %}
+                <td>{{ el }}</td>
+                {% endfor %}
             </tr>
 	        {% endfor %}
         </table>
