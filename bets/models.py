@@ -95,8 +95,8 @@ class Gameweek(models.Model):
             for balance in prev_balance_set:
                 if balance.user not in users:
                     self.set_balance_by_user(balance.user,
-                            self.season.weekly_allowance * -1,
-                            balance.week - self.season.weekly_allowance)
+                            float(self.season.weekly_allowance * -1),
+                            float(balance.week - self.season.weekly_allowance))
                     
     def _get_balancemap(self):
         # Should have exactly one balancemap per gameweek
@@ -133,11 +133,11 @@ class Gameweek(models.Model):
         user_balance = Balance(balancemap=balancemap, 
                 user=user, 
                 week=week_winnings,
-                provisional=last_banked + week_winnings,
-                banked=last_banked + week_unused + enforce_banked)
+                provisional=float(last_banked) + week_winnings,
+                banked=float(last_banked) + week_unused + enforce_banked)
         
         with transaction.atomic():
-            if len(balancemap.user_has_balance(user)):
+            if balancemap.user_has_balance(user):
                 old_user_balance = balancemap.balance_set.filter(user=user)[0]
                 old_user_balance.delete()
             user_balance.save()
@@ -169,6 +169,9 @@ class Gameweek(models.Model):
         return ((datetime.datetime.now().date() == self.deadline_date
                 and datetime.datetime.now().time() >= self.deadline_time)
                 or datetime.datetime.now().date() > self.deadline_date)
+
+    def is_latest(self):
+        return self == self.season.get_latest_gameweek()
     
     def results_complete(self):
         results_count = 0
@@ -211,7 +214,7 @@ class Gameweek(models.Model):
             position = 0
             position_map = {}
             for result in prev_results:
-                position_map[prev_results[0]] = position
+                position_map[result[0]] = position
                 position += 1
 
             position = 0
