@@ -94,9 +94,13 @@ class Gameweek(models.Model):
             
             for balance in prev_balance_set:
                 if balance.user not in users:
+                    if balance.week > 0:
+                        unused = float(balance.week - self.season.weekly_allowance)
+                    else:
+                        unused = float(-1 * self.season.weekly_allowance)
                     self.set_balance_by_user(balance.user,
                             float(self.season.weekly_allowance * -1),
-                            float(balance.week - self.season.weekly_allowance))
+                            unused)
                     
     def _get_balancemap(self):
         # Should have exactly one balancemap per gameweek
@@ -241,12 +245,16 @@ class BalanceMap(models.Model):
     def user_has_balance(self, user):
         return len(self.balance_set.filter(user=user)) > 0
 
+@register_snippet
 class Balance(models.Model):
     balancemap = models.ForeignKey(BalanceMap, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     week = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
     provisional = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
     banked = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
+
+    def __str__(self):
+        return str(self.balancemap.gameweek.number) + ':' + str(self.user)
 
 @register_snippet
 class Game(models.Model):
