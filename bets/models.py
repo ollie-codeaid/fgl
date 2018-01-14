@@ -386,6 +386,7 @@ class Accumulator(models.Model):
         return name
 
     def calc_winnings(self):
+        ''' Calculate winnings for this accumulator '''
         correct = True
         odds = 1.0
         for betpart in self.betpart_set.all():

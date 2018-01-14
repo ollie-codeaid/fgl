@@ -4,6 +4,7 @@ from bets.models import Season, Gameweek, Game, BetContainer, Balance
 from django.contrib.auth.models import User
 from mock import Mock, patch
 from datetime import date, time
+from bets.views import gameweek
 
 def _create_test_season():
     season = Season(name='test', 
@@ -179,3 +180,23 @@ class GameweekTest(TestCase):
         getBankedMethod.return_value = 100.0
         self.assertEqual(100.0, gameweek2._get_last_banked(user))
         getBankedMethod.assert_any_call(user, 1)
+        
+    @patch('bets.models.Balance')
+    @patch('bets.models.BalanceMap.user_has_balance', Mock(return_value=False))
+    def test__set_balance_by_user(self, balance):
+        
+        season = _create_test_season()
+        gameweek1 = _create_test_gameweek(season)
+        balancemap = gameweek1._get_balancemap()
+        
+        user = Mock()
+        gameweek1.set_balance_by_user(user, 123.0, 50.0)
+        
+        balance.assert_any_call(
+            balancemap=balancemap, 
+            user=user, 
+            week=123.0, 
+            provisional=123.0, 
+            banked=50.0)
+        
+        
