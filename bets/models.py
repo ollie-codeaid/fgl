@@ -95,9 +95,9 @@ class Gameweek(models.Model):
             for balance in prev_balance_set:
                 if balance.user not in users:
                     if balance.week > 0:
-                        unused = float(balance.week - self.season.weekly_allowance)
+                        unused = float(balance.week)
                     else:
-                        unused = float(-1 * self.season.weekly_allowance)
+                        unused = 0.0
                     self.set_balance_by_user(balance.user,
                             float(self.season.weekly_allowance * -1),
                             unused)
