@@ -66,6 +66,10 @@ class BaseGameFormSet(BaseFormSet):
                 teams.append(away)
 
 class ResultForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        gameweek = kwargs.pop('gameweek')
+        super(ResultForm, self).__init__(*args, **kwargs)
+        self.fields['game'].queryset = Game.objects.filter(gameweek=gameweek)
     class Meta:
         model = Result
         fields = ['game', 'result']

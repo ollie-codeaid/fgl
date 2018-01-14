@@ -151,6 +151,7 @@ def update_gameweek(request, gameweek_id):
 def add_gameweek_results(request, gameweek_id): 
     gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
     ResultFormSet = formset_factory(ResultForm, formset=BaseResultFormSet, extra=0)
+    ResultFormSet.form = staticmethod(curry(ResultForm, gameweek=gameweek))
 
     if request.method == 'POST':
         result_formset = ResultFormSet(request.POST)
