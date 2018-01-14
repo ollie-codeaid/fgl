@@ -144,7 +144,10 @@ class GameweekTest(TestCase):
         gameweekTwo.update_no_bet_users()
         
         self.assertEqual(1, setBalanceMethod.call_count)
-        setBalanceMethod.assert_any_call(liam, -100.0, -50.0)
+        setBalanceMethod.assert_any_call(
+            user=liam, 
+            week_winnings=float(-100.0), 
+            week_unused=float(50.0))
         
     def test__get_balance_map(self):
         season = _create_test_season()
