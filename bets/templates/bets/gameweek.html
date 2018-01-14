@@ -39,6 +39,13 @@
             <div class="two columns"><p></p></div>
         </div>
         {% endif %}
+        {% if not gameweek.deadline_passed %}
+        <div class="row">
+            <div class="twelve columns">
+                <p>Valid bets submitted by: {{ gameweek.get_users_with_ready_bets_as_string }}</p>
+            </div>
+        </div>
+        {% endif %}
 		<div class="row">
 			<div class="twelve columns">
 			    {% if request.user|has_group:"Commissioners" %}

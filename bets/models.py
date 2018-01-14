@@ -77,6 +77,16 @@ class Gameweek(models.Model):
         for betcontainer in self.betcontainer_set.all():
             users.append(betcontainer.owner)
         return users
+
+    def get_users_with_ready_bets_as_string(self):
+        users = ''
+        for betcontainer in self.betcontainer_set.all():
+            total_bet = 0.0
+            for accumulator in betcontainer.accumulator_set.all():
+                total_bet += float(accumulator.stake)
+            if total_bet >= self.season.weekly_allowance:
+                users += betcontainer.owner.username + ', '
+        return users
     
     def _get_last_gameweek(self):
         return self.season.gameweek_set.filter(number=self.number-1)[0]
