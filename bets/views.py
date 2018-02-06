@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.db import IntegrityError, transaction
 from django.forms.formsets import formset_factory
