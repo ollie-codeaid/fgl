@@ -153,18 +153,23 @@ class Gameweek(models.Model):
     def set_balance_by_user(self, user, week_winnings, week_unused):
         ''' Set the balance for this gameweek for this user.
             Weekly = week_winnings
-            Provisional = last week banked + week_winnings
+            Provisional = banked + week winnings (if positive)
             Banked = last week banked + week_unused + any weekly losses '''
         balancemap = self._get_balancemap()
         enforce_banked = self._calc_enforce_banked(week_winnings)
 
         last_banked = self._get_last_banked(user)
+        banked = float(last_banked) + week_unused + enforce_banked
+        if (week_winnings > 0.0 ):
+            provisional = banked + week_winnings
+        else:
+            provisional = banked
         
         user_balance = Balance(balancemap=balancemap, 
                 user=user, 
                 week=week_winnings,
-                provisional=float(last_banked) + week_winnings,
-                banked=float(last_banked) + week_unused + enforce_banked)
+                provisional=provisional,
+                banked=banked)
         
         with transaction.atomic():
             if balancemap.user_has_balance(user):
