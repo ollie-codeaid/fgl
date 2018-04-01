@@ -196,7 +196,7 @@ class GameweekTest(TestCase):
             balancemap=balancemap, 
             user=user, 
             week=123.0, 
-            provisional=123.0, 
+            provisional=173.0, 
             banked=50.0)
         
         
