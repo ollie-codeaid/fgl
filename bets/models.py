@@ -97,8 +97,17 @@ class Gameweek(models.Model):
                 users += betcontainer.owner.username + ', '
         return users
     
-    def _get_last_gameweek(self):
+    def is_first_gameweek(self):
+        return self.numer == 1
+
+    def is_latest_gameweek(self):
+        return self == self.season.get_latest_gameweek()
+
+    def get_last_gameweek(self):
         return self.season._get_gameweek_by_id(self.number-1)
+
+    def get_next_gameweek(self):
+        return self.season._get_gameweek_by_id(self.number+1)
     
     def _get_balance_set(self):
         return self._get_balancemap().balance_set.all()
@@ -109,7 +118,7 @@ class Gameweek(models.Model):
             accordingly '''
         if self.number > 1:
             users = self._get_users_with_bets()
-            prev_gameweek = self._get_last_gameweek()
+            prev_gameweek = self.get_last_gameweek()
             prev_balance_set = prev_gameweek._get_balance_set()
             
             for balance in prev_balance_set:
@@ -234,7 +243,7 @@ class Gameweek(models.Model):
         if self.number == 1:
             return None
         else:
-            prev_gameweek = self._get_last_gameweek()
+            prev_gameweek = self.get_last_gameweek()
             prev_balances = prev_gameweek._get_balance_set()
             rollable_allowances = {}
             for balance in prev_balances:
@@ -251,7 +260,7 @@ class Gameweek(models.Model):
             for balance in balancemap.balance_set.order_by('-provisional'):
                 results.append( [balance.user, balance.week, balance.provisional, balance.banked, '-'] )
         else:
-            prev_gameweek = self._get_last_gameweek()
+            prev_gameweek = self.get_last_gameweek()
             prev_results = prev_gameweek.get_ordered_results()
             position = 0
             position_map = {}

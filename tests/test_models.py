@@ -120,7 +120,7 @@ class SeasonTest(TestCase):
 class GameweekTest(TestCase):
     
     @patch('bets.models.Gameweek._get_users_with_bets')
-    @patch('bets.models.Gameweek._get_last_gameweek')
+    @patch('bets.models.Gameweek.get_last_gameweek')
     @patch('bets.models.Gameweek.set_balance_by_user')
     def test_update_no_bet_users(self, setBalanceMethod, lastGameweekMethod, usersMethod):
         ollie = Mock(spec=User)
