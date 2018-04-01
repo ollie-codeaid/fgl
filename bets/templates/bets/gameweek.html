@@ -16,7 +16,7 @@
 	    {% login_header request %}
 	    <div class="row">
 	    	<div class="twelve columns">
-			<h1>{{ if not gameweek.is_first_gameweek }}<a href="/bets/gameweek/{{ gameweek.get_last_gameweek.id }}/">&lt;</a> {{ endif }}Gameweek {{ gameweek.number }}{{ if not gameweek.is_lastest_gameweek }} <a href="/bets/gameweek/{{ gameweek.get_next_gameweek.id }}/">&gt;</a>{{ endif }}</h1>
+			<h1>{% if not gameweek.is_first_gameweek %}<a href="/bets/gameweek/{{ gameweek.get_last_gameweek.id }}/">&lt;</a> {% endif %}Gameweek {{ gameweek.number }}{% if not gameweek.is_lastest_gameweek %} <a href="/bets/gameweek/{{ gameweek.get_next_gameweek.id }}/">&gt;</a>{% endif %}</h1>
 	    	</div>
 	    </div>
 		<div class="row">

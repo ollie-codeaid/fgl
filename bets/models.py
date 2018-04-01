@@ -98,7 +98,7 @@ class Gameweek(models.Model):
         return users
     
     def is_first_gameweek(self):
-        return self.numer == 1
+        return self.number == 1
 
     def is_latest_gameweek(self):
         return self == self.season.get_latest_gameweek()
