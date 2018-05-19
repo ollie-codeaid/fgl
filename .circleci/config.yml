@@ -33,6 +33,7 @@ jobs:
             virtualenv fgl_ci
             source fgl_ci/bin/activate
             pip install -r requirements.txt
+            pip install codecov
 
       - save_cache:
           paths:
@@ -49,6 +50,7 @@ jobs:
           command: |
             source fgl_ci/bin/activate
             python manage.py test
+            codecov
           environment:
             DJANGO_SETTINGS_MODULE: fglsite.settings.dev
 
