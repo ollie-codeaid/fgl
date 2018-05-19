@@ -48,7 +48,6 @@ jobs:
       - run:
           name: run tests
           command: |
-            git --version
             source fgl_ci/bin/activate
             python manage.py test
             codecov
