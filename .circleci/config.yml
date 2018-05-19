@@ -34,6 +34,7 @@ jobs:
             source fgl_ci/bin/activate
             pip install -r requirements.txt
             pip install codecov
+            pip install coverage
 
       - save_cache:
           paths:
@@ -50,6 +51,7 @@ jobs:
           command: |
             source fgl_ci/bin/activate
             python manage.py test
+            coverage run 'manage.py test'
             codecov
           environment:
             DJANGO_SETTINGS_MODULE: fglsite.settings.dev
