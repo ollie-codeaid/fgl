@@ -49,6 +49,8 @@ jobs:
           command: |
             . venv/bin/activate
             python manage.py test
+          environment:
+            DJANGO_SETTINGS_MODULE: fglsite.settings.dev
 
       - store_artifacts:
           path: test-reports
