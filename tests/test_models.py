@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from bets.models import Season, Gameweek, Game, BetContainer, Balance
+from bets.models import Season, Gameweek, Game, BetContainer, Balance, BalanceMap
 from django.contrib.auth.models import User
 from mock import Mock, patch
 from datetime import date, time
@@ -54,10 +54,6 @@ def _create_test_bet_container(gameweek, user):
     betcontainer.save()
     return betcontainer
     
-def _create_mock_user(username):
-    # might have to be clever later on with user name
-    return Mock(spec=User)
-
 class SeasonTest(TestCase):
 
     def test__str__(self):
@@ -195,7 +191,7 @@ class GameweekTest(TestCase):
         liamBalance.week = 50.0
         
         lastGameweek = Mock()
-        lastGameweek._get_balance_set.return_value = [ ollieBalance, liamBalance ]
+        lastGameweek.balance_set.all.return_value = { ollieBalance, liamBalance }
         
         usersMethod.return_value = [ ollie ]
         lastGameweekMethod.return_value = lastGameweek
@@ -211,17 +207,6 @@ class GameweekTest(TestCase):
             user=liam, 
             week_winnings=float(-100.0), 
             week_unused=float(50.0))
-        
-    def test__get_balance_map(self):
-        season = _create_test_season()
-        gameweek = _create_test_gameweek(season)
-        
-        self.assertEqual(0, len(gameweek.balancemap_set.all()))
-        
-        balancemap = gameweek._get_balancemap()
-        self.assertEqual(1, len(gameweek.balancemap_set.all()))
-        
-        self.assertEqual(balancemap, gameweek._get_balancemap())
         
     def test__calc_enforce_banked(self):
         season = _create_test_season()
@@ -247,18 +232,17 @@ class GameweekTest(TestCase):
         getBalanceMethod.assert_any_call(user)
         
     @patch('bets.models.Balance')
-    @patch('bets.models.BalanceMap.user_has_balance', Mock(return_value=False))
+    @patch('bets.models.Gameweek.user_has_balance', Mock(return_value=False))
     def test__set_balance_by_user(self, balance):
         
         season = _create_test_season()
         gameweek = _create_test_gameweek(season)
-        balancemap = gameweek._get_balancemap()
         
         user = Mock()
         gameweek.set_balance_by_user(user, 123.0, 50.0)
         
         balance.assert_any_call(
-            balancemap=balancemap, 
+            gameweek=gameweek, 
             user=user, 
             week=123.0, 
             provisional=173.0, 
@@ -267,11 +251,14 @@ class GameweekTest(TestCase):
     def test__get_balance_by_user(self):
         season = _create_test_season()
         gameweek = _create_test_gameweek(season)
-        balancemap = gameweek._get_balancemap()
         user_one = _get_user_one()
         user_two = _get_user_two()
 
+        balancemap = BalanceMap(gameweek=gameweek)
+        balancemap.save()
+
         balance = Balance(balancemap=balancemap,
+                gameweek=gameweek,
                 user=user_one,
                 week=123.0,
                 provisional=1234.0,

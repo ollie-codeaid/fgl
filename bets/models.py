@@ -96,9 +96,6 @@ class Gameweek(models.Model):
             raise Exception('Called get_next_gameweek on latest gameweek')
         return self.season._get_gameweek_by_id(self.number+1)
     
-    def _get_balance_set(self):
-        return self._get_balancemap().balance_set.all()
-
     def update_no_bet_users(self):
         ''' For users who have no betcontainer for this week, set weekly winnings
             as -100, weekly unused as all available rollable and update balance 
@@ -106,7 +103,7 @@ class Gameweek(models.Model):
         if self.number > 1:
             users = self._get_users_with_bets()
             prev_gameweek = self.get_prev_gameweek()
-            prev_balance_set = prev_gameweek._get_balance_set()
+            prev_balance_set = prev_gameweek.balance_set.all()
             
             for balance in prev_balance_set:
                 if balance.user not in users:
@@ -120,16 +117,6 @@ class Gameweek(models.Model):
                         week_unused=unused
                         )
                     
-    def _get_balancemap(self):
-        # Should have exactly one balancemap per gameweek
-        # If it does not exist then create it
-        if len(self.balancemap_set.all()) == 0:
-            balancemap = BalanceMap(gameweek=self)
-            balancemap.save()
-        else:
-            balancemap = self.balancemap_set.all()[0]
-        return balancemap
-    
     def _calc_enforce_banked(self, week_winnings):
         # If user made a loss then that has to be realized immediately
         if week_winnings < 0.0:
@@ -153,7 +140,6 @@ class Gameweek(models.Model):
             Weekly = week_winnings
             Provisional = banked + week winnings (if positive)
             Banked = last week banked + week_unused + any weekly losses '''
-        balancemap = self._get_balancemap()
         enforce_banked = self._calc_enforce_banked(week_winnings)
 
         prev_banked = self._get_prev_banked(user)
@@ -163,26 +149,24 @@ class Gameweek(models.Model):
         else:
             provisional = banked
         
-        user_balance = Balance(balancemap=balancemap, 
+        user_balance = Balance(gameweek=self, 
                 user=user, 
                 week=week_winnings,
                 provisional=provisional,
                 banked=banked)
         
         with transaction.atomic():
-            if balancemap.user_has_balance(user):
-                old_user_balance = balancemap.balance_set.filter(user=user)[0]
+            if self.user_has_balance(user):
+                old_user_balance = self.balance_set.filter(user=user)[0]
                 old_user_balance.delete()
             user_balance.save()
 
     def _get_balance_by_user(self, user):
         ''' Get user balance '''
-        balancemap = self._get_balancemap()
-
-        if len(balancemap.balance_set.filter(user=user)) == 0:
+        if len(self.balance_set.filter(user=user)) == 0:
             return None
         else:
-            return balancemap.balance_set.filter(user=user)[0]
+            return self.balance_set.filter(user=user)[0]
 
     def has_bets(self):
         ''' Check if any users have placed bets '''
@@ -222,7 +206,7 @@ class Gameweek(models.Model):
             return None
         else:
             prev_gameweek = self.get_prev_gameweek()
-            prev_balances = prev_gameweek._get_balance_set()
+            prev_balances = prev_gameweek.balance_set.all()
             rollable_allowances = {}
             for balance in prev_balances:
                 if balance.week > 0.0:
@@ -231,11 +215,10 @@ class Gameweek(models.Model):
 
     def get_ordered_results(self):
         ''' Get full results ordered by provisional descending'''
-        balancemap = self._get_balancemap()
         results = []
 
         if self.number == 1:
-            for balance in balancemap.balance_set.order_by('-provisional'):
+            for balance in self.balance_set.order_by('-provisional'):
                 results.append( [balance.user, balance.week, balance.provisional, balance.banked, '-'] )
         else:
             prev_gameweek = self.get_prev_gameweek()
@@ -247,7 +230,7 @@ class Gameweek(models.Model):
                 position += 1
 
             position = 0
-            for balance in balancemap.balance_set.order_by('-provisional'):
+            for balance in self.balance_set.order_by('-provisional'):
                 if balance.user not in position_map:
                     move = '-'
                 else:
@@ -281,24 +264,27 @@ class Gameweek(models.Model):
                 users += betcontainer.owner.username + ', '
         return users
     
-
-class BalanceMap(models.Model):
-    gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
-    
     def user_has_balance(self, user):
         ''' Check if user has a balance '''
         return len(self.balance_set.filter(user=user)) > 0
 
+class BalanceMap(models.Model):
+    gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
+
 @register_snippet
 class Balance(models.Model):
     balancemap = models.ForeignKey(BalanceMap, on_delete=models.CASCADE)
+    gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     week = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
     provisional = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
     banked = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
 
     def __str__(self):
-        return str(self.balancemap.gameweek.number) + ':' + str(self.user)
+        if self.gameweek:
+            return str(self.gameweek.number) + ':' + str(self.user)
+        else:
+            return str(self.balancemap.gameweek.number) + ':' + str(self.user)
 
 @register_snippet
 class Game(models.Model):
