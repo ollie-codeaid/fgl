@@ -298,3 +298,15 @@ class GameweekTest(TestCase):
         gameweek = _create_test_gameweek(season)
 
         self.assertTrue( gameweek.deadline_passed() )
+
+    @patch('bets.models.Gameweek.get_rollable_allowances')
+    def test__get_allowance_by_user(self, rollables ):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+        user_one = _get_user_one()
+        user_two = _get_user_two()
+        rollables.return_value = { user_one: 123.0 }
+
+        self.assertEquals( 223.0, gameweek._get_allowance_by_user( user_one ) )
+        self.assertEquals( 100.0, gameweek._get_allowance_by_user( user_two ) )
+
