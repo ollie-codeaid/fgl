@@ -87,9 +87,13 @@ class Gameweek(models.Model):
         return self == self.season._get_latest_gameweek()
 
     def get_prev_gameweek(self):
+        if self.is_first_gameweek():
+            raise Exception('Called get_prev_gameweek on first gameweek')
         return self.season._get_gameweek_by_id(self.number-1)
 
     def get_next_gameweek(self):
+        if self.is_latest_gameweek():
+            raise Exception('Called get_next_gameweek on latest gameweek')
         return self.season._get_gameweek_by_id(self.number+1)
     
     def _get_balance_set(self):

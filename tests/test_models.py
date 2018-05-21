@@ -43,6 +43,11 @@ def _create_mock_user(username):
 
 class SeasonTest(TestCase):
 
+    def test__str__(self):
+        season = _create_test_season()
+
+        self.assertIn('test', str(season))
+
     def test_get_next_gameweek_id(self):
         season = _create_test_season()
         
@@ -118,7 +123,47 @@ class SeasonTest(TestCase):
         self.assertFalse(season.can_create_gameweek())
         
 class GameweekTest(TestCase):
+
+    def test__str__(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+
+        self.assertIn('test', str(gameweek))
+        self.assertIn('1', str(gameweek))
+
+    def test_is_first_gameweek(self):
+        season = _create_test_season()
+        gameweek_one = _create_test_gameweek(season)
+        gameweek_two = _create_test_gameweek(season)
+
+        self.assertTrue( gameweek_one.is_first_gameweek() )
+        self.assertFalse( gameweek_two.is_first_gameweek() )
+
+    def test_get_prev_gameweek(self):
+        season = _create_test_season()
+        gameweek_one = _create_test_gameweek(season)
+        gameweek_two = _create_test_gameweek(season)
     
+        self.assertEquals( gameweek_one, gameweek_two.get_prev_gameweek() )
+
+        with self.assertRaises(Exception) as context:
+            gameweek_one.get_prev_gameweek()
+
+        self.assertIn( 'Called get_prev_gameweek on first gameweek', context.exception.message )
+
+    def test_get_next_gameweek(self):
+        season = _create_test_season()
+        gameweek_one = _create_test_gameweek(season)
+        gameweek_two = _create_test_gameweek(season)
+    
+        self.assertEquals( gameweek_two, gameweek_one.get_next_gameweek() )
+
+        with self.assertRaises(Exception) as context:
+            gameweek_two.get_next_gameweek()
+
+        self.assertIn( 'Called get_next_gameweek on latest gameweek', context.exception.message )
+
+
     @patch('bets.models.Gameweek._get_users_with_bets')
     @patch('bets.models.Gameweek.get_prev_gameweek')
     @patch('bets.models.Gameweek.set_balance_by_user')
