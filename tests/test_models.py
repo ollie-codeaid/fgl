@@ -81,7 +81,7 @@ class SeasonTest(TestCase):
         season = _create_test_season()
         mockGameweekLatest = Mock()
         
-        with patch('bets.models.Season.get_latest_gameweek', return_value=mockGameweekLatest):
+        with patch('bets.models.Season._get_latest_gameweek', return_value=mockGameweekLatest):
             mockGameweekLatest.results_complete.return_value = True
             result = season.get_latest_complete_gameweek()
             
@@ -100,12 +100,12 @@ class SeasonTest(TestCase):
                 # For good measure
                 self.assertNotEqual(mockOtherGameweek, mockGameweekLatest)
             
-    def test_get_latest_gameweek(self):
+    def test__get_latest_gameweek(self):
         season = _create_test_season()
         gameweek1 = _create_test_gameweek(season)
         gameweek2 = _create_test_gameweek(season)
         
-        result = season.get_latest_gameweek()
+        result = season._get_latest_gameweek()
         
         self.assertEqual(gameweek2, result)
         
@@ -120,7 +120,7 @@ class SeasonTest(TestCase):
 class GameweekTest(TestCase):
     
     @patch('bets.models.Gameweek._get_users_with_bets')
-    @patch('bets.models.Gameweek.get_last_gameweek')
+    @patch('bets.models.Gameweek.get_prev_gameweek')
     @patch('bets.models.Gameweek.set_balance_by_user')
     def test_update_no_bet_users(self, setBalanceMethod, lastGameweekMethod, usersMethod):
         ollie = Mock(spec=User)
@@ -168,7 +168,7 @@ class GameweekTest(TestCase):
         self.assertEqual(0.0, gameweek._calc_enforce_banked(10.0))
         self.assertEqual(-10.0, gameweek._calc_enforce_banked(-10.0))
         
-    @patch('bets.models.Gameweek.get_banked_by_user')
+    @patch('bets.models.Gameweek._get_banked_by_user')
     def test__get_last_banked(self, getBankedMethod):
         season = _create_test_season()
         gameweek1 = _create_test_gameweek(season)

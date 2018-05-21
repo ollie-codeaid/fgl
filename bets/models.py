@@ -47,13 +47,13 @@ class Season(models.Model):
         
     def get_latest_complete_gameweek(self):
         ''' Get latest gameweek that has a complete set of results '''
-        gameweek = self.get_latest_gameweek()
+        gameweek = self._get_latest_gameweek()
         if gameweek.results_complete():
             return gameweek
         else:
             return self._get_gameweek_by_id(gameweek.number - 1)
 
-    def get_latest_gameweek(self):
+    def _get_latest_gameweek(self):
         ''' Get latest gameweek '''
         latest_gameweek_number = self.get_next_gameweek_id() - 1
 
@@ -62,7 +62,7 @@ class Season(models.Model):
     def can_create_gameweek(self):
         ''' Check whether new gameweek can be created '''
         if self.get_next_gameweek_id() > 1:
-            if not self.get_latest_gameweek().results_complete():
+            if not self._get_latest_gameweek().results_complete():
                 return False
         return True
 
@@ -80,30 +80,13 @@ class Gameweek(models.Model):
     def __str__(self):
         return str(self.season) + ',' + str(self.number)
 
-    def _get_users_with_bets(self):
-        users = []
-        for betcontainer in self.betcontainer_set.all():
-            users.append(betcontainer.owner)
-        return users
-
-    def get_users_with_ready_bets_as_string(self):
-        ''' Print usernames of users who have already placed valid bets '''
-        users = ''
-        for betcontainer in self.betcontainer_set.all():
-            total_bet = 0.0
-            for accumulator in betcontainer.accumulator_set.all():
-                total_bet += float(accumulator.stake)
-            if total_bet >= self.season.weekly_allowance:
-                users += betcontainer.owner.username + ', '
-        return users
-    
     def is_first_gameweek(self):
         return self.number == 1
 
     def is_latest_gameweek(self):
-        return self == self.season.get_latest_gameweek()
+        return self == self.season._get_latest_gameweek()
 
-    def get_last_gameweek(self):
+    def get_prev_gameweek(self):
         return self.season._get_gameweek_by_id(self.number-1)
 
     def get_next_gameweek(self):
@@ -118,7 +101,7 @@ class Gameweek(models.Model):
             accordingly '''
         if self.number > 1:
             users = self._get_users_with_bets()
-            prev_gameweek = self.get_last_gameweek()
+            prev_gameweek = self.get_prev_gameweek()
             prev_balance_set = prev_gameweek._get_balance_set()
             
             for balance in prev_balance_set:
@@ -156,7 +139,7 @@ class Gameweek(models.Model):
         if self.number==1:
             last_banked = 0.0
         else:
-            last_banked = self.get_banked_by_user(user, self.number-1)
+            last_banked = self._get_banked_by_user(user, self.number-1)
         return last_banked
 
     def set_balance_by_user(self, user, week_winnings, week_unused):
@@ -186,14 +169,14 @@ class Gameweek(models.Model):
                 old_user_balance.delete()
             user_balance.save()
 
-    def get_banked_by_user(self, user, number):
+    def _get_banked_by_user(self, user, number):
         ''' Get banked by user and gameweek number '''
         season = self.season
         gameweek = season._get_gameweek_by_id(number)
-        user_balance = gameweek.get_balance_by_user(user)
+        user_balance = gameweek._get_balance_by_user(user)
         return user_balance.banked
 
-    def get_balance_by_user(self, user):
+    def _get_balance_by_user(self, user):
         ''' Get user balance '''
         balancemap = self._get_balancemap()
 
@@ -215,10 +198,6 @@ class Gameweek(models.Model):
                 and datetime.datetime.now().time() >= self.deadline_time)
                 or datetime.datetime.now().date() > self.deadline_date)
 
-    def is_latest(self):
-        ''' Check if this is the most recent gameweek '''
-        return self == self.season.get_latest_gameweek()
-    
     def results_complete(self):
         ''' Check if ALL results have been posted '''
         results_count = 0
@@ -228,7 +207,7 @@ class Gameweek(models.Model):
                 results_count += 1
         return results_count == len(game_set)
 
-    def get_allowance_by_user(self, user):
+    def _get_allowance_by_user(self, user):
         ''' Get allowance + rollable for this user '''
         allowance = self.season.weekly_allowance
         rollable_allowances = self.get_rollable_allowances()
@@ -243,7 +222,7 @@ class Gameweek(models.Model):
         if self.number == 1:
             return None
         else:
-            prev_gameweek = self.get_last_gameweek()
+            prev_gameweek = self.get_prev_gameweek()
             prev_balances = prev_gameweek._get_balance_set()
             rollable_allowances = {}
             for balance in prev_balances:
@@ -260,7 +239,7 @@ class Gameweek(models.Model):
             for balance in balancemap.balance_set.order_by('-provisional'):
                 results.append( [balance.user, balance.week, balance.provisional, balance.banked, '-'] )
         else:
-            prev_gameweek = self.get_last_gameweek()
+            prev_gameweek = self.get_prev_gameweek()
             prev_results = prev_gameweek.get_ordered_results()
             position = 0
             position_map = {}
@@ -285,6 +264,24 @@ class Gameweek(models.Model):
                 position += 1
 
         return results
+
+    def _get_users_with_bets(self):
+        users = []
+        for betcontainer in self.betcontainer_set.all():
+            users.append(betcontainer.owner)
+        return users
+
+    def get_users_with_ready_bets_as_string(self):
+        ''' Print usernames of users who have already placed valid bets '''
+        users = ''
+        for betcontainer in self.betcontainer_set.all():
+            total_bet = 0.0
+            for accumulator in betcontainer.accumulator_set.all():
+                total_bet += float(accumulator.stake)
+            if total_bet >= self.season.weekly_allowance:
+                users += betcontainer.owner.username + ', '
+        return users
+    
 
 class BalanceMap(models.Model):
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
@@ -359,10 +356,10 @@ class BetContainer(models.Model):
         return str(self.gameweek) + ',' + self.owner.username
 
     def get_balance(self):
-        return self.gameweek.get_balance_by_user(user=self.owner)
+        return self.gameweek._get_balance_by_user(user=self.owner)
 
     def get_allowance(self):
-        return self.gameweek.get_allowance_by_user(self.owner)
+        return self.gameweek._get_allowance_by_user(self.owner)
 
     def get_allowance_used(self):
         allowance_used = 0.0
