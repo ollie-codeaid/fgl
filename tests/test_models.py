@@ -6,6 +6,23 @@ from mock import Mock, patch
 from datetime import date, time
 from bets.views import gameweek
 
+user_one = None
+user_two = None
+
+def _get_user_one():
+    global user_one, user_two
+    if not user_one:
+        user_one = User(username='one', password='test')
+        user_one.save()
+    return user_one
+
+def _get_user_two():
+    global user_one, user_two
+    if not user_two:
+        user_two = User(username='two', password='none')
+        user_two.save()
+    return user_two
+
 def _create_test_season():
     season = Season(name='test', 
                     weekly_allowance=100.0)
@@ -234,11 +251,11 @@ class GameweekTest(TestCase):
     def test__set_balance_by_user(self, balance):
         
         season = _create_test_season()
-        gameweek1 = _create_test_gameweek(season)
-        balancemap = gameweek1._get_balancemap()
+        gameweek = _create_test_gameweek(season)
+        balancemap = gameweek._get_balancemap()
         
         user = Mock()
-        gameweek1.set_balance_by_user(user, 123.0, 50.0)
+        gameweek.set_balance_by_user(user, 123.0, 50.0)
         
         balance.assert_any_call(
             balancemap=balancemap, 
@@ -247,4 +264,37 @@ class GameweekTest(TestCase):
             provisional=173.0, 
             banked=50.0)
         
-        
+    def test__get_balance_by_user(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+        balancemap = gameweek._get_balancemap()
+        user_one = _get_user_one()
+        user_two = _get_user_two()
+
+        balance = Balance(balancemap=balancemap,
+                user=user_one,
+                week=123.0,
+                provisional=1234.0,
+                banked=10.0)
+        balance.save()
+
+        result_balance = gameweek._get_balance_by_user(user_one)
+
+        self.assertEquals( balance, result_balance )
+        self.assertIsNone( gameweek._get_balance_by_user(user_two) )
+
+    def test_has_bets(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+
+        self.assertFalse( gameweek.has_bets() )
+
+        bet_container = BetContainer( owner=_get_user_one(), gameweek=gameweek )
+        bet_container.save()
+        self.assertTrue( gameweek.has_bets() )
+
+    def test_deadline_passed(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+
+        self.assertTrue( gameweek.deadline_passed() )
