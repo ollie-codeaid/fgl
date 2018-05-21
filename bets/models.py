@@ -138,13 +138,15 @@ class Gameweek(models.Model):
             enforce_banked = 0.0
         return enforce_banked
     
-    def _get_last_banked(self, user):
+    def _get_prev_banked(self, user):
         # If Gameweek 1 then last banked must be 0
         if self.number==1:
-            last_banked = 0.0
+            prev_banked = 0.0
         else:
-            last_banked = self._get_banked_by_user(user, self.number-1)
-        return last_banked
+            prev_gameweek = self.get_prev_gameweek()
+            prev_balance = prev_gameweek._get_balance_by_user(user)
+            prev_banked = prev_balance.banked
+        return prev_banked
 
     def set_balance_by_user(self, user, week_winnings, week_unused):
         ''' Set the balance for this gameweek for this user.
@@ -154,8 +156,8 @@ class Gameweek(models.Model):
         balancemap = self._get_balancemap()
         enforce_banked = self._calc_enforce_banked(week_winnings)
 
-        last_banked = self._get_last_banked(user)
-        banked = float(last_banked) + week_unused + enforce_banked
+        prev_banked = self._get_prev_banked(user)
+        banked = float(prev_banked) + week_unused + enforce_banked
         if (week_winnings > 0.0 ):
             provisional = banked + week_winnings
         else:
@@ -172,13 +174,6 @@ class Gameweek(models.Model):
                 old_user_balance = balancemap.balance_set.filter(user=user)[0]
                 old_user_balance.delete()
             user_balance.save()
-
-    def _get_banked_by_user(self, user, number):
-        ''' Get banked by user and gameweek number '''
-        season = self.season
-        gameweek = season._get_gameweek_by_id(number)
-        user_balance = gameweek._get_balance_by_user(user)
-        return user_balance.banked
 
     def _get_balance_by_user(self, user):
         ''' Get user balance '''
