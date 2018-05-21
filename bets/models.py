@@ -268,12 +268,8 @@ class Gameweek(models.Model):
         ''' Check if user has a balance '''
         return len(self.balance_set.filter(user=user)) > 0
 
-class BalanceMap(models.Model):
-    gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
-
 @register_snippet
 class Balance(models.Model):
-    balancemap = models.ForeignKey(BalanceMap, on_delete=models.CASCADE)
     gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     week = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
@@ -281,10 +277,7 @@ class Balance(models.Model):
     banked = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
 
     def __str__(self):
-        if self.gameweek:
-            return str(self.gameweek.number) + ':' + str(self.user)
-        else:
-            return str(self.balancemap.gameweek.number) + ':' + str(self.user)
+        return str(self.gameweek.number) + ':' + str(self.user)
 
 @register_snippet
 class Game(models.Model):

@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from bets.models import Season, Gameweek, Game, BetContainer, Balance, BalanceMap
+from bets.models import Season, Gameweek, Game, BetContainer, Balance
 from django.contrib.auth.models import User
 from mock import Mock, patch
 from datetime import date, time
@@ -254,10 +254,7 @@ class GameweekTest(TestCase):
         user_one = _get_user_one()
         user_two = _get_user_two()
 
-        balancemap = BalanceMap(gameweek=gameweek)
-        balancemap.save()
-
-        balance = Balance(balancemap=balancemap,
+        balance = Balance(
                 gameweek=gameweek,
                 user=user_one,
                 week=123.0,
