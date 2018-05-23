@@ -213,37 +213,38 @@ class Gameweek(models.Model):
                     rollable_allowances[balance.user] = balance.week
             return rollable_allowances
 
+    def _get_user_positions(self):
+        user_positions = {}
+        position = 0
+        for balance in self.balance_set.order_by('-provisional'):
+            user_positions.update({balance.user: position})
+
+        return user_positions
+
+    def _get_change_icon(self, positions, prev_positions, user):
+        change_icon = '-'
+        if user in prev_positions:
+            diff = prev_positions[user] - positions[user]
+            if diff > 0:
+                change_icon = '/\\'
+            elif diff < 0:
+                change_icon = '\\/'
+
+        return change_icon
+
     def get_ordered_results(self):
         ''' Get full results ordered by provisional descending'''
         results = []
 
-        if self.number == 1:
-            for balance in self.balance_set.order_by('-provisional'):
-                results.append( [balance.user, balance.week, balance.provisional, balance.banked, '-'] )
+        positions = self._get_user_positions()
+        if self.number > 1:
+            prev_positions = self.get_prev_gameweek()._get_user_positions()
         else:
-            prev_gameweek = self.get_prev_gameweek()
-            prev_results = prev_gameweek.get_ordered_results()
-            position = 0
-            position_map = {}
-            for result in prev_results:
-                position_map[result[0]] = position
-                position += 1
+            prev_positions = {}
 
-            position = 0
-            for balance in self.balance_set.order_by('-provisional'):
-                if balance.user not in position_map:
-                    move = '-'
-                else:
-                    old_position = position_map[balance.user]
-                    if old_position > position:
-                        move = '/\\'
-                    elif old_position == position:
-                        move = '-'
-                    else:
-                        move = '\\/'
-
-                results.append( [balance.user, balance.week, balance.provisional, balance.banked, move] )
-                position += 1
+        for balance in self.balance_set.order_by('-provisional'):
+            change_icon = self._get_change_icon( positions, prev_positions, balance.user )
+            results.append( [balance.user, balance.week, balance.provisional, balance.banked, change_icon] )
 
         return results
 

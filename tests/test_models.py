@@ -6,23 +6,6 @@ from mock import Mock, patch
 from datetime import date, time
 from bets.views import gameweek
 
-user_one = None
-user_two = None
-
-def _get_user_one():
-    global user_one, user_two
-    if not user_one:
-        user_one = User(username='one', password='test')
-        user_one.save()
-    return user_one
-
-def _get_user_two():
-    global user_one, user_two
-    if not user_two:
-        user_two = User(username='two', password='none')
-        user_two.save()
-    return user_two
-
 def _create_test_season():
     season = Season(name='test', 
                     weekly_allowance=100.0)
@@ -180,31 +163,31 @@ class GameweekTest(TestCase):
     @patch('bets.models.Gameweek._get_users_with_bets')
     @patch('bets.models.Gameweek.get_prev_gameweek')
     @patch('bets.models.Gameweek.set_balance_by_user')
-    def test_update_no_bet_users(self, setBalanceMethod, lastGameweekMethod, usersMethod):
-        ollie = Mock(spec=User)
-        liam = Mock(spec=User)
+    def test_update_no_bet_users(self, set_balance_method, prev_gameweek_method, users_method):
+        user_one = Mock(spec=User)
+        user_two = Mock(spec=User)
         
-        ollieBalance = Mock(spec=Balance)
-        ollieBalance.user = ollie
-        liamBalance = Mock(spec=Balance)
-        liamBalance.user = liam
-        liamBalance.week = 50.0
+        user_one_balance = Mock(spec=Balance)
+        user_one_balance.user = user_one
+        user_two_balance = Mock(spec=Balance)
+        user_two_balance.user = user_two
+        user_two_balance.week = 50.0
         
-        lastGameweek = Mock()
-        lastGameweek.balance_set.all.return_value = { ollieBalance, liamBalance }
+        prev_gameweek = Mock()
+        prev_gameweek.balance_set.all.return_value = { user_one_balance, user_two_balance }
         
-        usersMethod.return_value = [ ollie ]
-        lastGameweekMethod.return_value = lastGameweek
+        users_method.return_value = [ user_one ]
+        prev_gameweek_method.return_value = prev_gameweek
         
         season = _create_test_season()
-        gameweekOne = _create_test_gameweek(season)
-        gameweekTwo = _create_test_gameweek(season)
+        gameweek_one = _create_test_gameweek(season)
+        gameweek_two = _create_test_gameweek(season)
         
-        gameweekTwo.update_no_bet_users()
+        gameweek_two.update_no_bet_users()
         
-        self.assertEqual(1, setBalanceMethod.call_count)
-        setBalanceMethod.assert_any_call(
-            user=liam, 
+        self.assertEqual(1, set_balance_method.call_count)
+        set_balance_method.assert_any_call(
+            user=user_two, 
             week_winnings=float(-100.0), 
             week_unused=float(50.0))
         
@@ -251,8 +234,10 @@ class GameweekTest(TestCase):
     def test__get_balance_by_user(self):
         season = _create_test_season()
         gameweek = _create_test_gameweek(season)
-        user_one = _get_user_one()
-        user_two = _get_user_two()
+        user_one = User.objects.create_user('user_one')
+        user_one.save()
+        user_two = User.objects.create_user('user_two')
+        user_two.save()
 
         balance = Balance(
                 gameweek=gameweek,
@@ -271,9 +256,12 @@ class GameweekTest(TestCase):
         season = _create_test_season()
         gameweek = _create_test_gameweek(season)
 
+        user_one = User.objects.create_user('user_one')
+        user_one.save()
+        
         self.assertFalse( gameweek.has_bets() )
 
-        bet_container = BetContainer( owner=_get_user_one(), gameweek=gameweek )
+        bet_container = BetContainer( owner=user_one, gameweek=gameweek )
         bet_container.save()
         self.assertTrue( gameweek.has_bets() )
 
@@ -287,8 +275,10 @@ class GameweekTest(TestCase):
     def test__get_allowance_by_user(self, rollables ):
         season = _create_test_season()
         gameweek = _create_test_gameweek(season)
-        user_one = _get_user_one()
-        user_two = _get_user_two()
+        user_one = User.objects.create_user('user_one')
+        user_one.save()
+        user_two = User.objects.create_user('user_two')
+        user_two.save()
         rollables.return_value = { user_one: 123.0 }
 
         self.assertEquals( 223.0, gameweek._get_allowance_by_user( user_one ) )
@@ -298,15 +288,37 @@ class GameweekTest(TestCase):
         season = _create_test_season()
         gameweek_one = _create_test_gameweek(season)
         gameweek_two = _create_test_gameweek(season)
-        user_one = _get_user_one()
+        user_one = User.objects.create_user('user_one')
+        user_one.save()
 
         gameweek_one.set_balance_by_user( user_one, 199.0, 29.9 )
 
-        #allowances = gameweek_two.get_rollable_allowances()
+        allowances = gameweek_two.get_rollable_allowances()
 
         self.assertIsNone( gameweek_one.get_rollable_allowances() )
         # will have to leave this for the time being - errors locally but seemingly for no reason
-        #self.assertEquals( 1, len(allowances) )
-        #self.assertIn( user_one, allowances )
-        #self.assertEquals( 199.0, allowances[user_one] )
+        self.assertEquals( 1, len(allowances) )
+        self.assertIn( user_one, allowances )
+        self.assertEquals( 199.0, allowances[user_one] )
 
+    def test_get_ordered_results(self):
+        season = _create_test_season()
+        gameweek_one = _create_test_gameweek(season)
+        gameweek_two = _create_test_gameweek(season)
+        user_one = User.objects.create_user('user_one')
+        user_one.save()
+        user_two = User.objects.create_user('user_two')
+        user_two.save()
+
+        gameweek_one.set_balance_by_user( user_one, 1000.0, 0.0 )
+        gameweek_one.set_balance_by_user( user_two, 500.0, 0.0 )
+
+        gameweek_two.set_balance_by_user( user_one, -100.0, 0.0 )
+        gameweek_two.set_balance_by_user( user_two, -100.0, 500.0 )
+
+        results_one = gameweek_one.get_ordered_results()
+        results_two = gameweek_two.get_ordered_results()
+
+        self.assertEquals( 2, len(results_one) )
+        self.assertEquals( [user_one, 1000.0, 1000.0, 0.0, '-'], results_one[0] )
+        self.assertEquals( [user_two, 500.0, 500.0, 0.0, '-'], results_one[1] )
