@@ -357,3 +357,23 @@ class BalanceTest(TestCase):
         
         self.assertIn(str(gameweek), str(balance))
         self.assertIn(user_one.username, str(balance))
+
+class GameTest(TestCase):
+
+    def test_get_numerator(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+        game = _create_test_game(gameweek)
+
+        self.assertEquals(1, game.get_numerator('H'))
+        self.assertEquals(1, game.get_numerator('D'))
+        self.assertEquals(100, game.get_numerator('A'))
+
+    def test_get_denominator(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+        game = _create_test_game(gameweek)
+
+        self.assertEquals(50, game.get_denominator('H'))
+        self.assertEquals(20, game.get_denominator('D'))
+        self.assertEquals(1, game.get_denominator('A'))
