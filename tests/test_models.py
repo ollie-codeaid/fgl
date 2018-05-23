@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from bets.models import Season, Gameweek, Game, BetContainer, Balance
+from bets.models import Season, Gameweek, Game, BetContainer, Balance, Accumulator
 from django.contrib.auth.models import User
 from mock import Mock, patch
 from datetime import date, time
@@ -326,3 +326,22 @@ class GameweekTest(TestCase):
         self.assertEquals( 2, len(results_two) )
         self.assertEquals( [user_two, -100.0, 400.0, 400.0, '/\\'], results_two[0] )
         self.assertEquals( [user_one, -100.0, -100.0, -100.0, '\\/'], results_two[1] )
+
+    def test__get_users_with_ready_bets_as_string(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+
+        user_one = User.objects.create_user('user_one')
+        user_one.save()
+        user_two = User.objects.create_user('user_two')
+        user_two.save()
+
+        bet_container = BetContainer(owner = user_one, gameweek=gameweek)
+        bet_container.save()
+        accumulator = Accumulator(bet_container=bet_container, stake=100.0)
+        accumulator.save()
+        
+        users_with_ready_bets = gameweek.get_users_with_ready_bets_as_string()
+
+        self.assertIn(user_one.username, users_with_ready_bets)
+        self.assertNotIn(user_two.username, users_with_ready_bets)
