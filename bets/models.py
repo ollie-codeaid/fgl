@@ -279,7 +279,7 @@ class Balance(models.Model):
     banked = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
 
     def __str__(self):
-        return str(self.gameweek.number) + ':' + str(self.user)
+        return str(self.gameweek) + ':' + self.user.username
 
 @register_snippet
 class Game(models.Model):

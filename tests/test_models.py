@@ -345,3 +345,15 @@ class GameweekTest(TestCase):
 
         self.assertIn(user_one.username, users_with_ready_bets)
         self.assertNotIn(user_two.username, users_with_ready_bets)
+
+class BalanceTest(TestCase):
+
+    def test__str__(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+        user_one = User.objects.create_user('user_one')
+        user_one.save()
+        balance = Balance(gameweek=gameweek, user=user_one, week=100.0, provisional=100.0, banked=100.0)
+        
+        self.assertIn(str(gameweek), str(balance))
+        self.assertIn(user_one.username, str(balance))
