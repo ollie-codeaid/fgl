@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from bets.models import Season, Gameweek, Game, BetContainer, Balance, Accumulator
+from bets.models import Season, Gameweek, Game, BetContainer, Balance, Accumulator, Result, BetPart
 from django.contrib.auth.models import User
 from mock import Mock, patch
 from datetime import date, time
@@ -36,6 +36,11 @@ def _create_test_bet_container(gameweek, user):
                                 owner=user)
     betcontainer.save()
     return betcontainer
+
+def _create_test_result(game, result):
+    result = Result(game=game, result=result)
+    result.save()
+    return result
     
 class SeasonTest(TestCase):
 
@@ -377,3 +382,28 @@ class GameTest(TestCase):
         self.assertEquals(50, game.get_denominator('H'))
         self.assertEquals(20, game.get_denominator('D'))
         self.assertEquals(1, game.get_denominator('A'))
+
+class AccumulatorTest(TestCase):
+
+    def test_calc_winnings(self):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+        game = _create_test_game(gameweek)
+        user = User.objects.create_user('user_one')
+        bet_container = _create_test_bet_container(gameweek, user)
+        accumulator = Accumulator(bet_container=bet_container, stake=100.0)
+        accumulator.save()
+        bet_part = BetPart(accumulator=accumulator, game=game, result='H')
+        bet_part.save()
+
+        result = _create_test_result(game, 'H')
+        self.assertEquals(102.0, accumulator.calc_winnings())
+
+        result.result = 'D'
+        result.save()
+        self.assertEquals(0.0, accumulator.calc_winnings())
+
+        result.result = 'A'
+        result.save()
+        self.assertEquals(0.0, accumulator.calc_winnings())
+

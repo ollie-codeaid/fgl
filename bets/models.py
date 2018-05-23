@@ -398,7 +398,7 @@ class Accumulator(models.Model):
                 elif result == 'A':
                     num = game.awaynumerator
                     denom = game.awaydenominator
-                odds = odds * (num + denom) / denom
+                odds = odds * float(num + denom) / float(denom)
 
         if correct:
             return odds * float(self.stake)
