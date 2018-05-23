@@ -322,3 +322,7 @@ class GameweekTest(TestCase):
         self.assertEquals( 2, len(results_one) )
         self.assertEquals( [user_one, 1000.0, 1000.0, 0.0, '-'], results_one[0] )
         self.assertEquals( [user_two, 500.0, 500.0, 0.0, '-'], results_one[1] )
+
+        self.assertEquals( 2, len(results_two) )
+        self.assertEquals( [user_two, -100.0, 400.0, 400.0, '/\\'], results_two[0] )
+        self.assertEquals( [user_one, -100.0, -100.0, -100.0, '\\/'], results_two[1] )

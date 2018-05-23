@@ -218,6 +218,7 @@ class Gameweek(models.Model):
         position = 0
         for balance in self.balance_set.order_by('-provisional'):
             user_positions.update({balance.user: position})
+            position += 1
 
         return user_positions
 
