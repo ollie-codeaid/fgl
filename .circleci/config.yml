@@ -50,7 +50,7 @@ jobs:
           name: run tests
           command: |
             source fgl_ci/bin/activate
-            coverage run manage.py test
+            coverage run manage.py test bets
             codecov
           environment:
             DJANGO_SETTINGS_MODULE: fglsite.settings.dev
