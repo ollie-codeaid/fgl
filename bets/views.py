@@ -264,7 +264,7 @@ def _manage_accumulator(request, accumulator, bet_container):
                         BetPart.objects.filter(accumulator=accumulator).delete()
                     BetPart.objects.bulk_create(new_betparts)
 
-                messages.success(request, 'Successfully created bet.')
+                messages.success(request, 'Bet created.')
                 return redirect('bet-container', bet_container_id=bet_container.id)
 
             except IntegrityError as err:
@@ -306,6 +306,6 @@ def update_bet(request, accumulator_id):
 def delete_bet(request, accumulator_id, bet_container_id):
     Accumulator.objects.filter(pk=accumulator_id).delete()
 
-    messages.success('Bet deleted')
+    messages.success(request, 'Bet deleted')
     return bet_container(request, bet_container_id)
 
