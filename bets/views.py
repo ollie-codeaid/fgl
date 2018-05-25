@@ -220,10 +220,13 @@ def bet_container(request, bet_container_id):
 def _manage_accumulator(request, accumulator, bet_container):
     gameweek = bet_container.gameweek
     
-    BetPartFormSet = formset_factory(BetPartForm, formset=BaseResultFormSet, extra=0)
-    BetPartFormSet.form = staticmethod(curry(BetPartForm, gameweek=gameweek))
-    
     is_new_bet = accumulator is None
+
+    if is_new_bet:
+        BetPartFormSet = formset_factory(BetPartForm, formset=BaseResultFormSet, extra=1)
+    else:
+        BetPartFormSet = formset_factory(BetPartForm, formset=BaseResultFormSet, extra=0)
+    BetPartFormSet.form = staticmethod(curry(BetPartForm, gameweek=gameweek))
 
     if request.method == 'POST':
         accumulator_form = AccumulatorForm(request.POST)
@@ -267,7 +270,7 @@ def _manage_accumulator(request, accumulator, bet_container):
             except IntegrityError as err:
                 messages.error(request, 'Error saving bet.')
                 messages.error(request, err)
-                return redirect('bet-container', bet_container_id=bet_container.id)
+                return redirect('bet-container', bet_container_id=bet_containerid)
 
     else:
         if is_new_bet:
