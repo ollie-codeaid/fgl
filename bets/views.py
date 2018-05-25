@@ -94,29 +94,30 @@ def _manage_gameweek(request, gameweek, season):
             
             _process_new_games(game_formset, gameweek, request)
             return redirect('gameweek', gameweek_id=gameweek.id)
-
-    else:
-        if is_new_gameweek:
-            gameweek_form = GameweekForm()
-            game_formset = GameFormSet()
         else:
-            current_games = [{
-                'gameweek': g.gameweek,
-                'hometeam': g.hometeam,
-                'awayteam': g.awayteam,
-                'homenumerator': g.homenumerator,
-                'homedenominator': g.homedenominator,
-                'drawnumerator': g.drawnumerator,
-                'drawdenominator': g.drawdenominator,
-                'awaynumerator': g.awaynumerator,
-                'awaydenominator': g.awaydenominator
-                } for g in gameweek.game_set.all()]
+            messages.error(request, 'Invalid form')
 
-            gameweek_form = GameweekForm(
-                    initial={'deadline_date': gameweek.deadline_date,
-                             'deadline_time': gameweek.deadline_time,
-                             'spiel': gameweek.spiel })
-            game_formset = GameFormSet(initial=current_games)
+    if is_new_gameweek:
+        gameweek_form = GameweekForm()
+        game_formset = GameFormSet()
+    else:
+        current_games = [{
+            'gameweek': g.gameweek,
+            'hometeam': g.hometeam,
+            'awayteam': g.awayteam,
+            'homenumerator': g.homenumerator,
+            'homedenominator': g.homedenominator,
+            'drawnumerator': g.drawnumerator,
+            'drawdenominator': g.drawdenominator,
+            'awaynumerator': g.awaynumerator,
+            'awaydenominator': g.awaydenominator
+            } for g in gameweek.game_set.all()]
+
+        gameweek_form = GameweekForm(
+                initial={'deadline_date': gameweek.deadline_date,
+                         'deadline_time': gameweek.deadline_time,
+                         'spiel': gameweek.spiel })
+        game_formset = GameFormSet(initial=current_games)
 
     context = {
         'season_id': season_id,
