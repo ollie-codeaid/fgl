@@ -306,5 +306,6 @@ def update_bet(request, accumulator_id):
 def delete_bet(request, accumulator_id, bet_container_id):
     Accumulator.objects.filter(pk=accumulator_id).delete()
 
+    messages.success('Bet deleted')
     return bet_container(request, bet_container_id)
 

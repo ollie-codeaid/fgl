@@ -10,12 +10,22 @@
 	</header>
 	<body>
 		<div class="container">
-			{% if bet_container %}
+		{% if bet_container %}
 		    {% login_header request %}
 			<div class="row">
-				<div class="twelve columns">
+			    <div class="twelve columns">
 			    	<h1>Manage Bets</h1>
-				    <a href="/bets/gameweek/{{ bet_container.gameweek.id }}/">Back to gameweek</a>
+				<a href="/bets/gameweek/{{ bet_container.gameweek.id }}/">Back to gameweek</a>
+				{% if messages %}
+				<ul class="messages">
+    					{% for message in messages %}
+    					<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+        				{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Important: {% endif %}
+        				{{ message }}
+    					</li>
+    					{% endfor %}
+				</ul>
+				{% endif %}
 			    </div>
 			</div>
 			<div class="row">
