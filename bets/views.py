@@ -67,32 +67,56 @@ def _process_new_games(game_formset, gameweek, request):
         return redirect(reverse('update-gameweek', args=(gameweek.id)))
     
 
-def create_gameweek(request, season_id):
-    gameweek_form = GameweekForm()
-    GameFormSet =formset_factory(GameForm, formset=BaseGameFormSet)
+def _manage_gameweek(request, gameweek, season):
+    is_new_gameweek = gameweek is None
+
+    if is_new_gameweek:
+        GameFormSet =formset_factory(GameForm, formset=BaseGameFormSet)
+    else:
+        GameFormSet =formset_factory(GameForm, formset=BaseGameFormSet, extra=0)
 
     if request.method == 'POST':
         gameweek_form = GameweekForm(request.POST)
         game_formset = GameFormSet(request.POST)
 
         if gameweek_form.is_valid() and game_formset.is_valid():
-            season = get_object_or_404(Season, pk=season_id)
-            gameweek_number = season.get_next_gameweek_id()
-            deadline_date = gameweek_form.cleaned_data.get('deadline_date')
-            deadline_time = gameweek_form.cleaned_data.get('deadline_time')
-            spiel = gameweek_form.cleaned_data.get('spiel')
-            gameweek = Gameweek(season=season,
-                    number=gameweek_number,
-                    deadline_date=deadline_date,
-                    deadline_time=deadline_time,
-                    spiel=spiel)
+            if is_new_gameweek:
+                gameweek = Gameweek(season=season,
+                        number=season.get_next_gameweek_id(),
+                        deadline_date=gameweek_form.cleaned_data.get('deadline_date'),
+                        deadline_time=gameweek_form.cleaned_data.get('deadline_time'),
+                        spiel=gameweek_form.cleaned_data.get('spiel'))
+            else:
+                gameweek.deadline_date = gameweek_form.cleaned_data.get('deadline_date')
+                gameweek.deadline_time = gameweek_form.cleaned_data.get('deadline_time')
+                gameweek.spiel = gameweek_form.cleaned_data.get('spiel')
             gameweek.save()
             
             _process_new_games(game_formset, gameweek, request)
+            return redirect('gameweek', gameweek_id=gameweek.id)
 
     else:
-        gameweek_form = GameweekForm()
-        game_formset = GameFormSet()
+        if is_new_gameweek:
+            gameweek_form = GameweekForm()
+            game_formset = GameFormSet()
+        else:
+            current_games = [{
+                'gameweek': g.gameweek,
+                'hometeam': g.hometeam,
+                'awayteam': g.awayteam,
+                'homenumerator': g.homenumerator,
+                'homedenominator': g.homedenominator,
+                'drawnumerator': g.drawnumerator,
+                'drawdenominator': g.drawdenominator,
+                'awaynumerator': g.awaynumerator,
+                'awaydenominator': g.awaydenominator
+                } for g in gameweek.game_set.all()]
+
+            gameweek_form = GameweekForm(
+                    initial={'deadline_date': gameweek.deadline_date,
+                             'deadline_time': gameweek.deadline_time,
+                             'spiel': gameweek.spiel })
+            game_formset = GameFormSet(initial=current_games)
 
     context = {
         'season_id': season_id,
@@ -102,52 +126,16 @@ def create_gameweek(request, season_id):
 
     return render(request, 'bets/create_gameweek.html', context)
 
+def create_gameweek(request, season_id):
+    season = get_object_or_404(Season, pk=season_id)
+
+    return _manage_gameweek(request, None, season)
 
 def update_gameweek(request, gameweek_id):
     gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
     season = gameweek.season
     
-    GameFormSet =formset_factory(GameForm, formset=BaseGameFormSet, extra=0)
-
-    current_games = [{
-        'gameweek': g.gameweek,
-        'hometeam': g.hometeam,
-        'awayteam': g.awayteam,
-        'homenumerator': g.homenumerator,
-        'homedenominator': g.homedenominator,
-        'drawnumerator': g.drawnumerator,
-        'drawdenominator': g.drawdenominator,
-        'awaynumerator': g.awaynumerator,
-        'awaydenominator': g.awaydenominator
-        } for g in gameweek.game_set.all()]
-
-    if request.method == 'POST':
-        gameweek_form = GameweekForm(request.POST)
-        game_formset = GameFormSet(request.POST)
-
-        if gameweek_form.is_valid() and game_formset.is_valid():
-            gameweek.deadline_date = gameweek_form.cleaned_data.get('deadline_date')
-            gameweek.deadline_time = gameweek_form.cleaned_data.get('deadline_time')
-            gameweek.spiel = gameweek_form.cleaned_data.get('spiel')
-            gameweek.save()
-
-            _process_new_games(game_formset, gameweek, request)
-            return redirect('gameweek', gameweek_id=gameweek.id)
-
-    else:
-        gameweek_form = GameweekForm(
-                initial={'deadline_date': gameweek.deadline_date,
-                         'deadline_time': gameweek.deadline_time,
-                         'spiel': gameweek.spiel })
-        game_formset = GameFormSet(initial=current_games)
-
-    context = {
-        'season_id': season.id,
-        'gameweek_form': gameweek_form,
-        'game_formset': game_formset
-    }
-
-    return render(request, 'bets/create_gameweek.html', context)
+    return _manage_gameweek(request, gameweek, season)
 
 
 def add_gameweek_results(request, gameweek_id): 
@@ -219,7 +207,6 @@ def bet_container(request, bet_container_id):
 
 def _manage_accumulator(request, accumulator, bet_container):
     gameweek = bet_container.gameweek
-    
     is_new_bet = accumulator is None
 
     if is_new_bet:
