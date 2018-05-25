@@ -33,6 +33,7 @@
 				    <h3>Weekly allowance: {{ bet_container.get_allowance }}</h3>
 			    </div>
 			</div>
+			{% if bet_container.accumulator_set.all %}
 			<div class="row">
 				<div class="twelve columns">
 				    <table>
@@ -59,21 +60,25 @@
 				        	<tr>
 				        		<td></td>
 				        		<td></td>
-				        		<td><a href="/bets/bets/{{ accumulator.id }}/update_bet">Change bet</a></td>
-							<td><a href="/bets/bets/{{ bet_container.id }}/{{ accumulator.id }}/delete_bet">Delete bet</a></td>
+				        		<td><a href="/bets/bets/{{ accumulator.id }}/update_bet">Update</a></td>
+							<td><a href="/bets/bets/{{ bet_container.id }}/{{ accumulator.id }}/delete_bet">Delete</a></td>
 				        	</tr>
 				    		{% endfor %}
 				    	</tbody>
 				    </table>
-			    </div>
-			</div>
-			<div class="row">
+				</div>
 				<div class="twelve columns">
-				    <h3>Total stake used: {{ bet_container.get_allowance_used }}</h3>
-				    <a href="/bets/bets/{{ bet_container.id }}/add_bet/">Add bet</a>
+				    <h4>Total stake used: {{ bet_container.get_allowance_used }}</h4>
+			    	</div>
 			    </div>
 			</div>
 			{% endif %}
+			<div class="row">
+			    <div class="twelve columns">
+				<a href="/bets/bets/{{ bet_container.id }}/add_bet/">Add bet</a>
+			    </div>
+			</div>
+		{% endif %}
 		</div>
 	</body>
 </html>
