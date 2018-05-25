@@ -302,3 +302,9 @@ def update_bet(request, accumulator_id):
     bet_container = accumulator.bet_container
 
     return _manage_accumulator(request, accumulator, bet_container)
+
+def delete_bet(request, accumulator_id, bet_container_id):
+    Accumulator.objects.filter(pk=accumulator_id).delete()
+
+    return bet_container(request, bet_container_id)
+

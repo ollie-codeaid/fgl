@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^bets/(?P<bet_container_id>[0-9]+)/my_bets/$', views.bet_container, name='bet-container'),
     url(r'^bets/(?P<bet_container_id>[0-9]+)/add_bet/$', views.add_bet, name='add-bet'),
     url(r'^bets/(?P<accumulator_id>[0-9]+)/update_bet/$', views.update_bet, name='update-bet'),
+    url(r'^bets/(?P<bet_container_id>[0-9]+)/(?P<accumulator_id>[0-9]+)/delete_bet/$', views.delete_bet, name='delete-bet'),
 ]

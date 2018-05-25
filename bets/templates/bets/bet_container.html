@@ -32,6 +32,7 @@
 				        		<th>Game</th>
 				        		<th>Result</th>
 				        		<th></th>
+							<th></th>
 				        	</tr>
 				        </thead>
 				    	<tbody>
@@ -49,6 +50,7 @@
 				        		<td></td>
 				        		<td></td>
 				        		<td><a href="/bets/bets/{{ accumulator.id }}/update_bet">Change bet</a></td>
+							<td><a href="/bets/bets/{{ bet_container.id }}/{{ accumulator.id }}/delete_bet">Delete bet</a></td>
 				        	</tr>
 				    		{% endfor %}
 				    	</tbody>

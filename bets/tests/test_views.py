@@ -3,7 +3,7 @@ from django.test import TestCase
 
 import datetime
 
-from bets.models import Season, Gameweek, Game, BetContainer
+from bets.models import Season, Gameweek, Game, BetContainer, Accumulator, BetPart
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 
@@ -12,6 +12,24 @@ def _create_test_season():
                     weekly_allowance=100.0)
     season.save()
     return season
+
+def _create_test_season_with_game():
+    season = _create_test_season()
+    gameweek = Gameweek(season=season,
+            number=1,
+            deadline_date=datetime.date(2017, 11, 1),
+            deadline_time=datetime.time(13, 00),
+            spiel = 'not empty')
+    gameweek.save()
+    game = Game(gameweek=gameweek,
+            hometeam='Watford',
+            awayteam='Reading',
+            homenumerator=6, homedenominator=5,
+            drawnumerator=4, drawdenominator=3,
+            awaynumerator=2, awaydenominator=1)
+    game.save()
+
+    return season, gameweek, game
 
 class ViewsTest(TestCase):
 
@@ -81,19 +99,7 @@ class ViewsTest(TestCase):
         self._assert_base_gameweek_response_correct(response, form_data, season)
 
     def test_update_gameweek(self):
-        season = _create_test_season()
-        gameweek = Gameweek(season=season,
-                deadline_date=datetime.date(2017, 11, 1),
-                deadline_time=datetime.time(13, 00),
-                spiel = 'not empty')
-        gameweek.save()
-        game = Game(gameweek=gameweek,
-                hometeam='Watford',
-                awayteam='Reading',
-                homenumerator=6, homedenominator=5,
-                drawnumerator=4, drawdenominator=3,
-                awaynumerator=2, awaydenominator=1)
-        game.save()
+        season, gameweek, game = _create_test_season_with_game()
 
         form_data = self._create_basic_gameweek_form_data()
 
@@ -120,20 +126,7 @@ class ViewsTest(TestCase):
 
 
     def test_add_bet(self):
-        season = _create_test_season()
-        gameweek = Gameweek(season=season,
-                number=1,
-                deadline_date=datetime.date(2017, 11, 1),
-                deadline_time=datetime.time(13, 00),
-                spiel = 'not empty')
-        gameweek.save()
-        game = Game(gameweek=gameweek,
-                hometeam='Watford',
-                awayteam='Reading',
-                homenumerator=6, homedenominator=5,
-                drawnumerator=4, drawdenominator=3,
-                awaynumerator=2, awaydenominator=1)
-        game.save()
+        season, gameweek, game = _create_test_season_with_game()
         betcontainer = BetContainer(
                 owner=User.objects.create_user('user_one'),
                 gameweek=gameweek )
@@ -156,4 +149,20 @@ class ViewsTest(TestCase):
         self.assertEquals(game, betpart.game)
         self.assertEquals('H', betpart.result)
         
-        
+    def test_delete_bet(self):
+        season, gameweek, game = _create_test_season_with_game()
+        betcontainer = BetContainer(
+                owner=User.objects.create_user('user_one'),
+                gameweek=gameweek )
+        betcontainer.save()
+        accumulator = Accumulator(bet_container=betcontainer, stake=100.0)
+        accumulator.save()
+        betpart = BetPart(accumulator=accumulator, game=game, result='H')
+        betpart.save()
+
+        self.assertEquals(1, len(betcontainer.accumulator_set.all()))
+
+        url = reverse('delete-bet', args=(betcontainer.id, accumulator.id,))
+        response = self.client.post(url)
+
+        self.assertEquals(0, len(betcontainer.accumulator_set.all()))
