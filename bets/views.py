@@ -217,27 +217,34 @@ def bet_container(request, bet_container_id):
     context = {'bet_container': bet_container}
     return render(request, 'bets/bet_container.html', context)
 
-def add_bet(request, bet_container_id):
-    accumulator_form = AccumulatorForm()        
-    bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
+def _manage_accumulator(request, accumulator, bet_container):
     gameweek = bet_container.gameweek
-
-    BetPartFormSet = formset_factory(BetPartForm, formset=BaseResultFormSet)
+    
+    BetPartFormSet = formset_factory(BetPartForm, formset=BaseResultFormSet, extra=0)
     BetPartFormSet.form = staticmethod(curry(BetPartForm, gameweek=gameweek))
+    
+    is_new_bet = accumulator is None
 
     if request.method == 'POST':
         accumulator_form = AccumulatorForm(request.POST)
         betpart_formset = BetPartFormSet(request.POST)
 
         if accumulator_form.is_valid() and betpart_formset.is_valid():
+            if is_new_bet:
+                old_stake = 0.0
+            else:
+                old_stake = float(accumulator.stake)
             stake = accumulator_form.cleaned_data.get('stake')
-            remaining_allowance = float(bet_container.get_allowance()) - bet_container.get_allowance_used()
+            remaining_allowance = float(bet_container.get_allowance()) - bet_container.get_allowance_used() + old_stake
             
             if float(stake) > remaining_allowance:
                 messages.error(request, 'Stake greater than remaining allowance: {0}'.format(remaining_allowance))
                 return redirect('add-bet', bet_container_id=bet_container_id)
 
-            accumulator = Accumulator(bet_container=bet_container, stake=stake)
+            if is_new_bet:
+                accumulator = Accumulator(bet_container=bet_container, stake=stake)
+            else:
+                accumulator.stake = stake
             accumulator.save()
             
             new_betparts = []
@@ -250,84 +257,45 @@ def add_bet(request, bet_container_id):
 
             try:
                 with transaction.atomic():
+                    if not is_new_bet:
+                        BetPart.objects.filter(accumulator=accumulator).delete()
                     BetPart.objects.bulk_create(new_betparts)
 
                 messages.success(request, 'Successfully created bet.')
-                return redirect('bet-container', bet_container_id=bet_container_id)
+                return redirect('bet-container', bet_container_id=bet_container.id)
 
             except IntegrityError as err:
                 messages.error(request, 'Error saving bet.')
                 messages.error(request, err)
-                return redirect('bet-container', bet_container_id=bet_container_id)
+                return redirect('bet-container', bet_container_id=bet_container.id)
 
     else:
-        accumulator_form = AccumulatorForm()
-        betpart_formset = BetPartFormSet()
+        if is_new_bet:
+            accumulator_form = AccumulatorForm()
+            betpart_formset = BetPartFormSet()
+        else:
+            current_betparts = [{ 'game':bp.game, 'result':bp.result } for bp in accumulator.betpart_set.all()]
+            accumulator_form = AccumulatorForm(initial={'stake':accumulator.stake})
+            betpart_formset = BetPartFormSet(initial=current_betparts)
+
 
     context = {
-        'bet_container_id': bet_container_id,
+        'bet_container_id': bet_container.id,
         'accumulator_form': accumulator_form,
         'betpart_formset': betpart_formset
     }
 
     return render(request, 'bets/create_bet.html', context)
+
+
+def add_bet(request, bet_container_id):
+    bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
+
+    return _manage_accumulator(request, None, bet_container)
+
 
 def update_bet(request, accumulator_id):
     accumulator = get_object_or_404(Accumulator, pk=accumulator_id)
-    current_betparts = [{ 'game':bp.game, 'result':bp.result } for bp in accumulator.betpart_set.all()]
-    bet_container_id = accumulator.bet_container.id
+    bet_container = accumulator.bet_container
 
-    bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
-    gameweek = bet_container.gameweek
-
-    BetPartFormSet = formset_factory(BetPartForm, formset=BaseResultFormSet, extra=0)
-    BetPartFormSet.form = staticmethod(curry(BetPartForm, gameweek=gameweek))
-
-    if request.method == 'POST':
-        accumulator_form = AccumulatorForm(request.POST)
-        betpart_formset = BetPartFormSet(request.POST)
-
-        if accumulator_form.is_valid() and betpart_formset.is_valid():
-            old_stake = float(accumulator.stake)
-            stake = accumulator_form.cleaned_data.get('stake')
-            remaining_allowance = float(bet_container.get_allowance()) - bet_container.get_allowance_used()
-            
-            if float(stake) > remaining_allowance + old_stake:
-                messages.error(request, 'Stake change greater than remaining allowance: {0}'.format(remaining_allowance))
-                return redirect('update-bet', accumulator_id=accumulator_id)
-
-            accumulator.stake = stake
-            accumulator.save()
-            
-            new_betparts = []
-
-            for betpart_form in betpart_formset:
-                game = betpart_form.cleaned_data.get('game')
-                result = betpart_form.cleaned_data.get('result')
-
-                new_betparts.append(BetPart(accumulator=accumulator, game=game, result=result))
-
-            try:
-                with transaction.atomic():
-                    BetPart.objects.filter(accumulator=accumulator).delete()
-                    BetPart.objects.bulk_create(new_betparts)
-
-                messages.success(request, 'Successfully created bet.')
-                return redirect('bet-container', bet_container_id=bet_container_id)
-
-            except IntegrityError as err:
-                messages.error(request, 'Error saving bet.')
-                messages.error(request, err)
-                return redirect('bet-container', bet_container_id=bet_container_id)
-
-    else:
-        accumulator_form = AccumulatorForm(initial={'stake':accumulator.stake})
-        betpart_formset = BetPartFormSet(initial=current_betparts)
-
-    context = {
-        'bet_container_id': bet_container_id,
-        'accumulator_form': accumulator_form,
-        'betpart_formset': betpart_formset
-    }
-
-    return render(request, 'bets/create_bet.html', context)
+    return _manage_accumulator(request, accumulator, bet_container)
