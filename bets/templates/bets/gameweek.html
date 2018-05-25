@@ -19,14 +19,7 @@
 			<h1>{% if not gameweek.is_first_gameweek %}<a href="/bets/gameweek/{{ gameweek.get_prev_gameweek.id }}/">&lt;</a> {% endif %}Gameweek {{ gameweek.number }}{% if not gameweek.is_latest_gameweek %} <a href="/bets/gameweek/{{ gameweek.get_next_gameweek.id }}/">&gt;</a>{% endif %}</h1>
 	    	</div>
 	    </div>
-		<div class="row">
-			<div class="twelve columns">
-		    	{% if request.user|has_group:"Commissioners" and messages %}
-		        {% for message in messages %}
-	            <p>{{ message }}</p>
-		        {% endfor %}
-		    	{% endif %}
-	    </div>
+	    {% render_messages messages %}
 		<div class="row">
 			<div class="twelve columns">
 	    		<h2>Deadline: {{ gameweek.deadline_date }}, {{ gameweek.deadline_time }}</h2>

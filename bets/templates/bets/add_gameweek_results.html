@@ -15,13 +15,9 @@
 				<div class="twelve columns">
 					<h1>Add Results</h1>
 					<a href="/bets/gameweek/{{ gameweek_id }}/">Back to gameweek</a>
-					{% if messages %}
-					    {% for message in messages %}
-					        <p>{{ message }}</p>
-					    {% endfor %}
-					{% endif %}
 				</div>
 			</div>
+			{% render_messages messages %}
 			<div class="row">
 				<div class="twelve columns">
 					<form method="post">

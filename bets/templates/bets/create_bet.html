@@ -17,15 +17,7 @@
 					<a href="/bets/bets/{{ bet_container_id }}/my_bets/">Back to bets</a>
 				</div>
 			</div>
-			<div class="row">
-				<div class="twelve columns">
-					{% if messages %}
-					    {% for message in messages %}
-					        <p>{{ message }}</p>
-					    {% endfor %}
-					{% endif %}
-				</div>
-			</div>
+			{% render_messages messages %}
 			<div class="row">
 				<div class="twelve columns">
 					<form method="post">

@@ -8,4 +8,8 @@ def login_header(request):
 
 @register.inclusion_tag('bets/user_balances.html')
 def user_balances(gameweek):
-	return { 'gameweek': gameweek }
+    return { 'gameweek': gameweek }
+
+@register.inclusion_tag('bets/render_messages.html')
+def render_messages(messages):
+    return { 'messages' : messages }
