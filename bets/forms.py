@@ -3,7 +3,12 @@ from django.forms.formsets import BaseFormSet
 from django.forms.widgets import DateInput, TimeInput, Textarea
 from django.shortcuts import get_object_or_404
 
-from .models import Gameweek, Game, Result, BetContainer, Accumulator, BetPart
+from .models import Season, Gameweek, Game, Result, BetContainer, Accumulator, BetPart
+
+class SeasonForm(ModelForm):
+    class Meta:
+        model = Season
+        fields = ['name', 'weekly_allowance', 'players']
 
 class GameweekForm(ModelForm):
     class Meta:

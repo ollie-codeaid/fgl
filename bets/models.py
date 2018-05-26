@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 # Create your models here.
 @register_snippet
 class Season(models.Model):
+    commissioner = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    players = models.ManyToManyField(User, related_name='season_players')
     name = models.CharField(max_length=255)
     weekly_allowance = models.DecimalField(default=100.0, decimal_places=2, max_digits=99)
 

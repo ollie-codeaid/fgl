@@ -42,6 +42,29 @@ class ViewsTest(TestCase):
         response = self.client.get(url)
         self.assertIn('test', response.content )
 
+    def test_create_season(self):
+        player_one = User.objects.create_user(username='player_one', password='pass')
+        player_two = User.objects.create_user(username='player_two', password='pass')
+
+        form_data = { 
+                'name' : 'test_season',
+                'weekly_allowance' : 123.0,
+                'players' : [player_one.id, player_two.id]
+                }
+
+        url = reverse('create-season')
+        self.client.login(username='player_one', password='pass')
+        response = self.client.post(url, data=form_data)
+        self.client.logout()
+
+        season_set = Season.objects.filter(name='test_season')
+        self.assertEquals(1, len(season_set))
+        season = season_set[0]
+        self.assertEquals(123.0, season.weekly_allowance)
+        self.assertEquals(player_one, season.commissioner)
+        self.assertIn(player_one, season.players.all())
+        self.assertIn(player_two, season.players.all())
+
 
     def _create_management_data(self, form_count):
         return {

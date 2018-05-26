@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.functional import curry
 from .models import Season, Gameweek, Game, Result, BetContainer, Accumulator, BetPart
-from .forms import GameweekForm, GameForm, BaseGameFormSet, ResultForm, BaseResultFormSet, AccumulatorForm, BetPartForm
+from .forms import SeasonForm, GameweekForm, GameForm, BaseGameFormSet, ResultForm, BaseResultFormSet, AccumulatorForm, BetPartForm
 
 # Create your views here.
 def index(request):
@@ -23,6 +23,32 @@ def season(request, season_id):
     season = get_object_or_404(Season, pk=season_id)
     context = {'season': season}
     return render(request, 'bets/season.html', context)
+
+def create_season(request):
+    if request.method == 'POST':
+        season_form = SeasonForm(request.POST)
+
+        if season_form.is_valid() and request.user.is_authenticated():
+            with transaction.atomic():
+                season = Season(commissioner=request.user,
+                        name=season_form.cleaned_data.get('name'),
+                        weekly_allowance=season_form.cleaned_data.get('weekly_allowance'))
+                season.save()
+
+                season.players=season_form.cleaned_data.get('players')
+                season.save()
+
+            return redirect('season', season_id=season.id)
+        else:
+            messages.error(request, 'Invalid form or unauthenticated user.')
+
+    season_form = SeasonForm(request.POST)
+
+    context = {
+        'season_form': season_form,
+    }
+
+    return render(request, 'bets/create_season.html', context)
 
 def gameweek(request, gameweek_id):
     gameweek = get_object_or_404(Gameweek, pk=gameweek_id)

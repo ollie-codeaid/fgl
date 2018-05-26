@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+{% load staticfiles %}
+{% load bets_extras %}
+<html>
+	<head>
+	    <link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+	    <link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+	    <link rel="stylesheet" type="text/css" href="{% static 'bets/style.css' %}"/>
+	    <title>Create Season</title>
+	</head>
+	<body>
+		<div class="container">
+			{% login_header request %}
+			<div class="row">
+				<div class="twelve columns">
+					<h1>Create Season</h1>
+					<a href="/">Back to index</a></br></br>
+				</div>
+			</div>
+			{% render_messages messages %}
+			<div class="row">
+				<div class="twelve columns">
+					<form method="post">
+					    {% csrf_token %}
+					    <p>Name: {{ season_form.name }}</p>
+					    <p>Weekly Allowance: {{ season_form.weekly_allowance }}</p>
+					    <p>Players: {{ season_form.players }}</p>
+                        </br>
+                        </br>
+					    <input type="submit" value="Add Season" class="button"/>
+					</form>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
