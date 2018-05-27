@@ -62,6 +62,34 @@ class ViewsTest(TestCase):
         response = self.client.get(url)
         self.assertIn('test', response.content )
 
+    def test_find_season(self):
+        player_one = User.objects.create_user(username='player_one', password='pass')
+        season_one = Season(name='test_one', 
+                        weekly_allowance=100.0,
+                        commissioner=player_one)
+        season_one.save()
+        season_two = Season(name='test_two', 
+                        weekly_allowance=100.0,
+                        commissioner=player_one)
+        season_two.save()
+
+        url = reverse('find-season', kwargs={'season_name':'one','season_commissioner':''} )
+        response = self.client.get(url)
+        self.assertEquals(1, len(response.context['season_list'].all()))
+        self.assertIn(season_one, response.context['season_list'])
+        
+        url = reverse('find-season', kwargs={'season_name':'two', 'season_commissioner':player_one.username,} )
+        response = self.client.get(url)
+        self.assertEquals(1, len(response.context['season_list'].all()))
+        self.assertIn(season_two, response.context['season_list'])
+
+        url = reverse('find-season', kwargs={'season_name':'','season_commissioner':player_one.username,} )
+        response = self.client.get(url)
+        self.assertEquals(2, len(response.context['season_list'].all()))
+        self.assertIn(season_one, response.context['season_list'])
+        self.assertIn(season_two, response.context['season_list'])
+
+
     def test_create_season(self):
         player_one = User.objects.create_user(username='player_one', password='pass')
         player_two = User.objects.create_user(username='player_two', password='pass')

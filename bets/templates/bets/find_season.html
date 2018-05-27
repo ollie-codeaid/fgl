@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+{% load static %}
+{% load bets_extras %}
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static 'bets/style.css' %}"/>
+		<title>Add gameweek results</title>
+	</head>
+	<body>
+		<div class="container">
+		    {% login_header request %}
+			<div class="row">
+				<div class="twelve columns">
+					<h1>Find Season</h1>
+					<a href="/">Back to index</a>
+				</div>
+			</div>
+			{% render_messages messages %}
+			<div class="row">
+				<div class="twelve columns">
+					<form method="get§">
+					    {% csrf_token %}
+					    <table>
+					        <thead>
+						    <tr><td>Name</td><td>Commissioner</td><td></td></tr>
+					        </thead>
+					        <tbody>
+						    <tr>
+							<td>{{ find_season_form.name }}</td>
+							<td>{{ find_season_form.commissioner }}</td>
+							<td><input type=submit" value="Reapply filter" class="button"/></td>
+						    </tr>
+						    {% if season_list %}
+						    {% for season in season_list %}
+						    <tr>
+							<td>{{ season.name }}</td>
+							<td>{{ season.commissioner.username }}</td>
+							<td><a href="/">Join</a></td>
+						    </tr>
+						    {% endfor %}
+						    {% endif %}
+					        </tbody>
+					    </table>
+					</form>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

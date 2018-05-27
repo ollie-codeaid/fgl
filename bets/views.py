@@ -29,6 +29,11 @@ def season(request, season_id):
     context = {'season': season}
     return render(request, 'bets/season.html', context)
 
+def find_season(request, season_name, season_commissioner):
+    season_list = Season.objects.filter(name__contains=season_name).filter(commissioner__username__contains=season_commissioner)
+    context = {'season_list': season_list}
+    return render(request, 'bets/find_season.html', context)
+
 def create_season(request):
     if request.method == 'POST':
         season_form = SeasonForm(request.POST)
