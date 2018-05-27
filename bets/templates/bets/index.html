@@ -19,7 +19,7 @@
 		    </div>
 		</div>
 		<div class="row">
-		    <div class="two columns"></div>
+		    <div class="two columns"><p></p></div>
 		    <div class="eight columns">
 			<h5>What is a FGL?</h5>
 			<p>Fantasy Gambling League is a game conceived by an uncle of 
@@ -42,11 +42,12 @@
 			</br>
 			</br>
 		    </div>
-		    <div class="two columns"></div>
+		    <div class="two columns"><p></p></div>
 		</div>
 		<div class="row">
 		    <div class="twelve columns">
 		{% if season_list and user.is_authenticated %}
+		    <h3>Seasons</h3>
 		    <ul>
 		    {% for season in season_list %}
 		        <li><a href="/bets/{{ season.id }}/">{{ season }}</a></li>
