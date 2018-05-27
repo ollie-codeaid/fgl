@@ -1,4 +1,5 @@
-from django.forms import ModelForm
+from django import forms
+from django.forms import Form, ModelForm
 from django.forms.formsets import BaseFormSet
 from django.forms.widgets import DateInput, TimeInput, Textarea
 from django.shortcuts import get_object_or_404
@@ -9,6 +10,10 @@ class SeasonForm(ModelForm):
     class Meta:
         model = Season
         fields = ['name', 'weekly_allowance', 'players']
+
+class FindSeasonForm(Form):
+    name = forms.CharField()
+    commissioner = forms.CharField()
 
 class GameweekForm(ModelForm):
     class Meta:

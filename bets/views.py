@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.functional import curry
 from .models import Season, Gameweek, Game, Result, BetContainer, Accumulator, BetPart
-from .forms import SeasonForm, GameweekForm, GameForm, BaseGameFormSet, ResultForm, BaseResultFormSet, AccumulatorForm, BetPartForm
+from .forms import SeasonForm, FindSeasonForm, GameweekForm, GameForm, BaseGameFormSet, ResultForm, BaseResultFormSet, AccumulatorForm, BetPartForm
 
 # Create your views here.
 def index(request):
@@ -31,7 +31,12 @@ def season(request, season_id):
 
 def find_season(request, season_name, season_commissioner):
     season_list = Season.objects.filter(name__contains=season_name).filter(commissioner__username__contains=season_commissioner)
-    context = {'season_list': season_list}
+    
+    find_season_form = FindSeasonForm(initial={'name':season_name, 'commissioner':season_commissioner})
+    
+    context = {'season_list': season_list,
+            'find_season_form': find_season_form}
+
     return render(request, 'bets/find_season.html', context)
 
 def create_season(request):
