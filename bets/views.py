@@ -16,7 +16,12 @@ from .forms import SeasonForm, GameweekForm, GameForm, BaseGameFormSet, ResultFo
 # Create your views here.
 def index(request):
     season_list = Season.objects.all()
-    context = {'season_list': season_list}
+    
+    user_season_list = []
+    for season in season_list:
+        if request.user in season.players.all():
+            user_season_list.append(season)
+    context = {'season_list': user_season_list}
     return render(request, 'bets/index.html', context)
 
 def season(request, season_id):

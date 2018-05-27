@@ -13,36 +13,49 @@
 		    {% login_header request %}
 		<div class="row">
 		    <div class="twelve columns">
-		        <h1>Welcome to Calton Walk FGL</h1>
-			<p><h5>What is a FGL?</h5> Fantasy Gambling League is a game conceived by an uncle of 
+		        <h1>Welcome to FGL</h1>
+			</br>
+			</br>
+		    </div>
+		</div>
+		<div class="row">
+		    <div class="two columns"></div>
+		    <div class="eight columns">
+			<h5>What is a FGL?</h5>
+			<p>Fantasy Gambling League is a game conceived by an uncle of 
 			Liam Woulfe and adopted by the ex-residents of Calton Walk. Each week, the Commissioner 
-			will publish odds on a group of Premier League games. Punters get a 'fantasy' allowance 
+			will publish odds on a group of Premier League games. Players are given a 'fantasy' allowance 
 			to bet on those games as they see fit. Once results are in, winnings are calculated and the 
 			league table is updated.</p>
 			</br>
 			</br>
-			<p><h5>How do I play?</h5> You'll first need an account. Only way to register at the
+			<h5>How do I play?</h5>
+			<p>You'll first need an account. Only way to register at the
 			moment is to ask Ollie to get you set up.</p>
 			</br>
 			</br>
-			<p><h5>What is a Commissioner?</h5> The Commissioner is responsible for creating and
+			<h5>What is a Commissioner?</h5>
+			<p>The Commissioner is responsible for creating and
 			maintaining the season. Season creation can be actioned using the link below. Once a
 			season has been created and players have joined, the Commissioner may begin populating
 			gameweek odds.</p>
 			</br>
 			</br>
 		    </div>
+		    <div class="two columns"></div>
 		</div>
 		<div class="row">
 		    <div class="twelve columns">
-		{% if season_list %}
+		{% if season_list and user.is_authenticated %}
 		    <ul>
 		    {% for season in season_list %}
 		        <li><a href="/bets/{{ season.id }}/">{{ season }}</a></li>
 		    {% endfor %}
 		    </ul>
+		{% elif user.is_authenticated %}
+		    <p>Not yet added to any seasons.</p>
 		{% else %}
-		    <p>No data available.</p>
+		    <p>Log in to view seasons.</p>
 		{% endif %}
 		    </div>
 		    <div class="twelve columns">
