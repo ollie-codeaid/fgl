@@ -35,7 +35,7 @@
 						    {% if season_list %}
 						    {% for season in season_list %}
 						    <tr>
-							<td>{{ season.name }}</td>
+							<td><a href="/bets/{{ season.id }}">{{ season.name }}</a></td>
 							<td>{{ season.commissioner.username }}</td>
 							<td></td>
 						    </tr>

@@ -12,8 +12,8 @@ class SeasonForm(ModelForm):
         fields = ['name', 'weekly_allowance', 'players']
 
 class FindSeasonForm(Form):
-    name = forms.CharField()
-    commissioner = forms.CharField()
+    name = forms.CharField(required=False)
+    commissioner = forms.CharField(required=False)
 
 class GameweekForm(ModelForm):
     class Meta:

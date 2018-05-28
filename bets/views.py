@@ -29,10 +29,17 @@ def season(request, season_id):
     context = {'season': season}
     return render(request, 'bets/season.html', context)
 
-def find_season(request, season_name, season_commissioner):
-    season_list = Season.objects.filter(name__contains=season_name).filter(commissioner__username__contains=season_commissioner)
+def find_season(request):
+    find_season_form = FindSeasonForm(request.GET)
     
-    find_season_form = FindSeasonForm(initial={'name':season_name, 'commissioner':season_commissioner})
+    if find_season_form.is_valid():
+        name = find_season_form.cleaned_data.get('name', '')
+        commissioner = find_season_form.cleaned_data.get('commissioner', '')
+
+        season_list = Season.objects.filter(name__contains=name).filter(commissioner__username__contains=commissioner)
+    else:
+        find_season_form = FindSeasonForm()
+        season_list = Season.objects.all()
     
     context = {'season_list': season_list,
             'find_season_form': find_season_form}
