@@ -74,6 +74,11 @@ class Season(models.Model):
         return True
 
 @register_snippet
+class JoinRequest(models.Model):
+    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    player = models.ForeignKey(User, on_delete=models.CASCADE)
+
+@register_snippet
 class Gameweek(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE)
     number = models.IntegerField(default=0)

@@ -117,6 +117,34 @@ class ViewsTest(TestCase):
         self.assertTrue(season.public)
         self.assertIn(player_one, season.players.all())
 
+    def test_join_season(self):
+        player_one = User.objects.create_user(username='player_one', password='pass')
+        season = _create_test_season()
+
+        url = reverse('join-season', args=(season.id,))
+        self.client.login(username='player_one', password='pass')
+        response = self.client.post(url)
+        self.client.logout()
+
+        self.assertEquals(1, len(season.joinrequest_set.all()))
+        self.assertEquals(player_one, season.joinrequest_set.first().player)
+
+    def test_join_season_public(self):
+        player_one = User.objects.create_user(username='player_one', password='pass')
+        comm = User.objects.create_user(username='comm')
+        season = Season(name='test',
+                        commissioner=comm,
+                        weekly_allowance=100.0,
+                        public=True)
+        season.save()
+
+        url = reverse('join-season', args=(season.id,))
+        self.client.login(username='player_one', password='pass')
+        response = self.client.post(url)
+        self.client.logout()
+
+        self.assertIn(player_one, season.players.all())
+        
 
     def _create_management_data(self, form_count):
         return {

@@ -10,7 +10,7 @@ from django.forms.formsets import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.functional import curry
-from .models import Season, Gameweek, Game, Result, BetContainer, Accumulator, BetPart
+from .models import Season, JoinRequest, Gameweek, Game, Result, BetContainer, Accumulator, BetPart
 from .forms import SeasonForm, FindSeasonForm, GameweekForm, GameForm, BaseGameFormSet, ResultForm, BaseResultFormSet, AccumulatorForm, BetPartForm
 
 # Create your views here.
@@ -72,6 +72,23 @@ def create_season(request):
     }
 
     return render(request, 'bets/create_season.html', context)
+
+def join_season(request, season_id):
+    season = get_object_or_404(Season, pk=season_id)
+
+    if not request.user.is_authenticated():
+        messages.error(request, 'Must be logged in to join season')
+    elif request.user in season.players.all():
+        messages.error(request, 'Already joined season')
+    elif season.public:
+        season.players.add(request.user)
+        season.save()
+        messages.success(request, 'Added to season.')
+    else:
+        join_request = JoinRequest(season=season, player=request.user)
+        join_request.save()
+        messages.success(request, 'Join request sent to commissioner')
+    return redirect('season', season_id=season.id)
 
 def gameweek(request, gameweek_id):
     gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
