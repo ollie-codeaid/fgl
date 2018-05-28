@@ -22,7 +22,7 @@
 				    <tr><td><a href="/bets/gameweek/{{ season.get_latest_gameweek.id }}/">Latest gameweek</a></td></tr>
 				    {% endif %}
 				    {% if request.user not in season.players.all %}
-				    <tr><td><a href="/">Join season</a></td></tr>
+				    <tr><td><a href="/bets/{{ season.id }}/join_season">Join season</a></td></tr>
 				    {% endif %}
 				    {% if request.user == season.commissioner and season.can_create_gameweek %}
 				    <tr><td><a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a></td></tr>
