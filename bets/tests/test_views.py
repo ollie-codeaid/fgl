@@ -97,12 +97,11 @@ class ViewsTest(TestCase):
 
     def test_create_season(self):
         player_one = User.objects.create_user(username='player_one', password='pass')
-        player_two = User.objects.create_user(username='player_two', password='pass')
 
         form_data = { 
                 'name' : 'test_season',
                 'weekly_allowance' : 123.0,
-                'players' : [player_one.id, player_two.id]
+                'public' : True,
                 }
 
         url = reverse('create-season')
@@ -115,8 +114,8 @@ class ViewsTest(TestCase):
         season = season_set[0]
         self.assertEquals(123.0, season.weekly_allowance)
         self.assertEquals(player_one, season.commissioner)
+        self.assertTrue(season.public)
         self.assertIn(player_one, season.players.all())
-        self.assertIn(player_two, season.players.all())
 
 
     def _create_management_data(self, form_count):
