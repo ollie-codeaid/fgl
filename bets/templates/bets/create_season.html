@@ -22,10 +22,11 @@
 				<div class="twelve columns">
 					<form method="post">
 					    {% csrf_token %}
-					    <p>Name: {{ season_form.name }}</p>
-					    <p>Weekly Allowance: {{ season_form.weekly_allowance }}</p>
-					    <p>Public: {{ season_form.public }}</p>
-					    <p>Players: {{ season_form.players }}</p>
+					    <table>
+						<tr><td>Name</td><td>{{ season_form.name }}</td></tr>
+						<tr><td>Weekly Allowance</td><td>{{ season_form.weekly_allowance }}</td></tr>
+						<tr><td>Public</td><td>{{ season_form.public }}</td></tr>
+					    </table>
                         </br>
                         </br>
 					    <input type="submit" value="Add Season" class="button"/>

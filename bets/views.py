@@ -58,7 +58,7 @@ def create_season(request):
                         public=season_form.cleaned_data.get('public'))
                 season.save()
 
-                season.players=season_form.cleaned_data.get('players')
+                season.players.add(request.user)
                 season.save()
 
             return redirect('season', season_id=season.id)
