@@ -52,8 +52,6 @@ class Season(models.Model):
     def get_latest_complete_gameweek(self):
         ''' Get latest gameweek that has a complete set of results '''
         gameweek = self.get_latest_gameweek()
-        if gameweek is None:
-            return None
         if gameweek.results_complete():
             return gameweek
         else:
