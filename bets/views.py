@@ -270,6 +270,11 @@ def _manage_accumulator(request, accumulator, bet_container):
         betpart_formset = BetPartFormSet(request.POST)
 
         if accumulator_form.is_valid() and betpart_formset.is_valid():
+            for betpart_form in betpart_formset:
+                if betpart_form.cleaned_data.get('game') is None:
+                    message.error(request, 'Game missing from selection.')
+                    return redirect('add-bet', bet_container_id=bet_container.id)
+
             if is_new_bet:
                 old_stake = 0.0
             else:
@@ -279,7 +284,7 @@ def _manage_accumulator(request, accumulator, bet_container):
             
             if float(stake) > remaining_allowance:
                 messages.error(request, 'Stake greater than remaining allowance: {0}'.format(remaining_allowance))
-                return redirect('add-bet', bet_container_id=bet_container_id)
+                return redirect('add-bet', bet_container_id=bet_container.id)
 
             if is_new_bet:
                 accumulator = Accumulator(bet_container=bet_container, stake=stake)
@@ -307,20 +312,16 @@ def _manage_accumulator(request, accumulator, bet_container):
             except IntegrityError as err:
                 messages.error(request, 'Error saving bet.')
                 messages.error(request, err)
-                return redirect('bet-container', bet_container_id=bet_container.id)
         else:
             messages.error(request, 'Invalid bet.')
-            return redirect('bet-container', bet_container_id=bet_container.id)
 
+    if is_new_bet:
+        accumulator_form = AccumulatorForm()
+        betpart_formset = BetPartFormSet()
     else:
-        if is_new_bet:
-            accumulator_form = AccumulatorForm()
-            betpart_formset = BetPartFormSet()
-        else:
-            current_betparts = [{ 'game':bp.game, 'result':bp.result } for bp in accumulator.betpart_set.all()]
-            accumulator_form = AccumulatorForm(initial={'stake':accumulator.stake})
-            betpart_formset = BetPartFormSet(initial=current_betparts)
-
+        current_betparts = [{ 'game':bp.game, 'result':bp.result } for bp in accumulator.betpart_set.all()]
+        accumulator_form = AccumulatorForm(initial={'stake':accumulator.stake})
+        betpart_formset = BetPartFormSet(initial=current_betparts)
 
     context = {
         'bet_container_id': bet_container.id,
