@@ -80,6 +80,8 @@ def join_season(request, season_id):
         messages.error(request, 'Must be logged in to join season')
     elif request.user in season.players.all():
         messages.error(request, 'Already joined season')
+    elif len(season.joinrequest_set.filter(player=request.user)) == 1:
+        messages.error(request, 'Join request already sent to commissioner')
     elif season.public:
         season.players.add(request.user)
         season.save()
