@@ -16,7 +16,17 @@
 	    {% login_header request %}
 	    <div class="row">
 	    	<div class="twelve columns">
-			<h1>{% if not gameweek.is_first_gameweek %}<a href="/bets/gameweek/{{ gameweek.get_prev_gameweek.id }}/">&lt;</a> {% endif %}Gameweek {{ gameweek.number }}{% if not gameweek.is_latest_gameweek %} <a href="/bets/gameweek/{{ gameweek.get_next_gameweek.id }}/">&gt;</a>{% endif %}</h1>
+		    <h1>{% if not gameweek.is_first_gameweek %}<a href="/bets/gameweek/{{ gameweek.get_prev_gameweek.id }}/">&lt;</a> {% endif %}Gameweek {{ gameweek.number }}{% if not gameweek.is_latest_gameweek %} <a href="/bets/gameweek/{{ gameweek.get_next_gameweek.id }}/">&gt;</a>{% endif %}</h1>
+		    <table>
+			<tr><td><a href="/bets/{{ gameweek.season.id }}">Back to season</a></td></tr>
+			<tr><td><a href="/bets/gameweek/{{ gameweek.id }}/manage_bet_container/">Manage bets</a></td></tr>
+			{% if request.user == gameweek.commissioner and gameweek.is_latest_gameweek %}
+			<tr><td><a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a></td></tr>
+			{% if gameweek.deadline_passed %}
+			<tr><td><a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a></td></tr>
+			{% endif %}
+			{% endif %}
+		    </table>
 	    	</div>
 	    </div>
 	    {% render_messages messages %}
@@ -39,19 +49,6 @@
             </div>
         </div>
         {% endif %}
-		<div class="row">
-			<div class="twelve columns">
-			    {% if request.user|has_group:"Commissioners" %}
-		        {% if gameweek.deadline_passed %}
-	            {% if gameweek.is_latest_gameweek %}
-                <a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a>
-	            {% endif %}
-		        {% else %}
-	            <a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a>
-		        {% endif %}
-			    {% endif %}
-	    	</div>
-	    </div>
 		<div class="row">
 			<div class="twelve columns">
 			    <table>
@@ -109,16 +106,9 @@
 	    {% if user.is_authenticated %}
 		<div class="row">
 			<div class="twelve columns">
-	        	<h2>My bets</h2>
-	    	</div>
-	    </div>
-		<div class="row">
-			<div class="twelve columns">
-		        {% if not gameweek.deadline_passed %}
-		        <a href="/bets/gameweek/{{ gameweek.id }}/manage_bet_container/">Manage bets</a>
-		        {% endif %}
 		        {% for betcontainer in gameweek.betcontainer_set.all %}
 	            {% if user == betcontainer.owner %}
+	        <h2>My bets</h2>
                 <table>
                     <thead>
                     	<tr>
@@ -200,7 +190,6 @@
 	    		{% endif %}
 	    	</div>
 	    </div>
-		<a href="/bets/{{ gameweek.season.id }}/">Back to season</a>
 		{% endif %}
 		</div>
 	</body>
