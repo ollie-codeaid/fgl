@@ -13,3 +13,7 @@ def user_balances(gameweek):
 @register.inclusion_tag('bets/render_messages.html')
 def render_messages(messages):
     return { 'messages' : messages }
+
+@register.inclusion_tag('bets/gameweek_odds.html')
+def gameweek_odds(gameweek):
+    return { 'gameweek' : gameweek }
