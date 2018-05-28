@@ -4,18 +4,18 @@
 {% load bets_extras %}
 {% load wagtailcore_tags %}
 <html>
-	<head>
-		<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
-		<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
-		<link rel="stylesheet" type="text/css" href="{% static 'bets/style.css' %}"/>
-		<title>Gameweek {{ gameweek.number }}</title>
-	</head>
-	<body>
-		<div class="container">
-		{% if gameweek %}
+    <head>
+	<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static 'bets/style.css' %}"/>
+	<title>Gameweek {{ gameweek.number }}</title>
+    </head>
+    <body>
+	<div class="container">
+	    {% if gameweek %}
 	    {% login_header request %}
 	    <div class="row">
-	    	<div class="twelve columns">
+		<div class="twelve columns">
 		    <h1>{% if not gameweek.is_first_gameweek %}<a href="/bets/gameweek/{{ gameweek.get_prev_gameweek.id }}/">&lt;</a> {% endif %}Gameweek {{ gameweek.number }}{% if not gameweek.is_latest_gameweek %} <a href="/bets/gameweek/{{ gameweek.get_next_gameweek.id }}/">&gt;</a>{% endif %}</h1>
 		    <table>
 			<tr><td><a href="/bets/{{ gameweek.season.id }}">Back to season</a></td></tr>
@@ -29,170 +29,143 @@
 			{% endif %}
 			{% endif %}
 		    </table>
-	    	</div>
+		</div>
 	    </div>
 	    {% render_messages messages %}
-		<div class="row">
-			<div class="twelve columns">
-	    		<h2>Deadline: {{ gameweek.deadline_date }}, {{ gameweek.deadline_time }}</h2>
-	    	</div>
+	    <div class="row">
+		<div class="twelve columns">
+		    <h2>Deadline: {{ gameweek.deadline_date }}, {{ gameweek.deadline_time }}</h2>
+		</div>
 	    </div>
-        {% if gameweek.spiel %}
-        <div class="row">
-            <div class="two columns"><p></p></div>
-            <div class="eight columns"><p>{{ gameweek.spiel }}</p></div>
-            <div class="two columns"><p></p></div>
-        </div>
-        {% endif %}
-        {% if not gameweek.deadline_passed %}
-        <div class="row">
-            <div class="twelve columns">
-                <p>Valid bets submitted by: {{ gameweek.get_users_with_ready_bets_as_string }}</p>
-            </div>
-        </div>
-        {% endif %}
-		<div class="row">
-			<div class="twelve columns">
-			    <table>
-			        <tr>
-			        	<th></th>
-			        	<th>Home</th>
-			        	<th>Draw</th>
-			        	<th>Away</th>
-			        	<th></th>
-			            {% if gameweek.results_complete %}
-			            <th>Result</th>
-			            {% endif %}
-			        </tr>
-			    	{% for game in gameweek.game_set.all %}
-			        <tr>
-			        	<td>{{ game.hometeam }}</td>
-			        	<td>{{ game.homenumerator }}/{{ game.homedenominator }}</td>
-			        	<td>{{ game.drawnumerator }}/{{ game.drawdenominator }}</td>
-			        	<td>{{ game.awaynumerator }}/{{ game.awaydenominator }}</td>
-			        	<td>{{ game.awayteam }}</td>
-			        	{% if gameweek.results_complete %}
-			            <td>{{ game.get_result.result }}</td>
-			        	{% endif %}
-			        </tr>
-			    	{% endfor %}
-			    </table>
-	    	</div>
+	    {% if gameweek.spiel %}
+	    <div class="row">
+		<div class="two columns"><p></p></div>
+		<div class="eight columns"><p>{{ gameweek.spiel }}</p></div>
+		<div class="two columns"><p></p></div>
 	    </div>
-		{% if gameweek.results_complete %}
-		<div class="row">
-			<div class="twelve columns">
-		        <h2>Results</h2>
-	    	</div>
+	    {% endif %}
+	    {% if not gameweek.deadline_passed %}
+	    <div class="row">
+		<div class="twelve columns">
+		    <p>Valid bets submitted by: {{ gameweek.get_users_with_ready_bets_as_string }}</p>
+		</div>
+	    </div>
+	    {% endif %}
+	    {% gameweek_odds gameweek %}
+	    {% if gameweek.results_complete %}
+	    <div class="row">
+		<div class="twelve columns">
+		    <h2>Results</h2>
+		</div>
 	    </div>
 	    {% user_balances gameweek %}
 	    {% elif gameweek.number > 1 %}
-		<div class="row">
-			<div class="twelve columns">
-	        	<h2>Rollable</h2>
-	    	</div>
+	    <div class="row">
+		<div class="twelve columns">
+		    <h2>Rollable</h2>
+		</div>
 	    </div>
-		<div class="row">
-			<div class="twelve columns">
-		        <table>
-		        	{% for user,rollable in gameweek.get_rollable_allowances.items %}
-		            <tr>
-		            	<td>{{ user }}</td>
-		            	<td>{{ rollable }}</td>
-		            </tr>
-		        	{% endfor %}
-		        </table>
-	    	</div>
+	    <div class="row">
+		<div class="twelve columns">
+		    <table>
+			{% for user,rollable in gameweek.get_rollable_allowances.items %}
+			<tr>
+			    <td>{{ user }}</td>
+			    <td>{{ rollable }}</td>
+			</tr>
+			{% endfor %}
+		    </table>
+		</div>
 	    </div>
 	    {% endif %}
 	    {% if user.is_authenticated %}
-		<div class="row">
-			<div class="twelve columns">
-		        {% for betcontainer in gameweek.betcontainer_set.all %}
-	            {% if user == betcontainer.owner %}
-	        <h2>My bets</h2>
-                <table>
-                    <thead>
-                    	<tr>
-                    		<th>Stake</th>
-                    		<th>Game</th>
-                    		<th>Result</th>
-                    	</tr>
-                    </thead>
-                	{% for accumulator in betcontainer.accumulator_set.all %}
-                    <tbody>
-                    	<tr>
-                    		<td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
-                    		{% for betpart in accumulator.betpart_set.all %}
-                            {% if forloop.last %}
-                        	<td>{{ betpart.game }}</td>
-                        	<td>{{ betpart.result }}</td>
-                            {% else %}
-                        	<td>{{ betpart.game }}</td>
-                        	<td>{{ betpart.result }}</td>
-                        </tr>
-                        <tr>
-                            {% endif %}
-                    		{% endfor %}
-                    	</tr>
-                    </tbody>
-                	{% endfor %}
-                </table>
-	            {% endif %}
-		        {% endfor %}
-	    	</div>
+	    <div class="row">
+		<div class="twelve columns">
+		    {% for betcontainer in gameweek.betcontainer_set.all %}
+		    {% if user == betcontainer.owner %}
+		    <h2>My bets</h2>
+		    <table>
+			<thead>
+			    <tr>
+				<th>Stake</th>
+				<th>Game</th>
+				<th>Result</th>
+			    </tr>
+			</thead>
+			{% for accumulator in betcontainer.accumulator_set.all %}
+			<tbody>
+			    <tr>
+				<td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
+				{% for betpart in accumulator.betpart_set.all %}
+				{% if forloop.last %}
+				<td>{{ betpart.game }}</td>
+				<td>{{ betpart.result }}</td>
+				{% else %}
+				<td>{{ betpart.game }}</td>
+				<td>{{ betpart.result }}</td>
+			    </tr>
+			    <tr>
+				{% endif %}
+				{% endfor %}
+			    </tr>
+			</tbody>
+			{% endfor %}
+		    </table>
+		    {% endif %}
+		    {% endfor %}
+		</div>
 	    </div>
 	    {% if gameweek.deadline_passed %}
-		<div class="row">
-			<div class="twelve columns">
-	            <h2>Other bets</h2>
-	    	</div>
-	    </div>
-		<div class="row">
-			<div class="twelve columns">
-	            <table>
-	            	<thead>
-	            		<tr>
-	            			<th></th>
-	            			<th>Stake</th>
-	            			<th>Game</th>
-	            			<th>Result</th>
-	            		</tr>
-	            	</thead>
-		            <tbody>
-		            	{% for betcontainer in gameweek.betcontainer_set.all %}
-		            	{% if user != betcontainer.owner %}
-		                <tr>
-		                	<td rowspan="{{ betcontainer.get_game_count }}">{{ betcontainer.owner.username }}</td>
-		                    {% for accumulator in betcontainer.accumulator_set.all %}
-		                    <td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
-                            {% for betpart in accumulator.betpart_set.all %}
-                            <td>{{ betpart.game }}</td>
-                            <td>{{ betpart.result }}
-                            {% if forloop.last %}
-                           	</td>
-                            {% else %}
-                            </td>
-                        </tr>
-                        <tr>
-                            {% endif %}
-                            {% endfor %}
-                            {% if forloop.last %}
-                        </tr>
-                            {% else %}
-	                    </tr>
-	                    <tr>
-                            {% endif %}
-		                    {% endfor %}
-		                	{% endif %}
-		            		{% endfor %}
-		            </tbody>
-		        </table>
-	        	{% endif %}
-	    		{% endif %}
-	    	</div>
-	    </div>
-		{% endif %}
+	    <div class="row">
+		<div class="twelve columns">
+		    <h2>Other bets</h2>
 		</div>
-	</body>
+	    </div>
+	    <div class="row">
+		<div class="twelve columns">
+		    <table>
+			<thead>
+			    <tr>
+				<th></th>
+				<th>Stake</th>
+				<th>Game</th>
+				<th>Result</th>
+			    </tr>
+			</thead>
+			<tbody>
+			    {% for betcontainer in gameweek.betcontainer_set.all %}
+			    {% if user != betcontainer.owner %}
+			    <tr>
+				<td rowspan="{{ betcontainer.get_game_count }}">{{ betcontainer.owner.username }}</td>
+				{% for accumulator in betcontainer.accumulator_set.all %}
+				<td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
+				{% for betpart in accumulator.betpart_set.all %}
+				<td>{{ betpart.game }}</td>
+				<td>{{ betpart.result }}
+				    {% if forloop.last %}
+				</td>
+				{% else %}
+				</td>
+			    </tr>
+			    <tr>
+				{% endif %}
+				{% endfor %}
+				{% if forloop.last %}
+			    </tr>
+			    {% else %}
+			    </tr>
+			    <tr>
+				{% endif %}
+				{% endfor %}
+				{% endif %}
+				{% endfor %}
+			</tbody>
+		    </table>
+		    {% endif %}
+		    {% endif %}
+		</div>
+	    </div>
+	    {% endif %}
+	</div>
+    </body>
 </html>

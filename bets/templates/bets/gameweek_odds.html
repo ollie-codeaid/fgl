@@ -1,0 +1,28 @@
+<div class="row">
+    <div class="twelve columns">
+	<table>
+	    <tr>
+		<th></th>
+		<th>Home</th>
+		<th>Draw</th>
+		<th>Away</th>
+		<th></th>
+		{% if gameweek.results_complete %}
+		<th>Result</th>
+		{% endif %}
+	    </tr>
+	    {% for game in gameweek.game_set.all %}
+	    <tr>
+		<td>{{ game.hometeam }}</td>
+		<td>{{ game.homenumerator }}/{{ game.homedenominator }}</td>
+		<td>{{ game.drawnumerator }}/{{ game.drawdenominator }}</td>
+		<td>{{ game.awaynumerator }}/{{ game.awaydenominator }}</td>
+		<td>{{ game.awayteam }}</td>
+		{% if gameweek.results_complete %}
+		<td>{{ game.get_result.result }}</td>
+		{% endif %}
+	    </tr>
+	    {% endfor %}
+	</table>
+    </div>
+</div>
