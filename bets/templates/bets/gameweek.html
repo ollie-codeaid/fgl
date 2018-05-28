@@ -19,8 +19,10 @@
 		    <h1>{% if not gameweek.is_first_gameweek %}<a href="/bets/gameweek/{{ gameweek.get_prev_gameweek.id }}/">&lt;</a> {% endif %}Gameweek {{ gameweek.number }}{% if not gameweek.is_latest_gameweek %} <a href="/bets/gameweek/{{ gameweek.get_next_gameweek.id }}/">&gt;</a>{% endif %}</h1>
 		    <table>
 			<tr><td><a href="/bets/{{ gameweek.season.id }}">Back to season</a></td></tr>
+			{% if not gameweek.deadline_passed %}
 			<tr><td><a href="/bets/gameweek/{{ gameweek.id }}/manage_bet_container/">Manage bets</a></td></tr>
-			{% if request.user == gameweek.commissioner and gameweek.is_latest_gameweek %}
+			{% endif %}
+			{% if request.user == gameweek.season.commissioner and gameweek.is_latest_gameweek %}
 			<tr><td><a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a></td></tr>
 			{% if gameweek.deadline_passed %}
 			<tr><td><a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a></td></tr>
