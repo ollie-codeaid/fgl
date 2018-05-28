@@ -22,14 +22,14 @@
 				<div class="twelve columns">
 					    <table>
 					        <thead>
-						    <tr><td>Name</td><td>Commissioner</td><td></td></tr>
+						    <tr><th>Name</th><th>Commissioner</th><th></th></tr>
 					        </thead>
 					        <tbody>
 					        <form method="get">
 						    <tr>
 							<td>{{ find_season_form.name }}</td>
 							<td>{{ find_season_form.commissioner }}</td>
-							<td><input type="submit" value="Reapply filter" class="button"/></td>
+							<td><input type="submit" value="Filter" class="button"/></td>
 						    </tr>
                         </form>
 						    {% if season_list %}
