@@ -307,7 +307,10 @@ def _manage_accumulator(request, accumulator, bet_container):
             except IntegrityError as err:
                 messages.error(request, 'Error saving bet.')
                 messages.error(request, err)
-                return redirect('bet-container', bet_container_id=bet_containerid)
+                return redirect('bet-container', bet_container_id=bet_container.id)
+        else:
+            messages.error(request, 'Invalid bet.')
+            return redirect('bet-container', bet_container_id=bet_container.id)
 
     else:
         if is_new_bet:
