@@ -54,7 +54,8 @@ def create_season(request):
             with transaction.atomic():
                 season = Season(commissioner=request.user,
                         name=season_form.cleaned_data.get('name'),
-                        weekly_allowance=season_form.cleaned_data.get('weekly_allowance'))
+                        weekly_allowance=season_form.cleaned_data.get('weekly_allowance'),
+                        public=season_form.cleaned_data.get('public'))
                 season.save()
 
                 season.players=season_form.cleaned_data.get('players')

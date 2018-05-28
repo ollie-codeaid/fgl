@@ -8,7 +8,9 @@ from django.contrib.auth.models import Group, User
 from django.urls import reverse
 
 def _create_test_season():
-    season = Season(name='test', 
+    commissioner = User.objects.create_user('comm')
+    season = Season(name='test',
+                    commissioner=commissioner,
                     weekly_allowance=100.0)
     season.save()
     return season

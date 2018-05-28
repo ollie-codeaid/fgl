@@ -7,7 +7,9 @@ from datetime import date, time
 from bets.views import gameweek
 
 def _create_test_season():
+    commissioner = User.objects.create_user('comm')
     season = Season(name='test', 
+                    commissioner=commissioner,
                     weekly_allowance=100.0)
     season.save()
     return season

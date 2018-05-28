@@ -9,7 +9,7 @@ from .models import Season, Gameweek, Game, Result, BetContainer, Accumulator, B
 class SeasonForm(ModelForm):
     class Meta:
         model = Season
-        fields = ['name', 'weekly_allowance', 'players']
+        fields = ['name', 'weekly_allowance', 'players', 'public']
 
 class FindSeasonForm(Form):
     name = forms.CharField(required=False)
