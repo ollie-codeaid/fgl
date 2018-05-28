@@ -18,7 +18,7 @@
 			    	<h1>{{ season.name }}</h1>
 				<table>
 				    <tr><td><a href="/">Back to index</a></td></tr>
-				    {% if gameweek.get_latest_gameweek %}
+				    {% if season.get_latest_gameweek %}
 				    <tr><td><a href="/bets/gameweek/{{ gameweek.id}}/">Latest gameweek</a></td></tr>
 				    {% endif %}
 				    {% if request.user not in season.players.all %}
