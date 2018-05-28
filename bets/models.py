@@ -51,14 +51,19 @@ class Season(models.Model):
         
     def get_latest_complete_gameweek(self):
         ''' Get latest gameweek that has a complete set of results '''
-        gameweek = self._get_latest_gameweek()
+        gameweek = self.get_latest_gameweek()
+        if gameweek is None:
+            return None
         if gameweek.results_complete():
             return gameweek
         else:
             return self._get_gameweek_by_id(gameweek.number - 1)
 
-    def _get_latest_gameweek(self):
+    def get_latest_gameweek(self):
         ''' Get latest gameweek '''
+        if self.get_next_gameweek_id() == 1:
+            return None
+
         latest_gameweek_number = self.get_next_gameweek_id() - 1
 
         return self._get_gameweek_by_id(latest_gameweek_number)
@@ -66,7 +71,7 @@ class Season(models.Model):
     def can_create_gameweek(self):
         ''' Check whether new gameweek can be created '''
         if self.get_next_gameweek_id() > 1:
-            if not self._get_latest_gameweek().results_complete():
+            if not self.get_latest_gameweek().results_complete():
                 return False
         return True
 
@@ -88,7 +93,7 @@ class Gameweek(models.Model):
         return self.number == 1
 
     def is_latest_gameweek(self):
-        return self == self.season._get_latest_gameweek()
+        return self == self.season.get_latest_gameweek()
 
     def get_prev_gameweek(self):
         if self.is_first_gameweek():

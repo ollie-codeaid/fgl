@@ -89,7 +89,7 @@ class SeasonTest(TestCase):
         season = _create_test_season()
         mockGameweekLatest = Mock()
         
-        with patch('bets.models.Season._get_latest_gameweek', return_value=mockGameweekLatest):
+        with patch('bets.models.Season.get_latest_gameweek', return_value=mockGameweekLatest):
             mockGameweekLatest.results_complete.return_value = True
             result = season.get_latest_complete_gameweek()
             
@@ -108,12 +108,12 @@ class SeasonTest(TestCase):
                 # For good measure
                 self.assertNotEqual(mockOtherGameweek, mockGameweekLatest)
             
-    def test__get_latest_gameweek(self):
+    def test_get_latest_gameweek(self):
         season = _create_test_season()
         gameweek1 = _create_test_gameweek(season)
         gameweek2 = _create_test_gameweek(season)
         
-        result = season._get_latest_gameweek()
+        result = season.get_latest_gameweek()
         
         self.assertEqual(gameweek2, result)
         

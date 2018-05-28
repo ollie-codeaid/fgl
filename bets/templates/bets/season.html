@@ -16,27 +16,19 @@
 			<div class="row">
 				<div class="twelve columns">
 			    	<h1>{{ season.name }}</h1>
-				<a href="/">Back to index</a>
+				<table>
+				    <tr><td><a href="/">Back to index</a></td></tr>
+				    {% if gameweek.get_latest_gameweek %}
+				    <tr><td><a href="/bets/gameweek/{{ gameweek.id}}/">Latest gameweek</a></td></tr>
+				    {% endif %}
+				    {% if request.user not in season.players.all %}
+				    <tr><td><a href="/">Join season</a></td></tr>
+				    {% endif %}
+				    {% if request.user == season.commissioner and season.can_create_gameweek %}
+				    <tr><td><a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a></td></tr>
+			            {% endif %}
 			    </div>
 			</div>
-			<div class="row">
-			    <div class="twelve columns">
-				    <ul>
-				    {% for gameweek in season.gameweek_set.all %}
-				        <li><a href="/bets/gameweek/{{ gameweek.id }}/">{{ gameweek.number }}</a></li>
-				    {% endfor %}
-				    </ul>
-				</div>
-			</div>
-			{% if request.user|has_group:"Commissioners" %}
-			<div class="row">
-				<div class="twelve columns">
-			        {% if season.can_create_gameweek %}
-			        <a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a>
-			        {% endif %}
-			    </div>
-			</div>
-			{% endif %}
 			{% if season.balances_available %}
 			<div class="row">
 				<div class="twelve columns">
