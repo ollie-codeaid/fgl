@@ -272,7 +272,7 @@ def _manage_accumulator(request, accumulator, bet_container):
         if accumulator_form.is_valid() and betpart_formset.is_valid():
             for betpart_form in betpart_formset:
                 if betpart_form.cleaned_data.get('game') is None:
-                    message.error(request, 'Game missing from selection.')
+                    messages.error(request, 'Game missing from selection.')
                     return redirect('add-bet', bet_container_id=bet_container.id)
 
             if is_new_bet:
