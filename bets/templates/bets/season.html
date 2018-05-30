@@ -24,8 +24,11 @@
 			{% if request.user not in season.players.all %}
 			<tr><td><a href="/bets/{{ season.id }}/join_season">Join season</a></td></tr>
 			{% endif %}
-			{% if request.user == season.commissioner and season.can_create_gameweek %}
+			{% if request.user == season.commissioner %}
+			<tr><td><a href="/bets/{{ season.id }}/manage_joinrequests/">Manage players</a></td></tr>
+			{% if season.can_create_gameweek %}
 			<tr><td><a href="/bets/{{ season.id }}/create_gameweek/">Create new gameweek</a></td></tr>
+			{% endif %}
 			{% endif %}
 		</div>
 	    </div>

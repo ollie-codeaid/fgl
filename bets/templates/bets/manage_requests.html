@@ -29,8 +29,8 @@
 			    {% for joinrequest in season.joinrequest_set.all %}
 			    <tr>
 				<td>{{ joinrequest.player }}</td>
-				<td><a href="/bets/{{ joinrequest.id }}/accept_request">Accept</a></td>
-				<td><a href="/bets/{{ joinrequest.id }}/reject_request">Reject</a></td>
+				<td><a href="/bets/{{ joinrequest.id }}/accept">Accept</a></td>
+				<td><a href="/bets/{{ joinrequest.id }}/reject">Reject</a></td>
 			    </tr>
 			    {% endfor %}
 			</tbody>
