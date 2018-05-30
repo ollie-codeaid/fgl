@@ -166,7 +166,7 @@ class ViewsTest(TestCase):
         request = JoinRequest(season=season, player=player_one)
         request.save()
 
-        url = reverse('rejectrequest', args=(request.id,))
+        url = reverse('reject-request', args=(request.id,))
         self.client.login(username='comm', password='comm')
         response = self.client.post(url)
         self.client.logout()
