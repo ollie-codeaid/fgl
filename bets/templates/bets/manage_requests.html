@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+{% load static %}
+{% load bets_extras %}
+<html>
+    <header>
+	<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static 'bets/style.css' %}"/>
+	<title>Manage Requests</title>
+    </header>
+    <body>
+	<div class="container">
+	    {% if bet_container %}
+	    {% login_header request %}
+	    <div class="row">
+		<div class="twelve columns">
+		    <h1>Manage Requests</h1>
+		    <table>
+			<tr><td><a href="/bets/{{ season.id }}/">Back to season</a></td></tr>
+		    </table>
+		</div>
+	    </div>
+	    {% render_messages messages %}
+	    {% if season.joinrequest_set.all %}
+	    <div class="row">
+		<div class="twelve columns">
+		    <table>
+			<tbody>
+			    {% for joinrequest in season.joinrequest_set.all %}
+			    <tr>
+				<td>{{ joinrequest.player }}</td>
+				<td><a href="/bets/{{ joinrequest.id }}/accept_request">Accept</a></td>
+				<td><a href="/bets/{{ joinrequest.id }}/reject_request">Reject</a></td>
+			    </tr>
+			    {% endfor %}
+			</tbody>
+		    </table>
+		</div>
+	    </div>
+	    {% else %}
+	    <div class="row">
+		<div class="twelve columns">
+		    <p>No current user requests.</p>
+		</div>
+	    </div>
+	    {% endif %}
+	</div>
+    </body>
+</html>

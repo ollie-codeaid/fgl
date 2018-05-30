@@ -3,12 +3,12 @@ from django.test import TestCase
 
 import datetime
 
-from bets.models import Season, Gameweek, Game, BetContainer, Accumulator, BetPart
+from bets.models import Season, JoinRequest, Gameweek, Game, BetContainer, Accumulator, BetPart
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 
 def _create_test_season():
-    commissioner = User.objects.create_user('comm')
+    commissioner = User.objects.create_user(username='comm', password='comm')
     season = Season(name='test',
                     commissioner=commissioner,
                     weekly_allowance=100.0)
@@ -145,6 +145,35 @@ class ViewsTest(TestCase):
 
         self.assertIn(player_one, season.players.all())
         
+    def test_accept_request(self):
+        player_one = User.objects.create_user(username='player_one', password='pass')
+        season = _create_test_season()
+        request = JoinRequest(season=season, player=player_one)
+        request.save()
+
+        url = reverse('accept-request', args=(request.id,))
+        self.client.login(username='comm', password='comm')
+        response = self.client.post(url)
+        self.client.logout()
+
+        self.assertEquals(0, len(season.joinrequest_set.all()))
+        self.assertIn(player_one, season.players.all())
+
+
+    def test_reject_request(self):
+        player_one = User.objects.create_user(username='player_one', password='pass')
+        season = _create_test_season()
+        request = JoinRequest(season=season, player=player_one)
+        request.save()
+
+        url = reverse('rejectrequest', args=(request.id,))
+        self.client.login(username='comm', password='comm')
+        response = self.client.post(url)
+        self.client.logout()
+
+        self.assertEquals(0, len(season.joinrequest_set.all()))
+        self.assertNotIn(player_one, season.players.all())
+
 
     def _create_management_data(self, form_count):
         return {
