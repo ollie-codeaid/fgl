@@ -14,13 +14,15 @@ from __builtin__ import True
 
 logger = logging.getLogger(__name__)
 
+
 # Create your models here.
 @register_snippet
 class Season(models.Model):
     commissioner = models.ForeignKey(User, on_delete=models.CASCADE)
     players = models.ManyToManyField(User, related_name='season_players')
     name = models.CharField(max_length=255)
-    weekly_allowance = models.DecimalField(default=100.0, decimal_places=2, max_digits=99)
+    weekly_allowance = models.DecimalField(
+            default=100.0, decimal_places=2, max_digits=99)
     public = models.BooleanField(default=False)
     added = models.DateTimeField(auto_now_add=True)
 
@@ -30,14 +32,15 @@ class Season(models.Model):
     def get_next_gameweek_id(self):
         ''' Get id for next gameweek '''
         return len(self.gameweek_set.all()) + 1
-    
+
     def _get_gameweek_by_id(self, gameweek_id):
         return self.gameweek_set.filter(number=gameweek_id)[0]
 
     def balances_available(self):
-        ''' Check if balances are available (e.g. for display on season root page) '''
+        ''' Check if balances are available (e.g. for display
+        on season root page) '''
         next_gameweek_number = self.get_next_gameweek_id()
-        
+
         if next_gameweek_number == 1:
             # No balances if there is no gameweek
             return False
@@ -48,7 +51,7 @@ class Season(models.Model):
             # Check if gameweek 1 is complete
             gameweek = self._get_gameweek_by_id(1)
             return gameweek.results_complete()
-        
+
     def get_latest_complete_gameweek(self):
         ''' Get latest gameweek that has a complete set of results '''
         gameweek = self.get_latest_gameweek()
@@ -73,10 +76,12 @@ class Season(models.Model):
                 return False
         return True
 
+
 @register_snippet
 class JoinRequest(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE)
     player = models.ForeignKey(User, on_delete=models.CASCADE)
+
 
 @register_snippet
 class Gameweek(models.Model):
@@ -107,16 +112,16 @@ class Gameweek(models.Model):
         if self.is_latest_gameweek():
             raise Exception('Called get_next_gameweek on latest gameweek')
         return self.season._get_gameweek_by_id(self.number+1)
-    
+
     def update_no_bet_users(self):
         ''' For users who have no betcontainer for this week, set weekly winnings
-            as -100, weekly unused as all available rollable and update balance 
+            as -100, weekly unused as all available rollable and update balance
             accordingly '''
         if self.number > 1:
             users = self._get_users_with_bets()
             prev_gameweek = self.get_prev_gameweek()
             prev_balance_set = prev_gameweek.balance_set.all()
-            
+
             for balance in prev_balance_set:
                 if balance.user not in users:
                     if balance.week > 0:
@@ -128,7 +133,7 @@ class Gameweek(models.Model):
                         week_winnings=float(self.season.weekly_allowance * -1),
                         week_unused=unused
                         )
-                    
+
     def _calc_enforce_banked(self, week_winnings):
         # If user made a loss then that has to be realized immediately
         if week_winnings < 0.0:
@@ -136,10 +141,10 @@ class Gameweek(models.Model):
         else:
             enforce_banked = 0.0
         return enforce_banked
-    
+
     def _get_prev_banked(self, user):
         # If Gameweek 1 then last banked must be 0
-        if self.number==1:
+        if self.number == 1:
             prev_banked = 0.0
         else:
             prev_gameweek = self.get_prev_gameweek()
@@ -156,17 +161,18 @@ class Gameweek(models.Model):
 
         prev_banked = self._get_prev_banked(user)
         banked = float(prev_banked) + week_unused + enforce_banked
-        if (week_winnings > 0.0 ):
+        if (week_winnings > 0.0):
             provisional = banked + week_winnings
         else:
             provisional = banked
-        
-        user_balance = Balance(gameweek=self, 
-                user=user, 
+
+        user_balance = Balance(
+                gameweek=self,
+                user=user,
                 week=week_winnings,
                 provisional=provisional,
                 banked=banked)
-        
+
         with transaction.atomic():
             if self.user_has_balance(user):
                 old_user_balance = self.balance_set.filter(user=user)[0]
@@ -256,8 +262,14 @@ class Gameweek(models.Model):
             prev_positions = {}
 
         for balance in self.balance_set.order_by('-provisional'):
-            change_icon = self._get_change_icon( positions, prev_positions, balance.user )
-            results.append( [balance.user, balance.week, balance.provisional, balance.banked, change_icon] )
+            change_icon = self._get_change_icon(
+                    positions, prev_positions, balance.user)
+            results.append([
+                balance.user,
+                balance.week,
+                balance.provisional,
+                balance.banked,
+                change_icon])
 
         return results
 
@@ -277,21 +289,24 @@ class Gameweek(models.Model):
             if total_bet >= self.season.weekly_allowance:
                 users += betcontainer.owner.username + ', '
         return users
-    
+
     def user_has_balance(self, user):
         ''' Check if user has a balance '''
         return len(self.balance_set.filter(user=user)) > 0
+
 
 @register_snippet
 class Balance(models.Model):
     gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     week = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
-    provisional = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
+    provisional = models.DecimalField(
+            default=0.0, decimal_places=2, max_digits=99)
     banked = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
 
     def __str__(self):
         return str(self.gameweek) + ':' + self.user.username
+
 
 @register_snippet
 class Game(models.Model):
@@ -330,6 +345,7 @@ class Game(models.Model):
         ''' Get result '''
         return self.result_set.all()[0]
 
+
 @register_snippet
 class Result(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
@@ -338,6 +354,7 @@ class Result(models.Model):
 
     def __str__(self):
         return str(self.game) + " - " + str(self.result)
+
 
 @register_snippet
 class BetContainer(models.Model):
@@ -374,7 +391,10 @@ class BetContainer(models.Model):
         for accumulator in self.accumulator_set.all():
             winnings += accumulator.calc_winnings()
 
-        return float("{0:.2f}".format(winnings - float(self.gameweek.season.weekly_allowance)))
+        true_winnings = winnings - float(self.gameweek.season.weekly_allowance)
+
+        return float("{0:.2f}".format(true_winnings))
+
 
 @register_snippet
 class Accumulator(models.Model):
@@ -417,20 +437,21 @@ class Accumulator(models.Model):
         else:
             return 0.0
 
+
 @register_snippet
 class BetPart(models.Model):
     accumulator = models.ForeignKey(Accumulator, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     RESULTS = (('H', 'Home'), ('D', 'Draw'), ('A', 'Away'))
     result = models.CharField(max_length=1, choices=RESULTS, default='H')
-    
+
     def __str__(self):
         return str(self.game) + ',' + str(self.result)
 
     def is_correct(self):
         if len(self.game.result_set.all()) != 1:
             return False
-        
+
         result = next(iter(self.game.result_set.all()))
 
         if result.result == self.result:
