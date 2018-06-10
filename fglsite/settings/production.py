@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from .base import *
 
 DEBUG = False
-ALLOWED_HOSTS = ['127.0.0.1', 'olliefgl.pythonanywhere.com']
+ALLOWED_HOSTS = ['olliefgl.pythonanywhere.com',]
 
 SECRET_KEY = os.environ['SECRET_KEY']
 STATIC_ROOT = '/home/olliefgl/fglsite/static/'
