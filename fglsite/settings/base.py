@@ -26,7 +26,6 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 # Application definition
 
 INSTALLED_APPS = [
-    'home',
     'bets',
 
     'wagtail.wagtailforms',
@@ -137,11 +136,6 @@ MEDIA_URL = '/media/'
 
 WAGTAIL_SITE_NAME = "fglsite"
 
-# Base URL to use when referring to full URLs within the Wagtail admin backend -
+# Base URL to use when referring to full URLs within the Wagtail admin backend
 # e.g. in notification emails. Don't include '/admin' or a trailing slash
 BASE_URL = 'http://example.com'
-
-ALLOWED_HOSTS = [
-    u'192.168.15.152',
-    u'olliefgl.pythonanywhere.com',
-]
