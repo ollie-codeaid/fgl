@@ -130,65 +130,6 @@ class ViewsTest(TestCase):
         self.assertTrue(season.public)
         self.assertIn(player_one, season.players.all())
 
-    def test_join_season(self):
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
-        season = _create_test_season()
-
-        url = reverse('join-season', args=(season.id,))
-        self.client.login(username='player_one', password='pass')
-        self.client.post(url)
-        self.client.logout()
-
-        self.assertEquals(1, len(season.joinrequest_set.all()))
-        self.assertEquals(player_one, season.joinrequest_set.first().player)
-
-    def test_join_season_public(self):
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
-        comm = User.objects.create_user(username='comm')
-        season = Season(name='test',
-                        commissioner=comm,
-                        weekly_allowance=100.0,
-                        public=True)
-        season.save()
-
-        url = reverse('join-season', args=(season.id,))
-        self.client.login(username='player_one', password='pass')
-        self.client.post(url)
-        self.client.logout()
-
-        self.assertIn(player_one, season.players.all())
-
-    def test_accept_request(self):
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
-        season = _create_test_season()
-        request = JoinRequest(season=season, player=player_one)
-        request.save()
-
-        url = reverse('accept-request', args=(request.id,))
-        self.client.login(username='comm', password='comm')
-        self.client.post(url)
-        self.client.logout()
-
-        self.assertEquals(0, len(season.joinrequest_set.all()))
-        self.assertIn(player_one, season.players.all())
-
-    def test_reject_request(self):
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
-        season = _create_test_season()
-        request = JoinRequest(season=season, player=player_one)
-        request.save()
-
-        url = reverse('reject-request', args=(request.id,))
-        self.client.login(username='comm', password='comm')
-        self.client.post(url)
-        self.client.logout()
-
-        self.assertEquals(0, len(season.joinrequest_set.all()))
-        self.assertNotIn(player_one, season.players.all())
 
     def _create_management_data(self, form_count):
         return {
