@@ -3,9 +3,10 @@ from django.test import TestCase
 
 import datetime
 
-from bets.models import (Season, JoinRequest, Gameweek,
+from fglsite.bets.models import (Season, Gameweek,
                          Game, BetContainer, Accumulator,
                          BetPart)
+from fglsite.management.models import JoinRequest
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 

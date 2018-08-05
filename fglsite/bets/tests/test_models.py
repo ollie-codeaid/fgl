@@ -1,10 +1,10 @@
 from django.test import TestCase
 
-from bets.models import Season, Gameweek, Game, BetContainer, Balance, Accumulator, Result, BetPart
+from fglsite.bets.models import Season, Gameweek, Game, BetContainer, Balance, Accumulator, Result, BetPart
 from django.contrib.auth.models import User
 from mock import Mock, patch
 from datetime import date, time
-from bets.views import gameweek
+from fglsite.bets.views import gameweek
 
 def _create_test_season():
     commissioner = User.objects.create_user('comm')
@@ -68,7 +68,7 @@ class SeasonTest(TestCase):
         
         mockGameweekSet = Mock()
         
-        with patch('bets.models.Season.gameweek_set', mockGameweekSet):
+        with patch('fglsite.bets.models.Season.gameweek_set', mockGameweekSet):
             
             # Make sure len returns 0
             mockGameweekSet.all.return_value = []
@@ -89,7 +89,7 @@ class SeasonTest(TestCase):
         season = _create_test_season()
         mockGameweekLatest = Mock()
         
-        with patch('bets.models.Season.get_latest_gameweek', return_value=mockGameweekLatest):
+        with patch('fglsite.bets.models.Season.get_latest_gameweek', return_value=mockGameweekLatest):
             mockGameweekLatest.results_complete.return_value = True
             result = season.get_latest_complete_gameweek()
             
@@ -100,7 +100,7 @@ class SeasonTest(TestCase):
             mockGameweekSet = Mock()
             mockGameweekSet.filter.return_value = [mockOtherGameweek]
             
-            with patch('bets.models.Season.gameweek_set', mockGameweekSet):
+            with patch('fglsite.bets.models.Season.gameweek_set', mockGameweekSet):
                 mockGameweekLatest.results_complete.return_value = False
                 result = season.get_latest_complete_gameweek()
                 
@@ -167,9 +167,9 @@ class GameweekTest(TestCase):
         self.assertIn( 'Called get_next_gameweek on latest gameweek', context.exception.message )
 
 
-    @patch('bets.models.Gameweek._get_users_with_bets')
-    @patch('bets.models.Gameweek.get_prev_gameweek')
-    @patch('bets.models.Gameweek.set_balance_by_user')
+    @patch('fglsite.bets.models.Gameweek._get_users_with_bets')
+    @patch('fglsite.bets.models.Gameweek.get_prev_gameweek')
+    @patch('fglsite.bets.models.Gameweek.set_balance_by_user')
     def test_update_no_bet_users(self, set_balance_method, prev_gameweek_method, users_method):
         user_one = Mock(spec=User)
         user_two = Mock(spec=User)
@@ -205,7 +205,7 @@ class GameweekTest(TestCase):
         self.assertEqual(0.0, gameweek._calc_enforce_banked(10.0))
         self.assertEqual(-10.0, gameweek._calc_enforce_banked(-10.0))
         
-    @patch('bets.models.Gameweek._get_balance_by_user')
+    @patch('fglsite.bets.models.Gameweek._get_balance_by_user')
     def test__get_last_banked(self, getBalanceMethod):
         season = _create_test_season()
         gameweek_one = _create_test_gameweek(season)
@@ -221,8 +221,8 @@ class GameweekTest(TestCase):
         self.assertEqual(100.0, gameweek_two._get_prev_banked(user))
         getBalanceMethod.assert_any_call(user)
         
-    @patch('bets.models.Balance')
-    @patch('bets.models.Gameweek.user_has_balance', Mock(return_value=False))
+    @patch('fglsite.bets.models.Balance')
+    @patch('fglsite.bets.models.Gameweek.user_has_balance', Mock(return_value=False))
     def test__set_balance_by_user(self, balance):
         
         season = _create_test_season()
@@ -278,7 +278,7 @@ class GameweekTest(TestCase):
 
         self.assertTrue( gameweek.deadline_passed() )
 
-    @patch('bets.models.Gameweek.get_rollable_allowances')
+    @patch('fglsite.bets.models.Gameweek.get_rollable_allowances')
     def test__get_allowance_by_user(self, rollables ):
         season = _create_test_season()
         gameweek = _create_test_gameweek(season)
