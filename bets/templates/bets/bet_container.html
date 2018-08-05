@@ -22,6 +22,15 @@
 	    </div>
 	    {% render_messages messages %}
 	    {% gameweek_odds bet_container.gameweek %}
+	    {% if bet_container.gameweek.longspecialcontainer_set.all %}
+	    {% for longspecial in bet_container.gameweek.longspecialcontainer_set.all %}
+	    <div class="row">
+		<div class="twelve columns">
+		    <h3><a href="/bets/longterms/{{ bet_container.id }}/{{ longspecial.id }}/manage_bet">{{ longspecial.description }}</a></h3>
+		</div>
+	    </div>
+	    {% endfor %}
+	    {% endif %}
 	    <div class="row">
 		<div class="twelve columns">
 		    <h3>Weekly allowance: {{ bet_container.get_allowance }}</h3>

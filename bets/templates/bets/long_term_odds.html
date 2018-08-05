@@ -1,0 +1,23 @@
+<div class="row">
+    <div class="twelve columns">
+	<h3><a href="/bets/longterms/{{ container.id }}/update/">{{ container.description }}</a></h3>
+	<table>
+	    <tr>
+		<th>Choice</th>
+		<th>Odd</th>
+		{% if container.complete %}
+		<th>Result</th>
+		{% endif %}
+	    </tr>
+	    {% for special in container.longspecial_set.all %}
+	    <tr>
+		<td>{{ special.description }}</td>
+		<td>{{ special.numerator }}/{{ special.denominator }}</td>
+		{% if gameweek.results_complete %}
+		<td>{{ special.is_realized }}</td>
+		{% endif %}
+	    </tr>
+	    {% endfor %}
+	</table>
+    </div>
+</div>

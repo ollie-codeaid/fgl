@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+{% load staticfiles %}
+{% load bets_extras %}
+<html>
+    <head>
+	<link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/redmond/jquery-ui.css"/>
+	<link rel="stylesheet" type="text/css" href="{% static 'bets/normalize.css' %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static 'bets/skeleton.css' %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static 'bets/style.css' %}"/>
+	<title>Create long term</title>
+    </head>
+    <body>
+	<div class="container">
+	    {% login_header request %}
+	    <div class="row">
+		<div class="twelve columns">
+		    <h1>Add Long Term</h1>
+		    <a href="/bets/gameweek/{{ gameweek_id }}/">Back to gameweek</a></br></br>
+		</div>
+	    </div>
+	    {% render_messages messages %}
+	    <div class="row">
+		<div class="twelve columns">
+		    <form method="post">
+			{% csrf_token %}
+			<p>Title: {{ container_form.description }}</p>
+			<p>Allowance: {{ container_form.allowance }}</p>
+			{% for error in container_form.non_form_errors %}
+			<p>{{ error }}</p>
+			{% endfor %}
+			<table>
+			    <thead>
+				<tr>
+				    <td>Choice</td>
+				    <td class="inputnumber">Odd</td>
+				</tr>
+			    </thead>
+			    <tbody>
+				{% for special_form in long_special_formset.forms %}
+				<tr class="special-formset">
+				    <td>{{ special_form.description }}</td>
+				    <td class="inputnumber">{{ special_form.numerator }}/{{ special_form.denominator }}</td>
+				</tr>
+				{% endfor %}
+			    </tbody>
+			</table>
+			{% for error in long_special_formset.non_form_errors %}
+			<p>{{ error }}</p>
+			{% endfor %}
+			{{ long_special_formset.management_form }}
+			</br>
+			</br>
+			<input type="submit" value="Add Long Term" class="button"/>
+		    </form>
+		</div>
+	    </div>
+	</div>
+    </body>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script type="text/javascript">
+	$('.special-formset').formset({
+	    addText: 'Add choice',
+	    deleteText: 'Remove'
+	});
+    </script>
+</html>

@@ -8,10 +8,13 @@ from django.forms.formsets import formset_factory
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.functional import curry
 from .models import (Season, JoinRequest, Gameweek, Game, Result,
-                     BetContainer, Accumulator, BetPart)
+                     BetContainer, Accumulator, BetPart,
+                     LongSpecialContainer, LongSpecial, LongSpecialBet)
 from .forms import (SeasonForm, FindSeasonForm, GameweekForm, GameForm,
                     BaseGameFormSet, ResultForm, BaseResultFormSet,
-                    AccumulatorForm, BetPartForm)
+                    AccumulatorForm, BetPartForm, LongSpecialContainerForm,
+                    LongSpecialForm, BaseLongSpecialFormSet,
+                    LongSpecialBetForm)
 
 
 # Create your views here.
@@ -505,3 +508,188 @@ def delete_bet(request, accumulator_id, bet_container_id):
                 'to delete'.format(
                     betcontainer.owner.username)))
     return bet_container(request, bet_container_id)
+
+
+def _process_new_specials(special_formset, container, request):
+
+    if container.has_bets():
+        messages.error(
+            request,
+            ('Cannot update specials that already have bets,'
+             ' speak to Ollie if required'))
+        return redirect('gameweek', gameweek_id=container.created_gameweek.id)
+
+    new_specials = []
+
+    for special_form in special_formset:
+        description = special_form.cleaned_data.get('description')
+        numerator = special_form.cleaned_data.get('numerator')
+        denominator = special_form.cleaned_data.get('denominator')
+
+        new_specials.append(LongSpecial(
+            container=container,
+            description=description,
+            numerator=numerator,
+            denominator=denominator))
+
+    try:
+        with transaction.atomic():
+            LongSpecial.objects.filter(container=container).delete()
+            LongSpecial.objects.bulk_create(new_specials)
+
+            messages.success(
+                    request, 'Successfully created long term special.')
+
+    except IntegrityError as err:
+        messages.error(request, 'Error saving long term special.')
+        messages.error(request, err)
+        return redirect(reverse('update-longterm', args=(container.id)))
+
+
+def _manage_longterm(request, container, gameweek):
+    is_new_container = container is None
+
+    if is_new_container:
+        LongSpecialFormSet = formset_factory(
+                LongSpecialForm,
+                formset=BaseLongSpecialFormSet)
+    else:
+        LongSpecialFormSet = formset_factory(
+                LongSpecialForm,
+                formset=BaseLongSpecialFormSet,
+                extra=0)
+
+    if (request.method == 'POST'
+            and request.user.is_authenticated
+            and request.user == gameweek.season.commissioner):
+        container_form = LongSpecialContainerForm(request.POST)
+        long_special_formset = LongSpecialFormSet(request.POST)
+
+        if container_form.is_valid() and long_special_formset.is_valid():
+            if is_new_container:
+                container = LongSpecialContainer(
+                        description=container_form.cleaned_data.get('description'),
+                        allowance=container_form.cleaned_data.get('allowance'),
+                        created_gameweek=gameweek)
+            else:
+                container.description = container_form.cleaned_data.get('description')
+                container.allowance = container_form.cleaned_data.get('allowance')
+            container.save()
+
+            _process_new_specials(long_special_formset, container, request)
+            return redirect('gameweek', gameweek_id=gameweek.id)
+        else:
+            messages.error(request, 'Invalid form')
+
+    if not (request.user.is_authenticated()
+            and request.user == gameweek.season.commissioner):
+        messages.error(
+            request,
+            ('Only season commissioner ({0}) allowed to '
+                'create or update gameweek').format(
+                    gameweek.season.commissioner.username))
+
+    if is_new_container:
+        container_form = LongSpecialContainerForm()
+        long_special_formset = LongSpecialFormSet()
+    else:
+        current_long_specials = [{
+            'container': ls.container,
+            'description': ls.description,
+            'numerator': ls.numerator,
+            'denominator': ls.denominator,
+            } for ls in container.longspecial_set.all()]
+
+        container_form = LongSpecialContainerForm(
+                initial={
+                    'description': container.description,
+                    'allowance': container.allowance,
+                    'created_gameweek': gameweek
+                    })
+        long_special_formset = LongSpecialFormSet(initial=current_long_specials)
+
+    context = {
+        'gameweek_id': gameweek.id,
+        'container_form': container_form,
+        'long_special_formset': long_special_formset
+    }
+
+    return render(request, 'bets/create_long_term.html', context)
+
+
+def create_longterm(request, gameweek_id):
+    gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
+
+    return _manage_longterm(request, None, gameweek)
+
+
+def update_longterm(request, longspecial_id):
+    container = get_object_or_404(LongSpecialContainer, pk=longspecial_id)
+    gameweek = container.created_gameweek
+
+    return _manage_longterm(request, container, gameweek)
+
+
+def manage_longterm_bet(request, bet_container_id, longspecial_id):
+    existing_bet = LongSpecialBet.objects.filter(
+                bet_container=bet_container_id
+            ).filter(
+                long_special__container=longspecial_id
+            ).first()
+
+    return _manage_longterm_bet(
+            request,
+            bet_container_id,
+            longspecial_id,
+            existing_bet)
+
+
+def _manage_longterm_bet(
+        request,
+        bet_container_id,
+        longspecial_id,
+        existing_bet):
+    bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
+    container = get_object_or_404(
+            LongSpecialContainer,
+            pk=longspecial_id)
+
+    if request.method == 'POST':
+        form = LongSpecialBetForm(
+                longspecial_id,
+                request.POST)
+
+        if form.is_valid() and request.user.is_authenticated():
+            if existing_bet:
+                bet = existing_bet
+                bet.long_special = form.cleaned_data.get('long_special')
+            else:
+                bet = LongSpecialBet(
+                        long_special=form.cleaned_data.get('long_special'),
+                        bet_container=bet_container)
+            bet.save()
+
+            return redirect(
+                    'gameweek',
+                    gameweek_id=container.created_gameweek.id
+                    )
+        else:
+            messages.error(request, 'Invalid form or unauthenticated user.')
+
+    initial = {}
+
+    if existing_bet:
+        initial = {
+                'long_special': existing_bet.long_special,
+                }
+
+    form = LongSpecialBetForm(
+            longspecial_id,
+            initial=initial)
+
+    context = {
+        'special_form': form,
+        'container': container,
+    }
+
+    return render(request, 'bets/create_long_term_bet.html', context)

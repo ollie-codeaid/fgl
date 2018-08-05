@@ -458,3 +458,67 @@ class BetPart(models.Model):
             return True
         else:
             return False
+
+
+@register_snippet
+class LongSpecialContainer(models.Model):
+    description = models.CharField(max_length=255)
+    allowance = models.DecimalField(
+            default=100.0, decimal_places=2, max_digits=99)
+    created_gameweek = models.ForeignKey(
+            Gameweek,
+            on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.description
+
+    def has_bets(self):
+        return False
+
+    def complete(self):
+        return False
+
+
+@register_snippet
+class LongSpecial(models.Model):
+    container = models.ForeignKey(
+            LongSpecialContainer,
+            on_delete=models.CASCADE)
+    description = models.CharField(max_length=255)
+    numerator = models.IntegerField(default=0)
+    denominator = models.IntegerField(default=1)
+
+    def __str__(self):
+        return self.container.description + ': ' + self.description
+
+    def is_realized(self):
+        return False
+
+
+@register_snippet
+class LongSpecialResult(models.Model):
+    long_special = models.ForeignKey(Game, on_delete=models.CASCADE)
+    result = models.BooleanField()
+    completed_gameweek = models.ForeignKey(
+            Gameweek,
+            on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.long_special) + " - " + str(self.result)
+
+
+@register_snippet
+class LongSpecialBet(models.Model):
+    bet_container = models.ForeignKey(BetContainer, on_delete=models.CASCADE)
+    long_special = models.ForeignKey(LongSpecial, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.long_special) + ', ' + str(self.bet_container.owner)
+
+    def is_correct(self):
+        if len(self.long_special.longspecialresult_set.all()) != 1:
+            return False
+
+        result = next(iter(self.long_special.longspecialresult_set.all()))
+
+        return result.result

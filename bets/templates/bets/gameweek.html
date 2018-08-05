@@ -24,6 +24,7 @@
 			{% endif %}
 			{% if request.user == gameweek.season.commissioner and gameweek.is_latest_gameweek %}
 			<tr><td><a href="/bets/gameweek/{{ gameweek.id }}/update/">Update gameweek</a></td></tr>
+			<tr><td><a href="/bets/gameweek/{{ gameweek.id }}/create_longterm/">Add long term</a></td></tr>
 			{% if gameweek.deadline_passed %}
 			<tr><td><a href="/bets/gameweek/{{ gameweek.id }}/add_results/">Add results</a></td></tr>
 			{% endif %}
@@ -52,6 +53,16 @@
 	    </div>
 	    {% endif %}
 	    {% gameweek_odds gameweek %}
+	    {% if gameweek.longspecialcontainer_set.all %}
+	    <div class="row">
+		<div class="twelve columns">
+		    <h2>Long terms</h2>
+		</div>
+	    </div>
+	    {% for container in gameweek.longspecialcontainer_set.all %}
+	    {% long_term_odds container %}
+	    {% endfor %}
+	    {% endif %}
 	    {% if gameweek.results_complete %}
 	    <div class="row">
 		<div class="twelve columns">
