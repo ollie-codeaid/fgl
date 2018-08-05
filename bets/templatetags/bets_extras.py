@@ -24,5 +24,8 @@ def gameweek_odds(gameweek):
 
 
 @register.inclusion_tag('bets/long_term_odds.html')
-def long_term_odds(container):
-    return {'container': container}
+def long_term_odds(container, request):
+    return {
+            'container': container,
+            'request': request,
+            }

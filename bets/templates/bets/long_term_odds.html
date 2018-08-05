@@ -1,20 +1,25 @@
 <div class="row">
     <div class="twelve columns">
+	{% if request.user == container.created_gameweek.season.commissioner and container.created_gameweek.is_latest_gameweek %}
 	<h3><a href="/bets/longterms/{{ container.id }}/update/">{{ container.description }}</a></h3>
+	{% else %}
+	<h3>{{ container.description }}</h3>
+	{% endif %}
+	<h4>{{ container.allowance }}</h4>
 	<table>
 	    <tr>
-		<th>Choice</th>
-		<th>Odd</th>
-		{% if container.complete %}
-		<th>Result</th>
+		<th></th>
+		<th>Price</th>
+		{% if container.created_gameweek.deadline_passed %}
+		<th>Chosen by</th>
 		{% endif %}
 	    </tr>
 	    {% for special in container.longspecial_set.all %}
 	    <tr>
 		<td>{{ special.description }}</td>
 		<td>{{ special.numerator }}/{{ special.denominator }}</td>
-		{% if gameweek.results_complete %}
-		<td>{{ special.is_realized }}</td>
+		{% if container.created_gameweek.deadline_passed %}
+		<td>{{ special.chosen_by }}</td>
 		{% endif %}
 	    </tr>
 	    {% endfor %}

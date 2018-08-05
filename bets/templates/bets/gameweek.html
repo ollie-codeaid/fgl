@@ -60,7 +60,7 @@
 		</div>
 	    </div>
 	    {% for container in gameweek.longspecialcontainer_set.all %}
-	    {% long_term_odds container %}
+	    {% long_term_odds container request %}
 	    {% endfor %}
 	    {% endif %}
 	    {% if gameweek.results_complete %}

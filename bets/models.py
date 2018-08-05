@@ -491,8 +491,15 @@ class LongSpecial(models.Model):
     def __str__(self):
         return self.description
 
-    def is_realized(self):
-        return False
+    def chosen_by(self):
+        users = ''
+        for bet in self.longspecialbet_set.all():
+            if users:
+                users += ', ' + bet.bet_container.owner
+            else:
+                users = bet.bet_container.owner
+
+        return users
 
 
 @register_snippet
