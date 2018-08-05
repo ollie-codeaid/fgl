@@ -9,41 +9,59 @@ from django.urls import reverse
 
 class ViewsTest(TestCase):
 
+    COMM_PASS = 'comm'
+    PLAY_PASS = 'play'
+
     def setUp(self):
-        commissioner = User.objects.create_user(
+        self.commissioner = User.objects.create_user(
                 username='comm',
-                password='comm')
+                password=self.COMM_PASS)
+
+        self.player = User.objects.create_user(
+                username='player',
+                password=self.PLAY_PASS)
+
         self.season = Season.objects.create(
                 name='test',
-                commissioner=commissioner,
+                commissioner=self.commissioner,
                 weekly_allowance=100.0)
 
-    def test_join_season(self):
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
-
+    def test_join_private_season_with_credentials(self):
         url = reverse('join-season', args=(self.season.id,))
-        self.client.login(username='player_one', password='pass')
+        self.client.login(
+                username=self.player.username,
+                password=self.PLAY_PASS)
         self.client.post(url)
         self.client.logout()
 
         self.assertEquals(1, len(self.season.joinrequest_set.all()))
         self.assertEquals(
-                player_one,
+                self.player,
                 self.season.joinrequest_set.first().player)
+        self.assertEquals(0, len(self.season.players.all()))
 
-    def test_join_season_public(self):
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
+    def test_join_private_season_without_credentials(self):
+        url = reverse('join-season', args=(self.season.id,))
+        response = self.client.post(url, follow=True)
+
+        message = list(response.context.get('messages'))[0]
+
+        self.assertEquals(message.message, 'Must be logged in to join season')
+        self.assertEquals(0, len(self.season.joinrequest_set.all()))
+        self.assertEquals(0, len(self.season.players.all()))
+
+    def test_join_public_season_with_credentials(self):
         self.season.public = True
         self.season.save()
 
         url = reverse('join-season', args=(self.season.id,))
-        self.client.login(username='player_one', password='pass')
+        self.client.login(
+                username=self.player.username,
+                password=self.PLAY_PASS)
         self.client.post(url)
         self.client.logout()
 
-        self.assertIn(player_one, self.season.players.all())
+        self.assertIn(self.player, self.season.players.all())
 
     def test_accept_request(self):
         player_one = User.objects.create_user(
