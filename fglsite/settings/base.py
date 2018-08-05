@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 # Application definition
 
 INSTALLED_APPS = [
-    'bets',
+    'fglsite.bets',
 
     'wagtail.wagtailforms',
     'wagtail.wagtailredirects',
