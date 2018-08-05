@@ -12,6 +12,7 @@ from wagtail.wagtaildocs import urls as wagtaildocs_urls
 urlpatterns = [
     url(r'^$', bets_views.index, name='index'),
     url(r'^bets/', include('fglsite.bets.urls')),
+    url(r'^bets/', include('fglsite.management.urls')),
 
     url(r'^django-admin/', include(admin.site.urls)),
 

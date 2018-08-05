@@ -7,11 +7,6 @@ urlpatterns = [
     url(r'^find_season/', views.find_season, name='find-season'),
     url(r'^(?P<season_id>[0-9]+)/$', views.season, name='season'),
 
-    url(r'^(?P<season_id>[0-9]+)/join_season/$', views.join_season, name='join-season'),
-    url(r'^(?P<season_id>[0-9]+)/manage_joinrequests/$', views.manage_joinrequests, name='manage-requests'),
-    url(r'^(?P<joinrequest_id>[0-9]+)/accept/$', views.accept_joinrequest, name='accept-request'),
-    url(r'^(?P<joinrequest_id>[0-9]+)/reject/$', views.reject_joinrequest, name='reject-request'),
-
     url(r'^(?P<season_id>[0-9]+)/create_gameweek/$', views.create_gameweek, name='create-gameweek'),
     url(r'^gameweek/(?P<gameweek_id>[0-9]+)/$', views.gameweek, name='gameweek'),
     url(r'^gameweek/(?P<gameweek_id>[0-9]+)/update/$', views.update_gameweek, name='update-gameweek'),
