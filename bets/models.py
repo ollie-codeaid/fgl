@@ -478,6 +478,24 @@ class LongSpecialContainer(models.Model):
     def complete(self):
         return False
 
+    def get_choice_by_user(self, user):
+        user_container = BetContainer.objects.filter(
+                    gameweek=self.created_gameweek
+                ).filter(
+                    owner=user
+                )
+
+        if not user_container:
+            return None
+
+        choice = LongSpecialBet.objects.filter(
+                    bet_container=user_container
+                ).filter(
+                    long_special__container=self
+                ).first()
+
+        return choice
+
 
 @register_snippet
 class LongSpecial(models.Model):
@@ -489,7 +507,7 @@ class LongSpecial(models.Model):
     denominator = models.IntegerField(default=1)
 
     def __str__(self):
-        return self.description
+        return self.description + ': ' + str(self.numerator) + '/' + str(self.denominator)
 
     def chosen_by(self):
         users = ''
@@ -520,7 +538,7 @@ class LongSpecialBet(models.Model):
     long_special = models.ForeignKey(LongSpecial, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.long_special) + ', ' + str(self.bet_container.owner)
+        return str(self.long_special)
 
     def is_correct(self):
         if len(self.long_special.longspecialresult_set.all()) != 1:

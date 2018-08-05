@@ -26,7 +26,9 @@
 	    {% for longspecial in bet_container.gameweek.longspecialcontainer_set.all %}
 	    <div class="row">
 		<div class="twelve columns">
-		    <h3><a href="/bets/longterms/{{ bet_container.id }}/{{ longspecial.id }}/manage_bet">{{ longspecial.description }}</a></h3>
+		    <h3><a href="/bets/longterms/{{ bet_container.id }}/{{ longspecial.id }}/manage_bet">
+			    {{ longspecial.description }} - {% get_longterm_choice_by_user longspecial request %}
+			</a></h3>
 		</div>
 	    </div>
 	    {% endfor %}
