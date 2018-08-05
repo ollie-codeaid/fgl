@@ -489,7 +489,7 @@ class LongSpecial(models.Model):
     denominator = models.IntegerField(default=1)
 
     def __str__(self):
-        return self.container.description + ': ' + self.description
+        return self.description
 
     def is_realized(self):
         return False
