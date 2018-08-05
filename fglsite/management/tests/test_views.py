@@ -63,30 +63,100 @@ class ViewsTest(TestCase):
 
         self.assertIn(self.player, self.season.players.all())
 
+    def test_attempt_second_join(self):
+        self.season.players.add(self.player)
+        self.season.save()
+
+        url = reverse('join-season', args=(self.season.id,))
+        self.client.login(
+                username=self.player.username,
+                password=self.PLAY_PASS)
+        response = self.client.post(url, follow=True)
+        self.client.logout()
+
+        message = list(response.context.get('messages'))[0]
+
+        self.assertEquals(message.message, 'Already joined season')
+        self.assertEquals(0, len(self.season.joinrequest_set.all()))
+        self.assertEquals(1, len(self.season.players.all()))
+
+    def test_attempt_second_send_request(self):
+        JoinRequest.objects.create(
+                season=self.season,
+                player=self.player)
+
+        url = reverse('join-season', args=(self.season.id,))
+        self.client.login(
+                username=self.player.username,
+                password=self.PLAY_PASS)
+        response = self.client.post(url, follow=True)
+        self.client.logout()
+
+        message = list(response.context.get('messages'))[0]
+
+        self.assertEquals(message.message, 'Join request already sent to commissioner')
+        self.assertEquals(1, len(self.season.joinrequest_set.all()))
+        self.assertEquals(0, len(self.season.players.all()))
+
     def test_accept_request(self):
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
-        request = JoinRequest(season=self.season, player=player_one)
-        request.save()
+        request = JoinRequest.objects.create(
+                season=self.season,
+                player=self.player)
 
         url = reverse('accept-request', args=(request.id,))
-        self.client.login(username='comm', password='comm')
+        self.client.login(
+                username=self.commissioner.username,
+                password=self.COMM_PASS)
         self.client.post(url)
         self.client.logout()
 
         self.assertEquals(0, len(self.season.joinrequest_set.all()))
-        self.assertIn(player_one, self.season.players.all())
+        self.assertIn(self.player, self.season.players.all())
+
+    def test_accept_request_as_non_commissioner(self):
+        request = JoinRequest.objects.create(
+                season=self.season,
+                player=self.player)
+
+        url = reverse('accept-request', args=(request.id,))
+        self.client.login(
+                username=self.player.username,
+                password=self.PLAY_PASS)
+        response = self.client.post(url, follow=True)
+        self.client.logout()
+
+        message = list(response.context.get('messages'))[0]
+        self.assertEquals(message.message, 'Only season Commissioner can approve/reject requests')
+        self.assertEquals(1, len(self.season.joinrequest_set.all()))
+        self.assertNotIn(self.player, self.season.players.all())
 
     def test_reject_request(self):
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
-        request = JoinRequest(season=self.season, player=player_one)
-        request.save()
+        request = JoinRequest.objects.create(
+                season=self.season,
+                player=self.player)
 
         url = reverse('reject-request', args=(request.id,))
-        self.client.login(username='comm', password='comm')
+        self.client.login(
+                username=self.commissioner.username,
+                password=self.COMM_PASS)
         self.client.post(url)
         self.client.logout()
 
         self.assertEquals(0, len(self.season.joinrequest_set.all()))
-        self.assertNotIn(player_one, self.season.players.all())
+        self.assertNotIn(self.player, self.season.players.all())
+
+    def test_manage_joinrequests(self):
+        request = JoinRequest.objects.create(
+                season=self.season,
+                player=self.player)
+
+        url = reverse('manage-requests', args=(request.id,))
+        self.client.login(
+                username=self.commissioner.username,
+                password=self.COMM_PASS)
+        response = self.client.post(url)
+        self.client.logout()
+
+        self.assertIn(request.player.username, response.content)
+        self.assertIn(str(request.id), response.content)
+        
