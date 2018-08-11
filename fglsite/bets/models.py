@@ -507,9 +507,9 @@ class LongSpecial(models.Model):
         users = ''
         for bet in self.longspecialbet_set.all():
             if users:
-                users += ', ' + bet.bet_container.owner
+                users += ', ' + bet.bet_container.owner.username
             else:
-                users = bet.bet_container.owner
+                users = bet.bet_container.owner.username
 
         return users
 
