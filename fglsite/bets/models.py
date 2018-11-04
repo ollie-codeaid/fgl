@@ -9,14 +9,12 @@ from django.contrib.auth.models import User
 from django.db import transaction
 import logging
 
-from wagtail.wagtailsnippets.models import register_snippet
 from __builtin__ import True
 
 logger = logging.getLogger(__name__)
 
 
 # Create your models here.
-@register_snippet
 class Season(models.Model):
     commissioner = models.ForeignKey(User, on_delete=models.CASCADE)
     players = models.ManyToManyField(User, related_name='season_players')
@@ -77,7 +75,6 @@ class Season(models.Model):
         return True
 
 
-@register_snippet
 class Gameweek(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE)
     number = models.IntegerField(default=0)
@@ -289,7 +286,6 @@ class Gameweek(models.Model):
         return len(self.balance_set.filter(user=user)) > 0
 
 
-@register_snippet
 class Balance(models.Model):
     gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -302,7 +298,6 @@ class Balance(models.Model):
         return str(self.gameweek) + ':' + self.user.username
 
 
-@register_snippet
 class Game(models.Model):
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
     hometeam = models.CharField(max_length=255)
@@ -340,7 +335,6 @@ class Game(models.Model):
         return self.result_set.all()[0]
 
 
-@register_snippet
 class Result(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     RESULTS = (('H', 'Home'), ('D', 'Draw'), ('A', 'Away'))
@@ -350,7 +344,6 @@ class Result(models.Model):
         return str(self.game) + " - " + str(self.result)
 
 
-@register_snippet
 class BetContainer(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
@@ -390,7 +383,6 @@ class BetContainer(models.Model):
         return float("{0:.2f}".format(true_winnings))
 
 
-@register_snippet
 class Accumulator(models.Model):
     bet_container = models.ForeignKey(BetContainer, on_delete=models.CASCADE)
     stake = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
@@ -432,7 +424,6 @@ class Accumulator(models.Model):
             return 0.0
 
 
-@register_snippet
 class BetPart(models.Model):
     accumulator = models.ForeignKey(Accumulator, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
@@ -454,7 +445,6 @@ class BetPart(models.Model):
             return False
 
 
-@register_snippet
 class LongSpecialContainer(models.Model):
     description = models.CharField(max_length=255)
     allowance = models.DecimalField(
@@ -491,7 +481,6 @@ class LongSpecialContainer(models.Model):
         return choice
 
 
-@register_snippet
 class LongSpecial(models.Model):
     container = models.ForeignKey(
             LongSpecialContainer,
@@ -514,7 +503,6 @@ class LongSpecial(models.Model):
         return users
 
 
-@register_snippet
 class LongSpecialResult(models.Model):
     long_special = models.ForeignKey(Game, on_delete=models.CASCADE)
     result = models.BooleanField()
@@ -526,7 +514,6 @@ class LongSpecialResult(models.Model):
         return str(self.long_special) + " - " + str(self.result)
 
 
-@register_snippet
 class LongSpecialBet(models.Model):
     bet_container = models.ForeignKey(BetContainer, on_delete=models.CASCADE)
     long_special = models.ForeignKey(LongSpecial, on_delete=models.CASCADE)
