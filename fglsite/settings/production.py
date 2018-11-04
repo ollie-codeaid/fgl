@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 from .base import *
 
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ['olliefgl.pythonanywhere.com', ]
 
 SECRET_KEY = os.environ['SECRET_KEY']
