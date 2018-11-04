@@ -4,10 +4,8 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 
-from fglsite.bets import views as bets_views
-
 urlpatterns = [
-    url(r'^$', bets_views.index, name='index'),
+    url(r'^', include('fglsite.common.urls')),
     url(r'^bets/', include('fglsite.bets.urls')),
     url(r'^bets/', include('fglsite.management.urls')),
 

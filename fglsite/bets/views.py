@@ -18,17 +18,6 @@ from .forms import (SeasonForm, FindSeasonForm, GameweekForm, GameForm,
 
 
 # Create your views here.
-def index(request):
-    season_list = Season.objects.all()
-
-    user_season_list = []
-    for season in season_list:
-        if request.user in season.players.all():
-            user_season_list.append(season)
-    context = {'season_list': user_season_list}
-    return render(request, 'bets/index.html', context)
-
-
 def season(request, season_id):
     season = get_object_or_404(Season, pk=season_id)
     context = {'season': season}

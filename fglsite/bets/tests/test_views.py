@@ -3,10 +3,14 @@ from django.test import TestCase
 
 import datetime
 
-from fglsite.bets.models import (Season, Gameweek,
-                         Game, BetContainer, Accumulator,
-                         BetPart)
-from fglsite.management.models import JoinRequest
+from fglsite.bets.models import (
+    Season,
+    Gameweek,
+    Game,
+    BetContainer,
+    Accumulator,
+    BetPart,
+)
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 
@@ -45,28 +49,6 @@ class ViewsTest(TestCase):
 
     def setUp(self):
         Group.objects.create(name='Commissioners')
-
-    def test_index(self):
-        season = _create_test_season()
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
-        User.objects.create_user(
-                username='player_two', password='pass')
-        season.players = [player_one, ]
-        season.save()
-
-        url = reverse('index')
-        self.client.login(username='player_one', password='pass')
-        response = self.client.post(url)
-        self.client.logout()
-
-        self.assertIn(season, response.context['season_list'])
-
-        self.client.login(username='player_two', password='pass')
-        response = self.client.post(url)
-        self.client.logout()
-
-        self.assertNotIn(season, response.context['season_list'])
 
     def test_season(self):
         season = _create_test_season()
@@ -129,7 +111,6 @@ class ViewsTest(TestCase):
         self.assertEquals(player_one, season.commissioner)
         self.assertTrue(season.public)
         self.assertIn(player_one, season.players.all())
-
 
     def _create_management_data(self, form_count):
         return {
