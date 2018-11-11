@@ -7,6 +7,7 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^', include('fglsite.common.urls')),
     url(r'^bets/', include('fglsite.bets.urls')),
+    url(r'^bets/', include('fglsite.gambling.urls')),
     url(r'^bets/', include('fglsite.management.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
