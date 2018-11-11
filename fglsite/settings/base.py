@@ -28,6 +28,7 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 INSTALLED_APPS = [
     'fglsite.common',
     'fglsite.bets',
+    'fglsite.gambling',
     'fglsite.management',
 
     'modelcluster',
