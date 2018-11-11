@@ -10,10 +10,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('bets', '0002_auto_20180805_1413'),
+        ('bets', '0003_rename_tables'),
+        ('gambling', '0001_initial'),
     ]
 
-    operations = [
+    state_operations = [
         migrations.RemoveField(
             model_name='accumulator',
             name='bet_container',
@@ -89,4 +90,10 @@ class Migration(migrations.Migration):
         migrations.DeleteModel(
             name='LongSpecialResult',
         ),
+    ]
+
+    operations = [
+        migrations.SeparateDatabaseAndState(
+            state_operations=state_operations
+        )
     ]

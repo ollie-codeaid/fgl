@@ -13,10 +13,10 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('bets', '0003_auto_20181111_0811'),
+        ('bets', '0003_rename_tables'),
     ]
 
-    operations = [
+    state_operations = [
         migrations.CreateModel(
             name='Accumulator',
             fields=[
@@ -86,4 +86,10 @@ class Migration(migrations.Migration):
             name='bet_container',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='gambling.BetContainer'),
         ),
+    ]
+
+    operations = [
+        migrations.SeparateDatabaseAndState(
+            state_operations=state_operations
+        )
     ]
