@@ -7,3 +7,15 @@
     <a href="https://codecov.io/gh/ollie-codeaid/fgl" alt="Codecov">
         <img src="https://codecov.io/gh/ollie-codeaid/fgl/badge.svg" /></a>
 </p>
+
+
+## Local development
+
+```bash
+pyenv install 2.7.18
+pyenv local 2.7.18
+pyenv virtualenv fgl
+pyenv activate fgl
+pip install -r requirements.txt
+python manage.py runserver --settings=fglsite.settings.dev
+```
