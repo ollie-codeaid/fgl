@@ -157,6 +157,5 @@ class ViewsTest(TestCase):
         response = self.client.post(url)
         self.client.logout()
 
-        self.assertIn(request.player.username, response.content)
-        self.assertIn(str(request.id), response.content)
-        
+        self.assertIn(request.player.username, str(response.content))
+        self.assertIn(str(request.id), str(response.content))

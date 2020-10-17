@@ -8,8 +8,6 @@ import logging
 
 from fglsite.bets.models import Gameweek, Game
 
-from __builtin__ import True
-
 logger = logging.getLogger(__name__)
 
 
