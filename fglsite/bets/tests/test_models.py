@@ -151,7 +151,7 @@ class GameweekTest(TestCase):
         with self.assertRaises(Exception) as context:
             gameweek_one.get_prev_gameweek()
 
-        self.assertIn('Called get_prev_gameweek on first gameweek', context.exception.message)
+        self.assertIn('Called get_prev_gameweek on first gameweek', str(context.exception))
 
     def test_get_next_gameweek(self):
         season = _create_test_season()
@@ -163,7 +163,7 @@ class GameweekTest(TestCase):
         with self.assertRaises(Exception) as context:
             gameweek_two.get_next_gameweek()
 
-        self.assertIn('Called get_next_gameweek on latest gameweek', context.exception.message)
+        self.assertIn('Called get_next_gameweek on latest gameweek', str(context.exception))
 
     @patch('fglsite.bets.models.Gameweek._get_users_with_bets')
     @patch('fglsite.bets.models.Gameweek.get_prev_gameweek')

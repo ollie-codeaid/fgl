@@ -51,7 +51,7 @@ class ViewsTest(TestCase):
         season = _create_test_season()
         url = reverse('season', args=(season.id,))
         response = self.client.get(url)
-        self.assertIn('test', response.content)
+        self.assertIn('test', str(response.content))
 
     def test_find_season(self):
         player_one = User.objects.create_user(
@@ -152,7 +152,7 @@ class ViewsTest(TestCase):
 
         game = gameweek.game_set.all()[0]
         game_data = self._create_game_data(0, 'Manchester Utd', 'Chelsea')
-        for key, value in game_data.iteritems():
+        for key, value in game_data.items():
             self.assertEquals(value, getattr(game, key.replace('form-0-', '')))
 
     def test_create_gameweek(self):

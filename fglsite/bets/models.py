@@ -9,8 +9,6 @@ from django.contrib.auth.models import User
 from django.db import transaction
 import logging
 
-from __builtin__ import True
-
 logger = logging.getLogger(__name__)
 
 
