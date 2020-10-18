@@ -31,9 +31,6 @@ INSTALLED_APPS = [
     'fglsite.gambling',
     'fglsite.management',
 
-    'modelcluster',
-    'taggit',
-
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
