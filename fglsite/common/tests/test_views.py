@@ -23,7 +23,7 @@ class ViewsTest(TestCase):
                 username='player_one', password='pass')
         User.objects.create_user(
                 username='player_two', password='pass')
-        season.players = [player_one, ]
+        season.players.set([player_one,])
         season.save()
 
         url = reverse('index')

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from functools import partial
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse
 from django.db import IntegrityError, transaction
 from django.forms.formsets import formset_factory
 from django.shortcuts import get_object_or_404, render, redirect
-from django.utils.functional import curry
+from django.urls import reverse
 from .models import (Season, Gameweek, Game, Result)
 from .forms import (SeasonForm, FindSeasonForm, GameweekForm, GameForm,
                     BaseGameFormSet, ResultForm, BaseResultFormSet)
@@ -43,7 +43,7 @@ def create_season(request):
     if request.method == 'POST':
         season_form = SeasonForm(request.POST)
 
-        if season_form.is_valid() and request.user.is_authenticated():
+        if season_form.is_valid() and request.user.is_authenticated:
             with transaction.atomic():
                 season = Season(
                     commissioner=request.user,
@@ -150,7 +150,7 @@ def _manage_gameweek(request, gameweek, season):
         else:
             messages.error(request, 'Invalid form')
 
-    if not (request.user.is_authenticated()
+    if not (request.user.is_authenticated
             and request.user == season.commissioner):
         messages.error(
             request,
@@ -207,10 +207,10 @@ def add_gameweek_results(request, gameweek_id):
     ResultFormSet = formset_factory(ResultForm,
                                     formset=BaseResultFormSet,
                                     extra=0)
-    ResultFormSet.form = staticmethod(curry(ResultForm, gameweek=gameweek))
+    ResultFormSet.form = staticmethod(partial(ResultForm, gameweek=gameweek))
 
     if (request.method == 'POST'
-            and request.user.is_authenticated()
+            and request.user.is_authenticated
             and request.user == gameweek.season.commissioner):
         result_formset = ResultFormSet(request.POST)
         if result_formset.is_valid():

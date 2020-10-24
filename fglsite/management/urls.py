@@ -1,25 +1,25 @@
-from django.conf.urls import url
+from django.urls import path
 
 from . import views
 
 urlpatterns = [
-    url(
-        r'^(?P<season_id>[0-9]+)/join_season/$',
+    path(
+        '<int:season_id>/join_season/',
         views.join_season,
         name='join-season'
     ),
-    url(
-        r'^(?P<season_id>[0-9]+)/manage_joinrequests/$',
+    path(
+        '<int:season_id>/manage_joinrequests/',
         views.manage_joinrequests,
         name='manage-requests'
     ),
-    url(
-        r'^(?P<joinrequest_id>[0-9]+)/accept/$',
+    path(
+        '<int:joinrequest_id>/accept/',
         views.accept_joinrequest,
         name='accept-request'
     ),
-    url(
-        r'^(?P<joinrequest_id>[0-9]+)/reject/$',
+    path(
+        '<int:joinrequest_id>/reject/',
         views.reject_joinrequest,
         name='reject-request'
     ),
