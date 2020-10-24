@@ -9,7 +9,7 @@ from fglsite.bets.models import Season
 def join_season(request, season_id):
     season = get_object_or_404(Season, pk=season_id)
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         messages.error(request, 'Must be logged in to join season')
     elif request.user in season.players.all():
         messages.error(request, 'Already joined season')

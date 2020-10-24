@@ -1,16 +1,16 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.conf import settings
-from django.conf.urls import include, url
+from django.urls import include, path
 from django.contrib import admin
 
 urlpatterns = [
-    url(r'^', include('fglsite.common.urls')),
-    url(r'^bets/', include('fglsite.bets.urls')),
-    url(r'^bets/', include('fglsite.gambling.urls')),
-    url(r'^bets/', include('fglsite.management.urls')),
+    path('', include('fglsite.common.urls')),
+    path('bets/', include('fglsite.bets.urls')),
+    path('bets/', include('fglsite.gambling.urls')),
+    path('bets/', include('fglsite.management.urls')),
 
-    url(r'^admin/', include(admin.site.urls)),
+    path('admin/', admin.site.urls),
 ]
 
 

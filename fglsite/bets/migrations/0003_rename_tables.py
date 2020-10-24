@@ -7,6 +7,8 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
+    atomic = False
+
     dependencies = [
         ('bets', '0002_auto_20180805_1413'),
     ]

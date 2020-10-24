@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from functools import partial
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse
 from django.db import IntegrityError, transaction
 from django.forms.formsets import formset_factory
 from django.shortcuts import get_object_or_404, render, redirect
-from django.utils.functional import curry
+from django.urls import reverse
 from fglsite.bets.forms import BaseResultFormSet
 from fglsite.bets.models import Gameweek
 from .models import (BetContainer, Accumulator, BetPart,
@@ -58,10 +58,10 @@ def _manage_accumulator(request, accumulator, bet_container):
             BetPartForm,
             formset=BaseResultFormSet,
             extra=0)
-    BetPartFormSet.form = staticmethod(curry(BetPartForm, gameweek=gameweek))
+    BetPartFormSet.form = staticmethod(partial(BetPartForm, gameweek=gameweek))
 
     if (request.method == 'POST'
-            and request.user.is_authenticated()
+            and request.user.is_authenticated
             and request.user == bet_container.owner):
         accumulator_form = AccumulatorForm(request.POST)
         betpart_formset = BetPartFormSet(request.POST)
@@ -128,7 +128,7 @@ def _manage_accumulator(request, accumulator, bet_container):
         else:
             messages.error(request, 'Invalid bet.')
 
-    if not (request.user.is_authenticated()
+    if not (request.user.is_authenticated
             and request.user == bet_container.owner):
         messages.error(
             request,
@@ -173,7 +173,7 @@ def update_bet(request, accumulator_id):
 
 def delete_bet(request, accumulator_id, bet_container_id):
     betcontainer = get_object_or_404(BetContainer, pk=bet_container_id)
-    if (request.user.is_authenticated()
+    if (request.user.is_authenticated
             and request.user == betcontainer.owner):
         Accumulator.objects.filter(pk=accumulator_id).delete()
         messages.success(request, 'Bet deleted')
@@ -257,7 +257,7 @@ def _manage_longterm(request, container, gameweek):
         else:
             messages.error(request, 'Invalid form')
 
-    if not (request.user.is_authenticated()
+    if not (request.user.is_authenticated
             and request.user == gameweek.season.commissioner):
         messages.error(
             request,
@@ -335,7 +335,7 @@ def _manage_longterm_bet(
                 longspecial_id,
                 request.POST)
 
-        if form.is_valid() and request.user.is_authenticated():
+        if form.is_valid() and request.user.is_authenticated:
             if existing_bet:
                 bet = existing_bet
                 bet.long_special = form.cleaned_data.get('long_special')

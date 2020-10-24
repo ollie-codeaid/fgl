@@ -108,8 +108,7 @@ class ViewsTest(TestCase):
                     password='test'),
                 gameweek=gameweek)
         betcontainer.save()
-        accumulator = Accumulator(bet_container=betcontainer, stake=100.0)
-        accumulator.save()
+        accumulator = Accumulator.objects.create(bet_container=betcontainer, stake=100.0)
         betpart = BetPart(accumulator=accumulator, game=game, result='H')
         betpart.save()
 

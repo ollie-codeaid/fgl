@@ -17,5 +17,6 @@ pyenv local 2.7.18
 pyenv virtualenv fgl
 pyenv activate fgl
 pip install -r requirements.txt
-python manage.py runserver --settings=fglsite.settings.dev
+export DJANGO_SETTINGS_MODULE=fglsite.settings.dev
+python manage.py runserver
 ```
