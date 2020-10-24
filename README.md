@@ -12,8 +12,8 @@
 ## Local development
 
 ```bash
-pyenv install 2.7.18
-pyenv local 2.7.18
+pyenv install 3.6.11
+pyenv local 3.6.11
 pyenv virtualenv fgl
 pyenv activate fgl
 pip install -r requirements.txt
