@@ -108,3 +108,4 @@ venv.bak/
 
 .settings/
 .idea/
+.DS_Store
