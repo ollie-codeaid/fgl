@@ -109,3 +109,5 @@ venv.bak/
 .settings/
 .idea/
 .DS_Store
+
+odds_output/*.json
