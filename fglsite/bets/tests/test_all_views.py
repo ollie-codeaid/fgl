@@ -47,68 +47,6 @@ class ViewsTest(TestCase):
     def setUp(self):
         Group.objects.create(name='Commissioners')
 
-    def test_season(self):
-        season = _create_test_season()
-        url = reverse('season', args=(season.id,))
-        response = self.client.get(url)
-        self.assertIn('test', str(response.content))
-
-    def test_find_season(self):
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
-        season_one = Season(
-                name='test_one',
-                weekly_allowance=100.0,
-                commissioner=player_one)
-        season_one.save()
-        season_two = Season(
-                name='test_two',
-                weekly_allowance=100.0,
-                commissioner=player_one)
-        season_two.save()
-
-        url = reverse('find-season')
-        data = {'name': 'one'}
-        response = self.client.get(url, data=data)
-        self.assertEquals(1, len(response.context['season_list'].all()))
-        self.assertIn(season_one, response.context['season_list'])
-
-        url = reverse('find-season')
-        data = {'name': 'two', 'commissioner': player_one.username}
-        response = self.client.get(url, data=data)
-        self.assertEquals(1, len(response.context['season_list'].all()))
-        self.assertIn(season_two, response.context['season_list'])
-
-        url = reverse('find-season')
-        data = {'name': '', 'commissioner': player_one.username}
-        response = self.client.get(url, data=data)
-        self.assertEquals(2, len(response.context['season_list'].all()))
-        self.assertIn(season_one, response.context['season_list'])
-        self.assertIn(season_two, response.context['season_list'])
-
-    def test_create_season(self):
-        player_one = User.objects.create_user(
-                username='player_one', password='pass')
-
-        form_data = {
-                'name': 'test_season',
-                'weekly_allowance': 123.0,
-                'public': True,
-                }
-
-        url = reverse('create-season')
-        self.client.login(username='player_one', password='pass')
-        self.client.post(url, data=form_data)
-        self.client.logout()
-
-        season_set = Season.objects.filter(name='test_season')
-        self.assertEquals(1, len(season_set))
-        season = season_set[0]
-        self.assertEquals(123.0, season.weekly_allowance)
-        self.assertEquals(player_one, season.commissioner)
-        self.assertTrue(season.public)
-        self.assertIn(player_one, season.players.all())
-
     def _create_management_data(self, form_count):
         return {
                 'form-TOTAL_FORMS': form_count,

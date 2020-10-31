@@ -3,20 +3,37 @@ from __future__ import unicode_literals
 from functools import partial
 
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
 from django.forms.formsets import formset_factory
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
-from django.urls import reverse
+from django.views.generic import CreateView, DetailView
+from django.urls import reverse, reverse_lazy
 from .models import (Season, Gameweek, Game, Result)
 from .forms import (SeasonForm, FindSeasonForm, GameweekForm, GameForm,
                     BaseGameFormSet, ResultForm, BaseResultFormSet)
 
 
-# Create your views here.
-def season(request, season_id):
-    season = get_object_or_404(Season, pk=season_id)
-    context = {'season': season}
-    return render(request, 'bets/season.html', context)
+class SeasonDetailView(DetailView):
+    model = Season
+
+
+class SeasonCreateView(LoginRequiredMixin, CreateView):
+    model = Season
+    form_class = SeasonForm
+
+    def get_success_url(self):
+        return reverse_lazy("season", args=[self.object.pk])
+
+    def form_valid(self, form):
+        self.object = Season.objects.create(
+            commissioner=self.request.user,
+            name=form.cleaned_data.get('name'),
+            weekly_allowance=form.cleaned_data.get('weekly_allowance'),
+            public=form.cleaned_data.get('public')
+        )
+        return HttpResponseRedirect(self.get_success_url())
 
 
 def find_season(request):
@@ -37,35 +54,6 @@ def find_season(request):
                'find_season_form': find_season_form}
 
     return render(request, 'bets/find_season.html', context)
-
-
-def create_season(request):
-    if request.method == 'POST':
-        season_form = SeasonForm(request.POST)
-
-        if season_form.is_valid() and request.user.is_authenticated:
-            with transaction.atomic():
-                season = Season(
-                    commissioner=request.user,
-                    name=season_form.cleaned_data.get('name'),
-                    weekly_allowance=season_form.cleaned_data.get('weekly_allowance'),
-                    public=season_form.cleaned_data.get('public'))
-                season.save()
-
-                season.players.add(request.user)
-                season.save()
-
-            return redirect('season', season_id=season.id)
-        else:
-            messages.error(request, 'Invalid form or unauthenticated user.')
-
-    season_form = SeasonForm(request.POST)
-
-    context = {
-        'season_form': season_form,
-        }
-
-    return render(request, 'bets/create_season.html', context)
 
 
 def gameweek(request, gameweek_id):

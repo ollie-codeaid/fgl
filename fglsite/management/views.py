@@ -23,7 +23,7 @@ def join_season(request, season_id):
         join_request = JoinRequest(season=season, player=request.user)
         join_request.save()
         messages.success(request, 'Join request sent to commissioner')
-    return redirect('season', season_id=season.id)
+    return redirect(reverse('season', args=[season.pk]))
 
 
 def manage_joinrequests(request, season_id):
