@@ -1,0 +1,112 @@
+[
+  {
+    "home_team": "Sheffield United",
+    "away_team": "Manchester City",
+    "home_numerator": 43,
+    "home_denominator": 4,
+    "draw_numerator": 27,
+    "draw_denominator": 5,
+    "away_numerator": 1,
+    "away_denominator": 3,
+    "start_time": 1604147400
+  },
+  {
+    "home_team": "Burnley",
+    "away_team": "Chelsea",
+    "home_numerator": 26,
+    "home_denominator": 5,
+    "draw_numerator": 29,
+    "draw_denominator": 8,
+    "away_numerator": 3,
+    "away_denominator": 5,
+    "start_time": 1604156400
+  },
+  {
+    "home_team": "Liverpool",
+    "away_team": "West Ham United",
+    "home_numerator": 3,
+    "home_denominator": 7,
+    "draw_numerator": 34,
+    "draw_denominator": 7,
+    "away_numerator": 8,
+    "away_denominator": 1,
+    "start_time": 1604165400
+  },
+  {
+    "home_team": "Aston Villa",
+    "away_team": "Southampton",
+    "home_numerator": 11,
+    "home_denominator": 7,
+    "draw_numerator": 27,
+    "draw_denominator": 10,
+    "away_numerator": 19,
+    "away_denominator": 10,
+    "start_time": 1604232000
+  },
+  {
+    "home_team": "Newcastle United",
+    "away_team": "Everton",
+    "home_numerator": 19,
+    "home_denominator": 7,
+    "draw_numerator": 13,
+    "draw_denominator": 5,
+    "away_numerator": 7,
+    "away_denominator": 6,
+    "start_time": 1604239200
+  },
+  {
+    "home_team": "Manchester United",
+    "away_team": "Arsenal",
+    "home_numerator": 10,
+    "home_denominator": 9,
+    "draw_numerator": 20,
+    "draw_denominator": 7,
+    "away_numerator": 11,
+    "away_denominator": 4,
+    "start_time": 1604248200
+  },
+  {
+    "home_team": "Tottenham Hotspur",
+    "away_team": "Brighton and Hove Albion",
+    "home_numerator": 2,
+    "home_denominator": 3,
+    "draw_numerator": 33,
+    "draw_denominator": 10,
+    "away_numerator": 47,
+    "away_denominator": 10,
+    "start_time": 1604258100
+  },
+  {
+    "home_team": "Fulham",
+    "away_team": "West Bromwich Albion",
+    "home_numerator": 3,
+    "home_denominator": 2,
+    "draw_numerator": 5,
+    "draw_denominator": 2,
+    "away_numerator": 11,
+    "away_denominator": 5,
+    "start_time": 1604338200
+  },
+  {
+    "home_team": "Leeds United",
+    "away_team": "Leicester City",
+    "home_numerator": 13,
+    "home_denominator": 8,
+    "draw_numerator": 11,
+    "draw_denominator": 4,
+    "away_numerator": 9,
+    "away_denominator": 5,
+    "start_time": 1604347200
+  },
+  {
+    "home_team": "Brighton and Hove Albion",
+    "away_team": "Burnley",
+    "home_numerator": 9,
+    "home_denominator": 10,
+    "draw_numerator": 25,
+    "draw_denominator": 9,
+    "away_numerator": 10,
+    "away_denominator": 3,
+    "start_time": 1604683800
+  }
+]

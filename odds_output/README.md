@@ -1,0 +1,1 @@
+This directory exists in order to store odds.

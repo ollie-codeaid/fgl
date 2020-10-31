@@ -54,6 +54,8 @@ jobs:
             codecov
           environment:
             DJANGO_SETTINGS_MODULE: fglsite.settings.dev
+            ODDS_API_KEY: dummy_value
+            ODDS_OUTPUT_DIR: dummy_value
 
       - store_artifacts:
           path: test-reports
