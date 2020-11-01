@@ -8,7 +8,7 @@ from django.db import IntegrityError, transaction
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
-from django.views.generic import CreateView, DetailView
+from django.views.generic import CreateView, DetailView, UpdateView
 from django.urls import reverse, reverse_lazy
 from .models import (Season, Gameweek, Game, Result)
 from .forms import (SeasonForm, FindSeasonForm, GameweekForm, GameForm,
@@ -56,100 +56,100 @@ def find_season(request):
     return render(request, 'bets/find_season.html', context)
 
 
-def gameweek(request, gameweek_id):
-    gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
-    context = {'gameweek': gameweek}
-    return render(request, 'bets/gameweek.html', context)
+class GameweekDetailView(DetailView):
+    model = Gameweek
 
 
-def _process_new_games(game_formset, gameweek, request):
+class SeasonCommissionerAllowedMixin:
+    def dispatch(self, request, *args, **kwargs):
+        season = self.get_season(*args, **kwargs)
+        if request.user != season.commissioner:
+            return HttpResponseRedirect(
+                reverse_lazy("season", args=[season.id])
+            )
 
-    if gameweek.has_bets():
-        messages.error(
-            request,
-            ('Cannot update gameweek that already has bets,'
-             ' speak to Ollie if required'))
-        return redirect('gameweek', gameweek_id=gameweek.id)
+        return super().dispatch(request, *args, **kwargs)
 
-    new_games = []
 
-    for game_form in game_formset:
-        home = game_form.cleaned_data.get('hometeam')
-        away = game_form.cleaned_data.get('awayteam')
-        homenumerator = game_form.cleaned_data.get('homenumerator')
-        homedenominator = game_form.cleaned_data.get('homedenominator')
-        drawnumerator = game_form.cleaned_data.get('drawnumerator')
-        drawdenominator = game_form.cleaned_data.get('drawdenominator')
-        awaynumerator = game_form.cleaned_data.get('awaynumerator')
-        awaydenominator = game_form.cleaned_data.get('awaydenominator')
-
-        new_games.append(Game(
+def build_games_from_formset(gameweek, game_formset):
+    return [
+        Game(
             gameweek=gameweek,
-            hometeam=home, awayteam=away,
-            homenumerator=homenumerator, homedenominator=homedenominator,
-            drawnumerator=drawnumerator, drawdenominator=drawdenominator,
-            awaynumerator=awaynumerator, awaydenominator=awaydenominator))
-
-    try:
-        with transaction.atomic():
-            Game.objects.filter(gameweek=gameweek).delete()
-            Game.objects.bulk_create(new_games)
-
-            messages.success(request, 'Successfully created gameweek.')
-
-    except IntegrityError as err:
-        messages.error(request, 'Error saving gameweek.')
-        messages.error(request, err)
-        return redirect(reverse('update-gameweek', args=(gameweek.id)))
+            hometeam=game_form.cleaned_data.get('hometeam'),
+            awayteam=game_form.cleaned_data.get('awayteam'),
+            homenumerator=game_form.cleaned_data.get('homenumerator'),
+            homedenominator=game_form.cleaned_data.get('homedenominator'),
+            drawnumerator=game_form.cleaned_data.get('drawnumerator'),
+            drawdenominator=game_form.cleaned_data.get('drawdenominator'),
+            awaynumerator=game_form.cleaned_data.get('awaynumerator'),
+            awaydenominator=game_form.cleaned_data.get('awaydenominator')
+        ) for game_form in game_formset
+    ]
 
 
-def _manage_gameweek(request, gameweek, season):
-    is_new_gameweek = gameweek is None
+class GameweekCreateView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, CreateView):
+    model = Gameweek
+    form_class = GameweekForm
+    formset_class = formset_factory(GameForm, formset=BaseGameFormSet)
 
-    if is_new_gameweek:
-        GameFormSet = formset_factory(GameForm, formset=BaseGameFormSet)
-    else:
-        GameFormSet = formset_factory(GameForm,
-                                      formset=BaseGameFormSet,
-                                      extra=0)
+    def get_success_url(self):
+        return reverse_lazy("gameweek", args=[self.object.pk])
 
-    if (request.method == 'POST'
-            and request.user.is_authenticated
-            and request.user == season.commissioner):
-        gameweek_form = GameweekForm(request.POST)
-        game_formset = GameFormSet(request.POST)
+    def get_season(self, season_id, *args, **kwargs):
+        return get_object_or_404(Season, pk=season_id)
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data.update({
+            "game_formset": self.formset_class()
+        })
+        return context_data
+
+    def post(self, request, season_id, *args, **kwargs):
+        gameweek_form = self.get_form()
+        game_formset = self.formset_class(request.POST)
+        season = get_object_or_404(Season, pk=season_id)
 
         if gameweek_form.is_valid() and game_formset.is_valid():
-            if is_new_gameweek:
-                gameweek = Gameweek(
-                    season=season,
-                    number=season.get_next_gameweek_id(),
-                    deadline_date=gameweek_form.cleaned_data.get('deadline_date'),
-                    deadline_time=gameweek_form.cleaned_data.get('deadline_time'),
-                    spiel=gameweek_form.cleaned_data.get('spiel'))
-            else:
-                gameweek.deadline_date = gameweek_form.cleaned_data.get('deadline_date')
-                gameweek.deadline_time = gameweek_form.cleaned_data.get('deadline_time')
-                gameweek.spiel = gameweek_form.cleaned_data.get('spiel')
-            gameweek.save()
-
-            _process_new_games(game_formset, gameweek, request)
-            return redirect('gameweek', gameweek_id=gameweek.id)
+            return self.form_valid(season, gameweek_form, game_formset)
         else:
-            messages.error(request, 'Invalid form')
+            return self.form_invalid(gameweek_form)
 
-    if not (request.user.is_authenticated
-            and request.user == season.commissioner):
-        messages.error(
-            request,
-            ('Only season commissioner ({0}) allowed to '
-                'create or update gameweek').format(
-                    season.commissioner.username))
+    def form_valid(self, season, form, formset):
+        self.object = Gameweek.objects.create(
+            season=season,
+            number=season.get_next_gameweek_id(),
+            deadline_date=form.cleaned_data.get('deadline_date'),
+            deadline_time=form.cleaned_data.get('deadline_time'),
+            spiel=form.cleaned_data.get('spiel')
+        )
 
-    if is_new_gameweek:
-        gameweek_form = GameweekForm()
-        game_formset = GameFormSet()
-    else:
+        new_games = build_games_from_formset(gameweek=self.object, game_formset=formset)
+
+        try:
+            with transaction.atomic():
+                Game.objects.bulk_create(new_games)
+                messages.success(self.request, 'Successfully created gameweek.')
+        except Exception:
+            messages.error(self.request, 'Something went wrong creating gameweek.')
+            return HttpResponseRedirect(reverse('update-gameweek', args=[self.object.id]))
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class GameweekUpdateView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, UpdateView):
+    model = Gameweek
+    form_class = GameweekForm
+    formset_class = formset_factory(GameForm, formset=BaseGameFormSet, extra=0)
+
+    def get_success_url(self):
+        return reverse_lazy("gameweek", args=[self.get_object().pk])
+
+    def get_season(self, *args, **kwargs):
+        return self.get_object().season
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
         current_games = [{
             'gameweek': g.gameweek,
             'hometeam': g.hometeam,
@@ -160,34 +160,49 @@ def _manage_gameweek(request, gameweek, season):
             'drawdenominator': g.drawdenominator,
             'awaynumerator': g.awaynumerator,
             'awaydenominator': g.awaydenominator
-            } for g in gameweek.game_set.all()]
+        } for g in self.object.game_set.all()]
 
-        gameweek_form = GameweekForm(
-                initial={'deadline_date': gameweek.deadline_date,
-                         'deadline_time': gameweek.deadline_time,
-                         'spiel': gameweek.spiel})
-        game_formset = GameFormSet(initial=current_games)
+        context_data.update({
+            "game_formset": self.formset_class(initial=current_games)
+        })
+        return context_data
 
-    context = {
-        'season_id': season.id,
-        'gameweek_form': gameweek_form,
-        'game_formset': game_formset
-    }
+    def post(self, request, *args, **kwargs):
+        gameweek_form = self.get_form()
+        game_formset = self.formset_class(request.POST)
 
-    return render(request, 'bets/create_gameweek.html', context)
+        if self.get_object().has_bets():
+            messages.error(
+                request,
+                ('Cannot update gameweek that already has bets,'
+                 ' speak to Ollie if required')
+            )
+            return self.get_success_url()
 
+        if gameweek_form.is_valid() and game_formset.is_valid():
+            return self.form_valid(gameweek_form, game_formset)
+        else:
+            return self.form_invalid(gameweek_form)
 
-def create_gameweek(request, season_id):
-    season = get_object_or_404(Season, pk=season_id)
+    def form_valid(self, form, formset):
+        gameweek = self.get_object()
+        gameweek.deadline_date = form.cleaned_data.get('deadline_date')
+        gameweek.deadline_time = form.cleaned_data.get('deadline_time')
+        gameweek.spiel = form.cleaned_data.get('spiel')
+        gameweek.save()
 
-    return _manage_gameweek(request, None, season)
+        new_games = build_games_from_formset(gameweek=gameweek, game_formset=formset)
 
+        try:
+            with transaction.atomic():
+                Game.objects.filter(gameweek=gameweek).delete()
+                Game.objects.bulk_create(new_games)
+                messages.success(self.request, 'Successfully updated gameweek.')
+        except Exception:
+            messages.error(self.request, 'Something went wrong updating gameweek.')
+            return HttpResponseRedirect(reverse('update-gameweek', args=[gameweek.id]))
 
-def update_gameweek(request, gameweek_id):
-    gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
-    season = gameweek.season
-
-    return _manage_gameweek(request, gameweek, season)
+        return HttpResponseRedirect(self.get_success_url())
 
 
 def add_gameweek_results(request, gameweek_id):
