@@ -17,6 +17,7 @@ import os
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
+ODDS_OUTPUT_DIR = os.environ['ODDS_OUTPUT_DIR']
 
 
 # Quick-start development settings - unsuitable for production

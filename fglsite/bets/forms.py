@@ -34,11 +34,15 @@ class GameForm(ModelForm):
     class Meta:
         model = Game
         fields = [
-                'hometeam', 'awayteam',
-                'homenumerator', 'homedenominator',
-                'drawnumerator', 'drawdenominator',
-                'awaynumerator', 'awaydenominator',
-                ]
+            'hometeam',
+            'awayteam',
+            'homenumerator',
+            'homedenominator',
+            'drawnumerator',
+            'drawdenominator',
+            'awaynumerator',
+            'awaydenominator',
+        ]
 
 
 class BaseGameFormSet(BaseFormSet):

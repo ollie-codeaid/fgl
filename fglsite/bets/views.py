@@ -10,9 +10,18 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic import CreateView, DetailView, UpdateView
 from django.urls import reverse, reverse_lazy
-from .models import (Season, Gameweek, Game, Result)
-from .forms import (SeasonForm, FindSeasonForm, GameweekForm, GameForm,
-                    BaseGameFormSet, ResultForm, BaseResultFormSet)
+
+from fglsite.bets.models import Season, Gameweek, Game, Result
+from fglsite.bets.forms import (
+    SeasonForm,
+    FindSeasonForm,
+    GameweekForm,
+    GameForm,
+    BaseGameFormSet,
+    ResultForm,
+    BaseResultFormSet
+)
+from fglsite.odds_reader.reader import read_odds
 
 
 class SeasonDetailView(DetailView):
@@ -93,15 +102,29 @@ class GameweekCreateView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, Cre
     formset_class = formset_factory(GameForm, formset=BaseGameFormSet)
 
     def get_success_url(self):
-        return reverse_lazy("gameweek", args=[self.object.pk])
+        return reverse_lazy("gameweek", args=[self.gameweek.pk])
 
     def get_season(self, season_id, *args, **kwargs):
         return get_object_or_404(Season, pk=season_id)
 
-    def get_context_data(self, **kwargs):
+    def _build_formset(self):
+        try:
+            odds = read_odds()
+        except Exception:
+            odds = []
+
+        for odd in odds:
+            odd.pop("meta")
+        return self.formset_class(initial=odds)
+
+    def get_context_data(self, formset=None, **kwargs):
         context_data = super().get_context_data(**kwargs)
+
+        if not formset:
+            formset = self._build_formset()
+
         context_data.update({
-            "game_formset": self.formset_class()
+            "game_formset": formset
         })
         return context_data
 
@@ -113,10 +136,11 @@ class GameweekCreateView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, Cre
         if gameweek_form.is_valid() and game_formset.is_valid():
             return self.form_valid(season, gameweek_form, game_formset)
         else:
-            return self.form_invalid(gameweek_form)
+            self.object = None
+            return self.form_invalid(gameweek_form, game_formset)
 
     def form_valid(self, season, form, formset):
-        self.object = Gameweek.objects.create(
+        self.gameweek = Gameweek.objects.create(
             season=season,
             number=season.get_next_gameweek_id(),
             deadline_date=form.cleaned_data.get('deadline_date'),
@@ -124,7 +148,7 @@ class GameweekCreateView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, Cre
             spiel=form.cleaned_data.get('spiel')
         )
 
-        new_games = build_games_from_formset(gameweek=self.object, game_formset=formset)
+        new_games = build_games_from_formset(gameweek=self.gameweek, game_formset=formset)
 
         try:
             with transaction.atomic():
@@ -132,9 +156,13 @@ class GameweekCreateView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, Cre
                 messages.success(self.request, 'Successfully created gameweek.')
         except Exception:
             messages.error(self.request, 'Something went wrong creating gameweek.')
-            return HttpResponseRedirect(reverse('update-gameweek', args=[self.object.id]))
+            return HttpResponseRedirect(reverse('update-gameweek', args=[self.gameweek.id]))
 
         return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form, formset):
+        """If the form is invalid, render the invalid form."""
+        return self.render_to_response(self.get_context_data(form=form, formset=formset))
 
 
 class GameweekUpdateView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, UpdateView):

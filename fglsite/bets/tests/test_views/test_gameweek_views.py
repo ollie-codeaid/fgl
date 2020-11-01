@@ -1,12 +1,28 @@
 # -*- coding: utf-8 -*-
-from django.test import TestCase
-
 import datetime
+from unittest.mock import Mock, patch
+
+from django.contrib.auth.models import Group, User
+from django.urls import reverse
+from django.test import TestCase
 
 from fglsite.bets.models import Season, Gameweek, Game
 from fglsite.bets.forms import GameweekForm
-from django.contrib.auth.models import Group, User
-from django.urls import reverse
+
+
+single_game_output = """
+[{
+"home_team": "Sheffield United",
+"away_team": "Manchester City",
+"home_numerator": 49,
+"home_denominator": 1,
+"draw_numerator": 21,
+"draw_denominator": 2,
+"away_numerator": 1,
+"away_denominator": 9,
+"start_time": 1604147545
+}] 
+"""
 
 
 class GameweekViewsTest(TestCase):
@@ -67,6 +83,7 @@ class GameweekViewsTest(TestCase):
         for key, value in game_data.items():
             assert getattr(game, key.replace('form-0-', '')) == value
 
+    @patch("fglsite.odds_reader.reader._read_from_disk", Mock(return_value="[]"))
     def test_commissioner_can_view_create_gameweek_form(self):
         url = reverse('create-gameweek', args=(self.season.pk,))
         self.client.force_login(self.user)
@@ -91,6 +108,37 @@ class GameweekViewsTest(TestCase):
 
         assert response.status_code == 302
         assert response.url == "/bets/1/"
+
+    @patch("fglsite.odds_reader.reader._read_from_disk", Mock(return_value=single_game_output))
+    def test_initial_games_taken_from_output_during_create(self):
+        url = reverse('create-gameweek', args=(self.season.pk,))
+        self.client.force_login(self.user)
+        response = self.client.get(url)
+
+        assert "form" in response.context
+        assert type(response.context["form"]) == GameweekForm
+        assert "game_formset" in response.context
+        assert response.context["game_formset"].forms[0].initial == {
+            'hometeam': 'Sheffield United',
+            'awayteam': 'Manchester City',
+            'homenumerator': 49,
+            'homedenominator': 1,
+            'drawnumerator': 21,
+            'drawdenominator': 2,
+            'awaynumerator': 1,
+            'awaydenominator': 9
+        }
+
+    @patch("fglsite.odds_reader.reader._read_from_disk", Mock(side_effect=Exception()))
+    def test_exception_reading_odds_displays_empty_form(self):
+        url = reverse('create-gameweek', args=(self.season.pk,))
+        self.client.force_login(self.user)
+        response = self.client.get(url)
+
+        assert "form" in response.context
+        assert type(response.context["form"]) == GameweekForm
+        assert "game_formset" in response.context
+        assert response.context["game_formset"].forms[0].initial == {}
 
     def test_commissioner_can_create_gameweek(self):
         form_data = self._create_basic_gameweek_form_data()

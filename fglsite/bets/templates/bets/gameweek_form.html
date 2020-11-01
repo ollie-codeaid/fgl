@@ -30,6 +30,11 @@
 					    {% for error in form.non_form_errors %}
 					    <p>{{ error }}</p>
 					    {% endfor %}
+					    {% for error in game_formset.non_form_errors %}
+					    <p>{{ error }}</p>
+					    {% endfor %}
+					    {{ game_formset.management_form }}
+                        </br>
 					    <table>
 					        <thead>
 					            <tr>
@@ -53,11 +58,6 @@
 					        {% endfor %}
 					        </tbody>
 					    </table>
-					    {% for error in game_formset.non_form_errors %}
-					    <p>{{ error }}</p>
-					    {% endfor %}
-					    {{ game_formset.management_form }}
-                        </br>
                         </br>
 					    <input type="submit" value="Add Gameweek" class="button"/>
 					</form>
