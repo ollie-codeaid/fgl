@@ -10,5 +10,5 @@ urlpatterns = [
     path('<int:season_id>/create_gameweek/', views.GameweekCreateView.as_view(), name='create-gameweek'),
     path('gameweek/<int:pk>/', views.GameweekDetailView.as_view(), name='gameweek'),
     path('gameweek/<int:pk>/update/', views.GameweekUpdateView.as_view(), name='update-gameweek'),
-    path('gameweek/<int:gameweek_id>/add_results/', views.add_gameweek_results, name='add-gameweek-results'),
+    path('gameweek/<int:gameweek_id>/add_results/', views.ResultsFormView.as_view(), name='add-gameweek-results'),
 ]

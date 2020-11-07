@@ -23,7 +23,7 @@
 				<div class="twelve columns">
 					<form method="post">
 					    {% csrf_token %}
-					    {% for error in result_formset.non_form_errors %}
+					    {% for error in form.non_form_errors %}
 					    <p>{{ error }}</p>
 					    {% endfor %}
 					    <table>
@@ -31,7 +31,7 @@
 					            <tr><td>Game</td><td>Result</td></tr>
 					        </thead>
 					        <tbody>
-					        {% for result_form in result_formset.forms %}
+					        {% for result_form in form.forms %}
 					        <tr>
 					            <td>{{ result_form.game }}</td>
 					            <td>{{ result_form.result }}</td>
@@ -42,7 +42,7 @@
 					        {% endfor %}
 					        </tbody>
 					    </table>
-					    {{ result_formset.management_form }}
+					    {{ form.management_form }}
 					    </br>
 					    <input type="submit" value="Add results" class="button"/>
 					</form>

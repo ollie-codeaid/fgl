@@ -8,7 +8,7 @@ from django.db import IntegrityError, transaction
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
-from django.views.generic import CreateView, DetailView, UpdateView
+from django.views.generic import CreateView, DetailView, FormView, UpdateView
 from django.urls import reverse, reverse_lazy
 
 from fglsite.bets.models import Season, Gameweek, Game, Result
@@ -233,63 +233,60 @@ class GameweekUpdateView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, Upd
         return HttpResponseRedirect(self.get_success_url())
 
 
-def add_gameweek_results(request, gameweek_id):
-    gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
-    ResultFormSet = formset_factory(ResultForm,
-                                    formset=BaseResultFormSet,
-                                    extra=0)
-    ResultFormSet.form = staticmethod(partial(ResultForm, gameweek=gameweek))
+class ResultsFormView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, FormView):
+    form_class = formset_factory(ResultForm, formset=BaseResultFormSet, extra=0)
+    template_name = "bets/add_gameweek_results.html"
 
-    if (request.method == 'POST'
-            and request.user.is_authenticated
-            and request.user == gameweek.season.commissioner):
-        result_formset = ResultFormSet(request.POST)
-        if result_formset.is_valid():
-            results = []
-            for result_form in result_formset:
-                game = result_form.cleaned_data.get('game')
-                result = result_form.cleaned_data.get('result')
+    def get_success_url(self):
+        return reverse_lazy("gameweek", args=[self.kwargs["gameweek_id"]])
 
-                results.append(Result(game=game, result=result))
+    def get_season(self, *args, **kwargs):
+        gameweek = get_object_or_404(Gameweek, pk=self.kwargs["gameweek_id"])
+        return gameweek.season
 
-            try:
-                with transaction.atomic():
-                    for game in gameweek.game_set.all():
-                        Result.objects.filter(game=game).delete()
-                    Result.objects.bulk_create(results)
+    def get_initial(self):
+        gameweek = get_object_or_404(Gameweek, pk=self.kwargs["gameweek_id"])
+        return [
+            {'game': g} for g in gameweek.game_set.all()
+        ]
 
-                    for betcontainer in gameweek.betcontainer_set.all():
-                        gameweek.set_balance_by_user(
-                            user=betcontainer.owner,
-                            week_winnings=betcontainer.calc_winnings(),
-                            week_unused=betcontainer.get_allowance_unused())
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data.update({
+            "gameweek_id": self.kwargs["gameweek_id"]
+        })
+        return context_data
 
-                    gameweek.update_no_bet_users()
+    def form_valid(self, formset):
+        results = [
+            Result(
+                game=result_form.cleaned_data.get('game'),
+                result=result_form.cleaned_data.get('result')
+            ) for result_form in formset
+        ]
 
-                    return redirect('gameweek', gameweek_id=gameweek.id)
+        gameweek = get_object_or_404(Gameweek, pk=self.kwargs["gameweek_id"])
 
-            except IntegrityError as err:
-                messages.error(request, 'Error saving gameweek.')
-                messages.error(request, err)
-                return redirect(
-                    'add-gameweek-results',
-                    gameweek_id=gameweek.id)
+        try:
+            with transaction.atomic():
+                for game in gameweek.game_set.all():
+                    Result.objects.filter(game=game).delete()
+                Result.objects.bulk_create(results)
 
-    else:
-        results = [{'game': g} for g in gameweek.game_set.all()]
-        result_formset = ResultFormSet(initial=results)
+                for betcontainer in gameweek.betcontainer_set.all():
+                    gameweek.set_balance_by_user(
+                        user=betcontainer.owner,
+                        week_winnings=betcontainer.calc_winnings(),
+                        week_unused=betcontainer.get_allowance_unused()
+                    )
 
-    if not (request.user.is_authenticated
-            and request.user == gameweek.season.commissioner):
-        messages.error(
-            request,
-            ('Only season commissioner ({0}) allowed to '
-                'add bet results').format(
-                    season.commissioner.username))
+                gameweek.update_no_bet_users()
 
-    context = {
-        'gameweek_id': gameweek_id,
-        'result_formset': result_formset
-    }
+        except IntegrityError as err:
+            messages.error(self.request, 'Error saving results.')
+            messages.error(self.request, err)
+            return HttpResponseRedirect(
+                reverse('add-gameweek-results', args=[gameweek.id])
+            )
 
-    return render(request, 'bets/add_gameweek_results.html', context)
+        return HttpResponseRedirect(self.get_success_url())
