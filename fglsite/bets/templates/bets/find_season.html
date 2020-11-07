@@ -15,7 +15,7 @@
 			<div class="row">
 				<div class="twelve columns">
 					<h1>Find Season</h1>
-					<a href="/">Back to index</a>
+					<a href="{% url 'index' %}">Back to index</a>
 				</div>
 			</div>
 			{% render_messages messages %}
@@ -36,7 +36,7 @@
 						    {% if season_list %}
 						    {% for season in season_list %}
 						    <tr>
-							<td><a href="/bets/{{ season.id }}">{{ season.name }}</a></td>
+							<td><a href="{% url 'season' season.id %}">{{ season.name }}</a></td>
 							<td>{{ season.commissioner.username }}</td>
 							<td></td>
 						    </tr>

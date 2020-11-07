@@ -17,7 +17,7 @@
 		<div class="twelve columns">
 		    <h1>Manage Requests</h1>
 		    <table>
-			<tr><td><a href="/bets/{{ season.id }}/">Back to season</a></td></tr>
+			<tr><td><a href="{% url 'season' season.id %}">Back to season</a></td></tr>
 		    </table>
 		</div>
 	    </div>
@@ -30,8 +30,8 @@
 			    {% for joinrequest in season.joinrequest_set.all %}
 			    <tr>
 				<td>{{ joinrequest.player }}</td>
-				<td><a href="/bets/{{ joinrequest.id }}/accept">Accept</a></td>
-				<td><a href="/bets/{{ joinrequest.id }}/reject">Reject</a></td>
+				<td><a href="{% url 'accept-request' joinrequest.id %}">Accept</a></td>
+				<td><a href="{% url 'reject-request' joinrequest.id %}">Reject</a></td>
 			    </tr>
 			    {% endfor %}
 			</tbody>

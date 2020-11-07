@@ -15,7 +15,7 @@
 			<div class="row">
 				<div class="twelve columns">
 					<h1>Add Results</h1>
-					<a href="/bets/gameweek/{{ gameweek_id }}/">Back to gameweek</a>
+					<a href="{% url 'gameweek' gameweek_id %}">Back to gameweek</a>
 				</div>
 			</div>
 			{% render_messages messages %}

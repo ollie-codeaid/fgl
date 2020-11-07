@@ -124,7 +124,8 @@ class GameweekCreateView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, Cre
             formset = self._build_formset()
 
         context_data.update({
-            "game_formset": formset
+            "game_formset": formset,
+            "season": self.get_season(season_id=self.kwargs["season_id"])
         })
         return context_data
 
@@ -191,7 +192,8 @@ class GameweekUpdateView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, Upd
         } for g in self.object.game_set.all()]
 
         context_data.update({
-            "game_formset": self.formset_class(initial=current_games)
+            "game_formset": self.formset_class(initial=current_games),
+            "season": self.get_season()
         })
         return context_data
 
