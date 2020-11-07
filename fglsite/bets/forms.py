@@ -11,7 +11,7 @@ from .models import (
 class SeasonForm(ModelForm):
     class Meta:
         model = Season
-        fields = ['name', 'weekly_allowance', 'public']
+        fields = ['name', 'weekly_allowance']
 
 
 class FindSeasonForm(Form):

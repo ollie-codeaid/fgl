@@ -30,7 +30,6 @@ INSTALLED_APPS = [
     'fglsite.common',
     'fglsite.bets',
     'fglsite.gambling',
-    'fglsite.management',
 
     'django.contrib.admin',
     'django.contrib.auth',

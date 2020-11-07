@@ -15,11 +15,9 @@ logger = logging.getLogger(__name__)
 # Create your models here.
 class Season(models.Model):
     commissioner = models.ForeignKey(User, on_delete=models.CASCADE)
-    players = models.ManyToManyField(User, related_name='seasons')
     name = models.CharField(max_length=255)
     weekly_allowance = models.DecimalField(
             default=100.0, decimal_places=2, max_digits=99)
-    public = models.BooleanField(default=False)
     added = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

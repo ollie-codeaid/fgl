@@ -38,13 +38,11 @@ class SeasonViewsTest(TestCase):
             data={
                 'name': 'test_season',
                 'weekly_allowance': 123.0,
-                'public': True,
             }
         )
         season = Season.objects.get(name='test_season')
         assert season.weekly_allowance == 123.0
         assert season.commissioner == self.user
-        assert season.public
 
     def test_create_season_not_possible_for_unauthorized_user(self):
         self.client.post(
@@ -52,7 +50,6 @@ class SeasonViewsTest(TestCase):
             data={
                 'name': 'test_season',
                 'weekly_allowance': 123.0,
-                'public': True,
             }
         )
 

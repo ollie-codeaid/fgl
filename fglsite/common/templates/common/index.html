@@ -48,17 +48,8 @@
 		    <div class="twelve columns">
 		    <h3>Seasons</h3>
 		    <table>
-		    {% if season_list and user.is_authenticated %}
-		    {% for season in season_list %}
-		    	<tr><td><a href="/bets/{{ season.id }}/">{{ season }}</a></tr></td>
-		    {% endfor %}
-		    {% elif user.is_authenticated %}
-		    	<tr><td>Not yet added to any seasons.</td></tr>
-		    {% else %}
-		    	<tr><td>Log in to view seasons.</tr></td>
-		    {% endif %}
-		    	<tr><td><a href="/bets/find_season">Find season</a></td></tr>
-			<tr><td><a href="/bets/create_season">Create new season</a></td></tr>
+				<tr><td><a href="{% url 'find-season' %}">Find season</a></td></tr>
+				<tr><td><a href="{% url 'create-season' %}">Create new season</a></td></tr>
 		    </table>
 		    </div>
 		</div>

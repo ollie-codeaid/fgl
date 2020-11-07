@@ -40,7 +40,6 @@ class SeasonCreateView(LoginRequiredMixin, CreateView):
             commissioner=self.request.user,
             name=form.cleaned_data.get('name'),
             weekly_allowance=form.cleaned_data.get('weekly_allowance'),
-            public=form.cleaned_data.get('public')
         )
         return HttpResponseRedirect(self.get_success_url())
 

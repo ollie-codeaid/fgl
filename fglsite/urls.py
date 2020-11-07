@@ -8,8 +8,6 @@ urlpatterns = [
     path('', include('fglsite.common.urls')),
     path('bets/', include('fglsite.bets.urls')),
     path('bets/', include('fglsite.gambling.urls')),
-    path('bets/', include('fglsite.management.urls')),
-
     path('admin/', admin.site.urls),
 ]
 
