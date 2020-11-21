@@ -3,12 +3,12 @@ from django import template
 register = template.Library()
 
 
-@register.inclusion_tag('gambling/long_term_odds.html')
+@register.inclusion_tag("gambling/long_term_odds.html")
 def long_term_odds(container, request):
     return {
-            'container': container,
-            'request': request,
-            }
+        "container": container,
+        "request": request,
+    }
 
 
 @register.simple_tag

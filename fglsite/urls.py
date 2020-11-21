@@ -5,10 +5,10 @@ from django.urls import include, path
 from django.contrib import admin
 
 urlpatterns = [
-    path('', include('fglsite.common.urls')),
-    path('bets/', include('fglsite.bets.urls')),
-    path('bets/', include('fglsite.gambling.urls')),
-    path('admin/', admin.site.urls),
+    path("", include("fglsite.common.urls")),
+    path("bets/", include("fglsite.bets.urls")),
+    path("bets/", include("fglsite.gambling.urls")),
+    path("admin/", admin.site.urls),
 ]
 
 
@@ -18,7 +18,4 @@ if settings.DEBUG:
 
     # Serve static and media files from development server
     urlpatterns += staticfiles_urlpatterns()
-    urlpatterns += static(
-            settings.MEDIA_URL,
-            document_root=settings.MEDIA_ROOT
-    )
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

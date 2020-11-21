@@ -17,7 +17,7 @@ class BetContainer(models.Model):
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.gameweek) + ',' + self.owner.username
+        return str(self.gameweek) + "," + self.owner.username
 
     def get_balance(self):
         return self.gameweek._get_balance_by_user(user=self.owner)
@@ -56,14 +56,14 @@ class Accumulator(models.Model):
     stake = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
 
     def __str__(self):
-        name = str(self.bet_container) + ',' + str(self.stake)
+        name = str(self.bet_container) + "," + str(self.stake)
         for betpart in self.betpart_set.all():
-            name = name + ',' + str(betpart)
+            name = name + "," + str(betpart)
 
         return name
 
     def calc_winnings(self):
-        ''' Calculate winnings for this accumulator '''
+        """ Calculate winnings for this accumulator """
         correct = True
         odds = 1.0
         for betpart in self.betpart_set.all():
@@ -75,13 +75,13 @@ class Accumulator(models.Model):
                 result = betpart.result
                 num = 1
                 denom = 1
-                if result == 'H':
+                if result == "H":
                     num = game.homenumerator
                     denom = game.homedenominator
-                elif result == 'D':
+                elif result == "D":
                     num = game.drawnumerator
                     denom = game.drawdenominator
-                elif result == 'A':
+                elif result == "A":
                     num = game.awaynumerator
                     denom = game.awaydenominator
                 odds = odds * float(num + denom) / float(denom)
@@ -95,11 +95,11 @@ class Accumulator(models.Model):
 class BetPart(models.Model):
     accumulator = models.ForeignKey(Accumulator, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    RESULTS = (('H', 'Home'), ('D', 'Draw'), ('A', 'Away'))
-    result = models.CharField(max_length=1, choices=RESULTS, default='H')
+    RESULTS = (("H", "Home"), ("D", "Draw"), ("A", "Away"))
+    result = models.CharField(max_length=1, choices=RESULTS, default="H")
 
     def __str__(self):
-        return str(self.game) + ',' + str(self.result)
+        return str(self.game) + "," + str(self.result)
 
     def is_correct(self):
         if len(self.game.result_set.all()) != 1:
@@ -115,11 +115,8 @@ class BetPart(models.Model):
 
 class LongSpecialContainer(models.Model):
     description = models.CharField(max_length=255)
-    allowance = models.DecimalField(
-            default=100.0, decimal_places=2, max_digits=99)
-    created_gameweek = models.ForeignKey(
-            Gameweek,
-            on_delete=models.CASCADE)
+    allowance = models.DecimalField(default=100.0, decimal_places=2, max_digits=99)
+    created_gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.description
@@ -132,39 +129,37 @@ class LongSpecialContainer(models.Model):
 
     def get_choice_by_user(self, user):
         user_container = BetContainer.objects.filter(
-                    gameweek=self.created_gameweek
-                ).filter(
-                    owner=user
-                )
+            gameweek=self.created_gameweek
+        ).filter(owner=user)
 
         if not user_container:
             return None
 
-        choice = LongSpecialBet.objects.filter(
-                    bet_container=user_container
-                ).filter(
-                    long_special__container=self
-                ).first()
+        choice = (
+            LongSpecialBet.objects.filter(bet_container=user_container)
+            .filter(long_special__container=self)
+            .first()
+        )
 
         return choice
 
 
 class LongSpecial(models.Model):
-    container = models.ForeignKey(
-            LongSpecialContainer,
-            on_delete=models.CASCADE)
+    container = models.ForeignKey(LongSpecialContainer, on_delete=models.CASCADE)
     description = models.CharField(max_length=255)
     numerator = models.IntegerField(default=0)
     denominator = models.IntegerField(default=1)
 
     def __str__(self):
-        return self.description + ': ' + str(self.numerator) + '/' + str(self.denominator)
+        return (
+            self.description + ": " + str(self.numerator) + "/" + str(self.denominator)
+        )
 
     def chosen_by(self):
-        users = ''
+        users = ""
         for bet in self.longspecialbet_set.all():
             if users:
-                users += ', ' + bet.bet_container.owner.username
+                users += ", " + bet.bet_container.owner.username
             else:
                 users = bet.bet_container.owner.username
 
@@ -174,9 +169,7 @@ class LongSpecial(models.Model):
 class LongSpecialResult(models.Model):
     long_special = models.ForeignKey(Game, on_delete=models.CASCADE)
     result = models.BooleanField()
-    completed_gameweek = models.ForeignKey(
-            Gameweek,
-            on_delete=models.CASCADE)
+    completed_gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.long_special) + " - " + str(self.result)
