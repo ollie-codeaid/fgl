@@ -1,51 +1,43 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-{% load static %}
+{% extends "base.html" %}
+
 {% load bets_extras %}
 {% load common_extras %}
-<html>
-	<head>
-		<link rel="stylesheet" type="text/css" href="{% static 'common/normalize.css' %}"/>
-		<link rel="stylesheet" type="text/css" href="{% static 'common/skeleton.css' %}"/>
-		<link rel="stylesheet" type="text/css" href="{% static 'common/style.css' %}"/>
-		<title>Find Season</title>
-	</head>
-	<body>
-		<div class="container">
-		    {% login_header request %}
-			<div class="row">
-				<div class="twelve columns">
-					<h1>Find Season</h1>
-					<a href="{% url 'index' %}">Back to index</a>
-				</div>
-			</div>
-			{% render_messages messages %}
-			<div class="row">
-				<div class="twelve columns">
-					    <table>
-					        <thead>
-						    <tr><th>Name</th><th>Commissioner</th><th></th></tr>
-					        </thead>
-					        <tbody>
-					        <form method="get">
-						    <tr>
-							<td>{{ find_season_form.name }}</td>
-							<td>{{ find_season_form.commissioner }}</td>
-							<td><input type="submit" value="Filter" class="button"/></td>
-						    </tr>
-                        </form>
-						    {% if season_list %}
-						    {% for season in season_list %}
-						    <tr>
-							<td><a href="{% url 'season' season.id %}">{{ season.name }}</a></td>
-							<td>{{ season.commissioner.username }}</td>
-							<td></td>
-						    </tr>
-						    {% endfor %}
-						    {% endif %}
-					        </tbody>
-					    </table>
-				</div>
-			</div>
-		</div>
-	</body>
-</html>
+
+{% block title %}Find Season{% endblock %}
+
+{% block content %}
+<div class="row">
+	<div class="twelve columns">
+		<h1>Find Season</h1>
+		<a href="{% url 'index' %}">Back to index</a>
+	</div>
+</div>
+{% render_messages messages %}
+<div class="row">
+	<div class="twelve columns">
+			<table>
+				<thead>
+				<tr><th>Name</th><th>Commissioner</th><th></th></tr>
+				</thead>
+				<tbody>
+				<form method="get">
+				<tr>
+				<td>{{ find_season_form.name }}</td>
+				<td>{{ find_season_form.commissioner }}</td>
+				<td><input type="submit" value="Filter" class="button"/></td>
+				</tr>
+			</form>
+				{% if season_list %}
+				{% for season in season_list %}
+				<tr>
+				<td><a href="{% url 'season' season.id %}">{{ season.name }}</a></td>
+				<td>{{ season.commissioner.username }}</td>
+				<td></td>
+				</tr>
+				{% endfor %}
+				{% endif %}
+				</tbody>
+			</table>
+	</div>
+</div>
+{% endblock %}

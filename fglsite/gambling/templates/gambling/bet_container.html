@@ -1,91 +1,80 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-{% load static %}
+{% extends "base.html" %}
+
 {% load bets_extras %}
 {% load common_extras %}
 {% load gambling_extras %}
-<html>
-    <header>
-	<link rel="stylesheet" type="text/css" href="{% static 'common/normalize.css' %}"/>
-	<link rel="stylesheet" type="text/css" href="{% static 'common/skeleton.css' %}"/>
-	<link rel="stylesheet" type="text/css" href="{% static 'common/style.css' %}"/>
-	<title>Manage bets</title>
-    </header>
-    <body>
-	<div class="container">
-	    {% if bet_container %}
-	    {% login_header request %}
-	    <div class="row">
-		<div class="twelve columns">
-		    <h1>Manage Bets</h1>
-		    <table>
-			<tr><td><a href="/bets/gameweek/{{ bet_container.gameweek.id }}/">Back to gameweek</a></td></tr>
-		    </table>
-		</div>
-	    </div>
-	    {% render_messages messages %}
-	    {% gameweek_odds bet_container.gameweek %}
-	    {% if bet_container.gameweek.longspecialcontainer_set.all %}
-	    {% for longspecial in bet_container.gameweek.longspecialcontainer_set.all %}
-	    <div class="row">
-		<div class="twelve columns">
-		    <h3><a href="/bets/longterms/{{ bet_container.id }}/{{ longspecial.id }}/manage_bet">
-			    {{ longspecial.description }} - {% get_longterm_choice_by_user longspecial request %}
-			</a></h3>
-		</div>
-	    </div>
-	    {% endfor %}
-	    {% endif %}
-	    <div class="row">
-		<div class="twelve columns">
-		    <h3>Weekly allowance: {{ bet_container.get_allowance }}</h3>
-		</div>
-	    </div>
-	    {% if bet_container.accumulator_set.all %}
-	    <div class="row">
-		<div class="twelve columns">
-		    <table>
-			<thead>
-			    <tr>
-				<th>Stake</th>
-				<th>Game</th>
-				<th>Result</th>
-				<th></th>
-				<th></th>
-			    </tr>
-			</thead>
-			<tbody>
-			    {% for accumulator in bet_container.accumulator_set.all %}
-			    <tr>
-				<td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
-				{% for betpart in accumulator.betpart_set.all %}
-				<td>{{ betpart.game }}</td>
-				<td>{{ betpart.result }}</td>
-			    </tr>
-			    <tr>
-				{% endfor %}
-			    </tr>
-			    <tr>
-				<td></td>
-				<td></td>
-				<td><a href="/bets/bets/{{ accumulator.id }}/update_bet">Update</a></td>
-				<td><a href="/bets/bets/{{ bet_container.id }}/{{ accumulator.id }}/delete_bet">Delete</a></td>
-			    </tr>
-			    {% endfor %}
-			</tbody>
-		    </table>
-		</div>
-		<div class="twelve columns">
-		    <h4>Total stake used: {{ bet_container.get_allowance_used }}</h4>
-		</div>
-	    </div>
+
+{% block title %}Manage bets{% endblock %}
+
+{% block content %}
+<div class="row">
+	<div class="twelve columns">
+		<h1>Manage Bets</h1>
+		<table>
+		<tr><td><a href="/bets/gameweek/{{ bet_container.gameweek.id }}/">Back to gameweek</a></td></tr>
+		</table>
 	</div>
-	{% endif %}
-	<div class="row">
-	    <div class="twelve columns">
-		<a href="/bets/bets/{{ bet_container.id }}/add_bet/">Add bet</a>
-	    </div>
+</div>
+{% render_messages messages %}
+{% gameweek_odds bet_container.gameweek %}
+{% if bet_container.gameweek.longspecialcontainer_set.all %}
+{% for longspecial in bet_container.gameweek.longspecialcontainer_set.all %}
+<div class="row">
+	<div class="twelve columns">
+		<h3><a href="/bets/longterms/{{ bet_container.id }}/{{ longspecial.id }}/manage_bet">
+			{{ longspecial.description }} - {% get_longterm_choice_by_user longspecial request %}
+		</a></h3>
 	</div>
-	{% endif %}
+</div>
+{% endfor %}
+{% endif %}
+<div class="row">
+	<div class="twelve columns">
+		<h3>Weekly allowance: {{ bet_container.get_allowance }}</h3>
 	</div>
-    </body>
-</html>
+</div>
+{% if bet_container.accumulator_set.all %}
+<div class="row">
+	<div class="twelve columns">
+		<table>
+		<thead>
+			<tr>
+			<th>Stake</th>
+			<th>Game</th>
+			<th>Result</th>
+			<th></th>
+			<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for accumulator in bet_container.accumulator_set.all %}
+			<tr>
+			<td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
+			{% for betpart in accumulator.betpart_set.all %}
+			<td>{{ betpart.game }}</td>
+			<td>{{ betpart.result }}</td>
+			</tr>
+			<tr>
+			{% endfor %}
+			</tr>
+			<tr>
+			<td></td>
+			<td></td>
+			<td><a href="/bets/bets/{{ accumulator.id }}/update_bet">Update</a></td>
+			<td><a href="/bets/bets/{{ bet_container.id }}/{{ accumulator.id }}/delete_bet">Delete</a></td>
+			</tr>
+			{% endfor %}
+		</tbody>
+		</table>
+	</div>
+	<div class="twelve columns">
+		<h4>Total stake used: {{ bet_container.get_allowance_used }}</h4>
+	</div>
+</div>
+{% endif %}
+<div class="row">
+	<div class="twelve columns">
+	<a href="/bets/bets/{{ bet_container.id }}/add_bet/">Add bet</a>
+	</div>
+</div>
+{% endblock %}

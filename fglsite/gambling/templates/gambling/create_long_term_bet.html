@@ -1,34 +1,28 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+{% extends "base.html" %}
+
 {% load staticfiles %}
 {% load bets_extras %}
 {% load common_extras %}
-<html>
-    <head>
-	<link rel="stylesheet" type="text/css" href="{% static 'common/normalize.css' %}"/>
-	<link rel="stylesheet" type="text/css" href="{% static 'common/skeleton.css' %}"/>
-	<link rel="stylesheet" type="text/css" href="{% static 'common/style.css' %}"/>
-	<title>{{ container.description }}</title>
-    </head>
-    <body>
-	<div class="container">
-	    {% login_header request %}
-	    <div class="row">
-		<div class="twelve columns">
-		    <h1>{{ container.description }}</h1>
-		    <h3>Allowance: {{ container.allowance }}</h3>
-		    <a href="/">Back to index</a></br></br>
-		</div>
-	    </div>
-	    {% render_messages messages %}
-	    <div class="row">
-		<div class="twelve columns">
-		    <form method="post">
-			{% csrf_token %}
-			{{ special_form }}
-			<input type="submit" value="Add long term" class="button"/>
-		    </form>
-		</div>
-	    </div>
+
+{% block title %}{{ container.description }}{% endblock %}
+
+{% block content %}
+<div class="row">
+	<div class="twelve columns">
+		<h1>{{ container.description }}</h1>
+		<h3>Allowance: {{ container.allowance }}</h3>
+		<a href="/">Back to index</a></br></br>
 	</div>
-    </body>
-</html>
+</div>
+{% render_messages messages %}
+<div class="row">
+	<div class="twelve columns">
+		<form method="post">
+		{% csrf_token %}
+		{{ special_form }}
+		<input type="submit" value="Add long term" class="button"/>
+		</form>
+	</div>
+	</div>
+</div>
+{% endblock %}
