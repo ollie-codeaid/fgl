@@ -24,7 +24,7 @@ def write_odds_to_disk(games: List[Game]):
             "draw_denominator": game.draw_denominator,
             "away_numerator": game.away_numerator,
             "away_denominator": game.away_denominator,
-            "start_time": game.start_time
+            "start_time": game.start_time,
         }
         for game in games
     ]

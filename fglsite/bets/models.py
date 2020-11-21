@@ -17,22 +17,23 @@ class Season(models.Model):
     commissioner = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     weekly_allowance = models.DecimalField(
-            default=100.0, decimal_places=2, max_digits=99)
+        default=100.0, decimal_places=2, max_digits=99
+    )
     added = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
     def get_next_gameweek_id(self):
-        ''' Get id for next gameweek '''
+        """ Get id for next gameweek """
         return len(self.gameweek_set.all()) + 1
 
     def _get_gameweek_by_id(self, gameweek_id):
         return self.gameweek_set.filter(number=gameweek_id)[0]
 
     def balances_available(self):
-        ''' Check if balances are available (e.g. for display
-        on season root page) '''
+        """Check if balances are available (e.g. for display
+        on season root page)"""
         next_gameweek_number = self.get_next_gameweek_id()
 
         if next_gameweek_number == 1:
@@ -47,7 +48,7 @@ class Season(models.Model):
             return gameweek.results_complete()
 
     def get_latest_complete_gameweek(self):
-        ''' Get latest gameweek that has a complete set of results '''
+        """ Get latest gameweek that has a complete set of results """
         gameweek = self.get_latest_gameweek()
         if gameweek.results_complete():
             return gameweek
@@ -55,7 +56,7 @@ class Season(models.Model):
             return self._get_gameweek_by_id(gameweek.number - 1)
 
     def get_latest_gameweek(self):
-        ''' Get latest gameweek '''
+        """ Get latest gameweek """
         if self.get_next_gameweek_id() == 1:
             return None
 
@@ -64,7 +65,7 @@ class Season(models.Model):
         return self._get_gameweek_by_id(latest_gameweek_number)
 
     def can_create_gameweek(self):
-        ''' Check whether new gameweek can be created '''
+        """ Check whether new gameweek can be created """
         if self.get_next_gameweek_id() > 1:
             if not self.get_latest_gameweek().results_complete():
                 return False
@@ -79,7 +80,7 @@ class Gameweek(models.Model):
     spiel = models.TextField(default=None, blank=True)
 
     def __str__(self):
-        return str(self.season) + ',' + str(self.number)
+        return str(self.season) + "," + str(self.number)
 
     def is_first_gameweek(self):
         return self.number == 1
@@ -89,18 +90,18 @@ class Gameweek(models.Model):
 
     def get_prev_gameweek(self):
         if self.is_first_gameweek():
-            raise Exception('Called get_prev_gameweek on first gameweek')
-        return self.season._get_gameweek_by_id(self.number-1)
+            raise Exception("Called get_prev_gameweek on first gameweek")
+        return self.season._get_gameweek_by_id(self.number - 1)
 
     def get_next_gameweek(self):
         if self.is_latest_gameweek():
-            raise Exception('Called get_next_gameweek on latest gameweek')
-        return self.season._get_gameweek_by_id(self.number+1)
+            raise Exception("Called get_next_gameweek on latest gameweek")
+        return self.season._get_gameweek_by_id(self.number + 1)
 
     def update_no_bet_users(self):
-        ''' For users who have no betcontainer for this week, set weekly winnings
-            as -100, weekly unused as all available rollable and update balance
-            accordingly '''
+        """For users who have no betcontainer for this week, set weekly winnings
+        as -100, weekly unused as all available rollable and update balance
+        accordingly"""
         if self.number > 1:
             users = self._get_users_with_bets()
             prev_gameweek = self.get_prev_gameweek()
@@ -115,8 +116,8 @@ class Gameweek(models.Model):
                     self.set_balance_by_user(
                         user=balance.user,
                         week_winnings=float(self.season.weekly_allowance * -1),
-                        week_unused=unused
-                        )
+                        week_unused=unused,
+                    )
 
     def _calc_enforce_banked(self, week_winnings):
         # If user made a loss then that has to be realized immediately
@@ -137,25 +138,26 @@ class Gameweek(models.Model):
         return prev_banked
 
     def set_balance_by_user(self, user, week_winnings, week_unused):
-        ''' Set the balance for this gameweek for this user.
-            Weekly = week_winnings
-            Provisional = banked + week winnings (if positive)
-            Banked = last week banked + week_unused + any weekly losses '''
+        """Set the balance for this gameweek for this user.
+        Weekly = week_winnings
+        Provisional = banked + week winnings (if positive)
+        Banked = last week banked + week_unused + any weekly losses"""
         enforce_banked = self._calc_enforce_banked(week_winnings)
 
         prev_banked = self._get_prev_banked(user)
         banked = float(prev_banked) + week_unused + enforce_banked
-        if (week_winnings > 0.0):
+        if week_winnings > 0.0:
             provisional = banked + week_winnings
         else:
             provisional = banked
 
         user_balance = Balance(
-                gameweek=self,
-                user=user,
-                week=week_winnings,
-                provisional=provisional,
-                banked=banked)
+            gameweek=self,
+            user=user,
+            week=week_winnings,
+            provisional=provisional,
+            banked=banked,
+        )
 
         with transaction.atomic():
             if self.user_has_balance(user):
@@ -164,27 +166,28 @@ class Gameweek(models.Model):
             user_balance.save()
 
     def _get_balance_by_user(self, user):
-        ''' Get user balance '''
+        """ Get user balance """
         if len(self.balance_set.filter(user=user)) == 0:
             return None
         else:
             return self.balance_set.filter(user=user)[0]
 
     def has_bets(self):
-        ''' Check if any users have placed bets '''
+        """ Check if any users have placed bets """
         if len(self.betcontainer_set.all()) > 0:
             return True
         else:
             return False
 
     def deadline_passed(self):
-        ''' Check if deadline has passed '''
-        return ((datetime.datetime.now().date() == self.deadline_date
-                and datetime.datetime.now().time() >= self.deadline_time)
-                or datetime.datetime.now().date() > self.deadline_date)
+        """ Check if deadline has passed """
+        return (
+            datetime.datetime.now().date() == self.deadline_date
+            and datetime.datetime.now().time() >= self.deadline_time
+        ) or datetime.datetime.now().date() > self.deadline_date
 
     def results_complete(self):
-        ''' Check if ALL results have been posted '''
+        """ Check if ALL results have been posted """
         results_count = 0
         game_set = self.game_set.all()
         for game in game_set:
@@ -193,7 +196,7 @@ class Gameweek(models.Model):
         return results_count == len(game_set)
 
     def _get_allowance_by_user(self, user):
-        ''' Get allowance + rollable for this user '''
+        """ Get allowance + rollable for this user """
         allowance = self.season.weekly_allowance
         rollable_allowances = self.get_rollable_allowances()
 
@@ -203,7 +206,7 @@ class Gameweek(models.Model):
             return allowance
 
     def get_rollable_allowances(self):
-        ''' Get ALL the rollable allowances '''
+        """ Get ALL the rollable allowances """
         if self.number == 1:
             return None
         else:
@@ -218,25 +221,25 @@ class Gameweek(models.Model):
     def _get_user_positions(self):
         user_positions = {}
         position = 0
-        for balance in self.balance_set.order_by('-provisional'):
+        for balance in self.balance_set.order_by("-provisional"):
             user_positions.update({balance.user: position})
             position += 1
 
         return user_positions
 
     def _get_change_icon(self, positions, prev_positions, user):
-        change_icon = '-'
+        change_icon = "-"
         if user in prev_positions:
             diff = prev_positions[user] - positions[user]
             if diff > 0:
-                change_icon = '/\\'
+                change_icon = "/\\"
             elif diff < 0:
-                change_icon = '\\/'
+                change_icon = "\\/"
 
         return change_icon
 
     def get_ordered_results(self):
-        ''' Get full results ordered by provisional descending'''
+        """ Get full results ordered by provisional descending"""
         results = []
 
         positions = self._get_user_positions()
@@ -245,15 +248,17 @@ class Gameweek(models.Model):
         else:
             prev_positions = {}
 
-        for balance in self.balance_set.order_by('-provisional'):
-            change_icon = self._get_change_icon(
-                    positions, prev_positions, balance.user)
-            results.append([
-                balance.user,
-                balance.week,
-                balance.provisional,
-                balance.banked,
-                change_icon])
+        for balance in self.balance_set.order_by("-provisional"):
+            change_icon = self._get_change_icon(positions, prev_positions, balance.user)
+            results.append(
+                [
+                    balance.user,
+                    balance.week,
+                    balance.provisional,
+                    balance.banked,
+                    change_icon,
+                ]
+            )
 
         return results
 
@@ -264,18 +269,18 @@ class Gameweek(models.Model):
         return users
 
     def get_users_with_ready_bets_as_string(self):
-        ''' Print usernames of users who have already placed valid bets '''
-        users = ''
+        """ Print usernames of users who have already placed valid bets """
+        users = ""
         for betcontainer in self.betcontainer_set.all():
             total_bet = 0.0
             for accumulator in betcontainer.accumulator_set.all():
                 total_bet += float(accumulator.stake)
             if total_bet >= self.season.weekly_allowance:
-                users += betcontainer.owner.username + ', '
+                users += betcontainer.owner.username + ", "
         return users
 
     def user_has_balance(self, user):
-        ''' Check if user has a balance '''
+        """ Check if user has a balance """
         return len(self.balance_set.filter(user=user)) > 0
 
 
@@ -283,12 +288,11 @@ class Balance(models.Model):
     gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     week = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
-    provisional = models.DecimalField(
-            default=0.0, decimal_places=2, max_digits=99)
+    provisional = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
     banked = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
 
     def __str__(self):
-        return str(self.gameweek) + ':' + self.user.username
+        return str(self.gameweek) + ":" + self.user.username
 
 
 class Game(models.Model):
@@ -306,32 +310,32 @@ class Game(models.Model):
         return self.hometeam + " vs " + self.awayteam
 
     def get_numerator(self, result):
-        ''' Get numerator value for result '''
-        if result == 'H':
+        """ Get numerator value for result """
+        if result == "H":
             return self.homenumerator
-        elif result == 'D':
+        elif result == "D":
             return self.drawnumerator
         else:
             return self.awaynumerator
 
     def get_denominator(self, result):
-        ''' Get denominator value for result '''
-        if result == 'H':
+        """ Get denominator value for result """
+        if result == "H":
             return self.homedenominator
-        elif result == 'D':
+        elif result == "D":
             return self.drawdenominator
         else:
             return self.awaydenominator
 
     def get_result(self):
-        ''' Get result '''
+        """ Get result """
         return self.result_set.all()[0]
 
 
 class Result(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    RESULTS = (('H', 'Home'), ('D', 'Draw'), ('A', 'Away'))
-    result = models.CharField(max_length=1, choices=RESULTS, default='H')
+    RESULTS = (("H", "Home"), ("D", "Draw"), ("A", "Away"))
+    result = models.CharField(max_length=1, choices=RESULTS, default="H")
 
     def __str__(self):
         return str(self.game) + " - " + str(self.result)

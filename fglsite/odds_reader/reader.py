@@ -15,18 +15,19 @@ def _read_from_disk():
 def read_odds():
     odds_json = loads(_read_from_disk())
 
-    odds = [{
-        'hometeam': game["home_team"],
-        'awayteam': game["away_team"],
-        'homenumerator': game["home_numerator"],
-        'homedenominator': game["home_denominator"],
-        'drawnumerator': game["draw_numerator"],
-        'drawdenominator': game["draw_denominator"],
-        'awaynumerator': game["away_numerator"],
-        'awaydenominator': game["away_denominator"],
-        'meta': {
-            'start_time': game["start_time"]
+    odds = [
+        {
+            "hometeam": game["home_team"],
+            "awayteam": game["away_team"],
+            "homenumerator": game["home_numerator"],
+            "homedenominator": game["home_denominator"],
+            "drawnumerator": game["draw_numerator"],
+            "drawdenominator": game["draw_denominator"],
+            "awaynumerator": game["away_numerator"],
+            "awaydenominator": game["away_denominator"],
+            "meta": {"start_time": game["start_time"]},
         }
-    } for game in odds_json]
+        for game in odds_json
+    ]
 
     return odds

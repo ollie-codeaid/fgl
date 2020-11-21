@@ -32,7 +32,7 @@ jobs:
           command: |
             virtualenv fgl_ci
             source fgl_ci/bin/activate
-            pip install -r requirements.txt
+            pip install -r test_requirements.txt
             pip install codecov
             pip install coverage
 
@@ -52,6 +52,7 @@ jobs:
             source fgl_ci/bin/activate
             coverage run manage.py test
             codecov
+            black --check .
           environment:
             DJANGO_SETTINGS_MODULE: fglsite.settings.dev
             ODDS_API_KEY: dummy_value

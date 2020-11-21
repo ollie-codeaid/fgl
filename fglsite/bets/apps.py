@@ -5,4 +5,4 @@ from django.apps import AppConfig
 
 
 class BetsConfig(AppConfig):
-    name = 'fglsite.bets'
+    name = "fglsite.bets"

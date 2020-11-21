@@ -7,16 +7,16 @@ from tasks.fetch_odds.client import OddsAPIResponse, GameData
 # No dataclass yet because pythonanywhere only goes up to 3.6
 class Game:
     def __init__(
-            self,
-            home_team: str,
-            away_team: str,
-            home_numerator: int,
-            home_denominator: int,
-            draw_numerator: int,
-            draw_denominator: int,
-            away_numerator: int,
-            away_denominator: int,
-            start_time: int
+        self,
+        home_team: str,
+        away_team: str,
+        home_numerator: int,
+        home_denominator: int,
+        draw_numerator: int,
+        draw_denominator: int,
+        away_numerator: int,
+        away_denominator: int,
+        start_time: int,
     ):
         self.home_team = home_team
         self.away_team = away_team
@@ -81,7 +81,7 @@ def build_game(game_data: GameData) -> Game:
         away_denominator=away_fraction.denominator,
         draw_numerator=draw_fraction.numerator,
         draw_denominator=draw_fraction.denominator,
-        start_time=get_start_time(game_data)
+        start_time=get_start_time(game_data),
     )
 
 

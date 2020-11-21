@@ -9,7 +9,7 @@ from .models import (
     Balance,
     Game,
     Result,
-    )
+)
 
 # Register your models here.
 admin.site.register(Season)
