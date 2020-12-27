@@ -1,38 +1,30 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-{% load staticfiles %}
+{% extends "base.html" %}
+
 {% load bets_extras %}
 {% load common_extras %}
-<html>
-	<head>
-	    <link rel="stylesheet" type="text/css" href="{% static 'common/normalize.css' %}"/>
-	    <link rel="stylesheet" type="text/css" href="{% static 'common/skeleton.css' %}"/>
-	    <link rel="stylesheet" type="text/css" href="{% static 'common/style.css' %}"/>
-	    <title>Create Season</title>
-	</head>
-	<body>
-		<div class="container">
-			{% login_header request %}
-			<div class="row">
-				<div class="twelve columns">
-					<h1>Create Season</h1>
-					<a href="{% url 'index' %}">Back to index</a></br></br>
-				</div>
-			</div>
-			{% render_messages messages %}
-			<div class="row">
-				<div class="twelve columns">
-					<form method="post">
-					    {% csrf_token %}
-					    <table>
-						<tr><td>Name</td><td>{{ form.name }}</td></tr>
-						<tr><td>Weekly Allowance</td><td>{{ form.weekly_allowance }}</td></tr>
-					    </table>
-                        </br>
-                        </br>
-					    <input type="submit" value="Add Season" class="button"/>
-					</form>
-				</div>
-			</div>
-		</div>
-	</body>
-</html>
+
+{% block title %}Create Season{% endblock %}
+
+{% block content %}
+<div class="row">
+	<div class="twelve columns">
+		<h1>Create Season</h1>
+		<a href="{% url 'index' %}">Back to index</a></br></br>
+	</div>
+</div>
+{% render_messages messages %}
+<div class="row">
+	<div class="twelve columns">
+		<form method="post">
+			{% csrf_token %}
+			<table>
+			<tr><td>Name</td><td>{{ form.name }}</td></tr>
+			<tr><td>Weekly Allowance</td><td>{{ form.weekly_allowance }}</td></tr>
+			</table>
+			</br>
+			</br>
+			<input type="submit" value="Add Season" class="button"/>
+		</form>
+	</div>
+</div>
+{% endblock %}

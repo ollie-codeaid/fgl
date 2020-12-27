@@ -1,53 +1,43 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-{% load static %}
+{% extends "base.html" %}
+
 {% load bets_extras %}
 {% load common_extras %}
-<html>
-	<head>
-		<link rel="stylesheet" type="text/css" href="{% static 'common/normalize.css' %}"/>
-		<link rel="stylesheet" type="text/css" href="{% static 'common/skeleton.css' %}"/>
-		<link rel="stylesheet" type="text/css" href="{% static 'common/style.css' %}"/>
-		<title>Add gameweek results</title>
-	</head>
-	<body>
-		<div class="container">
-		    {% login_header request %}
-			<div class="row">
-				<div class="twelve columns">
-					<h1>Add Results</h1>
-					<a href="{% url 'gameweek' gameweek_id %}">Back to gameweek</a>
-				</div>
-			</div>
-			{% render_messages messages %}
-			<div class="row">
-				<div class="twelve columns">
-					<form method="post">
-					    {% csrf_token %}
-					    {% for error in form.non_form_errors %}
-					    <p>{{ error }}</p>
-					    {% endfor %}
-					    <table>
-					        <thead>
-					            <tr><td>Game</td><td>Result</td></tr>
-					        </thead>
-					        <tbody>
-					        {% for result_form in form.forms %}
-					        <tr>
-					            <td>{{ result_form.game }}</td>
-					            <td>{{ result_form.result }}</td>
-					    {% for error in result_form.non_form_errors %}
-					    {{ error }}
-					    {% endfor %}</td>
-					        </tr>
-					        {% endfor %}
-					        </tbody>
-					    </table>
-					    {{ form.management_form }}
-					    </br>
-					    <input type="submit" value="Add results" class="button"/>
-					</form>
-				</div>
-			</div>
-		</div>
-	</body>
-</html>
+
+{% block title %}Add gameweek results{% endblock %}
+
+{% block content %}
+<div class="row">
+	<div class="twelve columns">
+		<h1>Add Results</h1>
+		<a href="{% url 'gameweek' gameweek_id %}">Back to gameweek</a>
+	</div>
+</div>
+{% render_messages messages %}
+<div class="row">
+	<div class="twelve columns">
+		<form method="post">
+			{% csrf_token %}
+			{% for error in form.non_form_errors %}
+			<p>{{ error }}</p>
+			{% endfor %}
+			<table>
+				<thead>
+					<tr><td>Game</td><td>Result</td></tr>
+				</thead>
+				<tbody>
+				{% for result_form in form.forms %}
+				<tr>
+					<td>{{ result_form.game.initial }}</td>
+					<td>{{ result_form.result }}</td>
+				</tr>
+				{{ result_form.game.as_hidden }}
+				{% endfor %}
+				</tbody>
+			</table>
+			{{ form.management_form }}
+			</br>
+			<input type="submit" value="Add results" class="button"/>
+		</form>
+	</div>
+</div>
+{% endblock %}
