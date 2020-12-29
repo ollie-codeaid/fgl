@@ -67,10 +67,7 @@ def _create_bet_data(bet_num, game_id, result):
 
 
 def _create_basic_accumulator_form_data(bet_container_id, game_id, result):
-    accumulator_data = {
-        "stake": 100.0,
-        "bet_container": bet_container_id
-    }
+    accumulator_data = {"stake": 100.0, "bet_container": bet_container_id}
     accumulator_data.update(_create_management_data(1))
     accumulator_data.update(_create_bet_data(0, game_id, result))
 
@@ -93,8 +90,7 @@ class AccumulatorViewTest(TestCase):
         self.gameweek = gameweek
         self.user = User.objects.create_user(username="user_one", password="test")
         self.bet_container = BetContainer.objects.create(
-            gameweek=gameweek,
-            owner=self.user
+            gameweek=gameweek, owner=self.user
         )
 
     def test_GET_on_create_displays_form_with_correct_games(self):
@@ -169,9 +165,7 @@ class AccumulatorViewTest(TestCase):
         accumulator = Accumulator.objects.create(
             bet_container=self.bet_container, stake=100.0
         )
-        BetPart.objects.create(
-            accumulator=accumulator, game=self.game, result="A"
-        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game, result="A")
         url = reverse("update-bet", kwargs={"pk": accumulator.pk})
 
         self.client.force_login(self.user)
@@ -212,9 +206,7 @@ class AccumulatorViewTest(TestCase):
         accumulator = Accumulator.objects.create(
             bet_container=self.bet_container, stake=50.0
         )
-        BetPart.objects.create(
-            accumulator=accumulator, game=self.game, result="A"
-        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game, result="A")
 
         form_data = _create_basic_accumulator_form_data(
             self.bet_container.id, self.game.id, "H"
@@ -233,9 +225,7 @@ class AccumulatorViewTest(TestCase):
         accumulator = Accumulator.objects.create(
             bet_container=self.bet_container, stake=50.0
         )
-        BetPart.objects.create(
-            accumulator=accumulator, game=self.game, result="A"
-        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game, result="A")
 
         form_data = _create_basic_accumulator_form_data(
             self.bet_container.id, self.game.id, "H"
@@ -254,9 +244,7 @@ class AccumulatorViewTest(TestCase):
         accumulator = Accumulator.objects.create(
             bet_container=self.bet_container, stake=50.0
         )
-        BetPart.objects.create(
-            accumulator=accumulator, game=self.game, result="A"
-        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game, result="A")
 
         form_data = _create_basic_accumulator_form_data(
             self.bet_container.id, self.game.id, "H"
@@ -279,7 +267,10 @@ class AccumulatorViewTest(TestCase):
             bet_container=self.bet_container, stake=50.0
         )
 
-        url = reverse("delete-bet", args=(accumulator.id,),)
+        url = reverse(
+            "delete-bet",
+            args=(accumulator.id,),
+        )
         self.client.force_login(self.user)
         self.client.post(url)
 
@@ -290,7 +281,10 @@ class AccumulatorViewTest(TestCase):
             bet_container=self.bet_container, stake=50.0
         )
 
-        url = reverse("delete-bet", args=(accumulator.id,),)
+        url = reverse(
+            "delete-bet",
+            args=(accumulator.id,),
+        )
         response = self.client.post(url)
 
         assert response.status_code == 403
@@ -301,7 +295,10 @@ class AccumulatorViewTest(TestCase):
             bet_container=self.bet_container, stake=50.0
         )
 
-        url = reverse("delete-bet", args=(accumulator.id,), )
+        url = reverse(
+            "delete-bet",
+            args=(accumulator.id,),
+        )
 
         user_two = User.objects.create_user(username="user_two", password="test")
         self.client.force_login(user_two)

@@ -26,12 +26,12 @@ urlpatterns = [
     path(
         "bets/<int:bet_container_id>/add-bet/",
         views.AccumulatorCreateView.as_view(),
-        name="add-bet"
+        name="add-bet",
     ),
     path(
         "bets/<int:pk>/update-bet/",
         views.AccumulatorUpdateView.as_view(),
-        name="update-bet"
+        name="update-bet",
     ),
     path(
         "bets/<int:pk>/delete-bet/",

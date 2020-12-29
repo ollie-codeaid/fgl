@@ -48,12 +48,7 @@ class BetContainerCreateView(LoginRequiredMixin, CreateView):
         return reverse_lazy("update-bet-container", args=[self.object.pk])
 
     def get_form_kwargs(self):
-        return {
-            "data": {
-                "gameweek": self.gameweek.id,
-                "owner": self.request.user.id
-            }
-        }
+        return {"data": {"gameweek": self.gameweek.id, "owner": self.request.user.id}}
 
     def get(self, request, *args, **kwargs):
         return self.post(request, *args, **kwargs)
@@ -67,7 +62,9 @@ class BetContainerOwnerAllowedMixin:
         return super().dispatch(request, *args, **kwargs)
 
 
-class BetContainerDetailView(BetContainerOwnerAllowedMixin, LoginRequiredMixin, DetailView):
+class BetContainerDetailView(
+    BetContainerOwnerAllowedMixin, LoginRequiredMixin, DetailView
+):
     model = BetContainer
 
     def dispatch(self, request, pk, *args, **kwargs):
@@ -78,10 +75,7 @@ class BetContainerDetailView(BetContainerOwnerAllowedMixin, LoginRequiredMixin, 
 class AccumulatorView(BetContainerOwnerAllowedMixin, LoginRequiredMixin):
     model = Accumulator
     form_class = AccumulatorForm
-    formset_class = formset_factory(
-        BetPartForm,
-        formset=BaseResultFormSet
-    )
+    formset_class = formset_factory(BetPartForm, formset=BaseResultFormSet)
 
     def get_success_url(self):
         return reverse_lazy("update-bet-container", args=[self.bet_container.pk])
@@ -101,10 +95,9 @@ class AccumulatorView(BetContainerOwnerAllowedMixin, LoginRequiredMixin):
 
     def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
-        context_data.update({
-            "betpart_formset": self.get_formset(),
-            "bet_container": self.bet_container
-        })
+        context_data.update(
+            {"betpart_formset": self.get_formset(), "bet_container": self.bet_container}
+        )
         return context_data
 
     def dispatch(self, request, bet_container_id, *args, **kwargs):
@@ -118,7 +111,10 @@ class AccumulatorView(BetContainerOwnerAllowedMixin, LoginRequiredMixin):
         accumulator_form = self.get_form()
         bet_formset = self.get_formset()
 
-        if accumulator_form.is_valid(initial_stake=self.get_initial_stake()) and bet_formset.is_valid():
+        if (
+            accumulator_form.is_valid(initial_stake=self.get_initial_stake())
+            and bet_formset.is_valid()
+        ):
             return self.form_valid(accumulator_form, bet_formset)
         else:
             self.object = None
@@ -132,7 +128,8 @@ class AccumulatorView(BetContainerOwnerAllowedMixin, LoginRequiredMixin):
                 accumulator=accumulator,
                 game=betpart_form.cleaned_data.get("game"),
                 result=betpart_form.cleaned_data.get("result"),
-            ) for betpart_form in formset.forms
+            )
+            for betpart_form in formset.forms
         ]
 
         try:
@@ -162,14 +159,11 @@ class AccumulatorCreateView(AccumulatorView, CreateView):
     success_message = "Created bet."
 
     def get_initial(self):
-        return {
-            "bet_container": self.bet_container
-        }
+        return {"bet_container": self.bet_container}
 
     def save_accumulator(self, form):
         return Accumulator.objects.create(
-            bet_container=self.bet_container,
-            stake=form.cleaned_data.get("stake")
+            bet_container=self.bet_container, stake=form.cleaned_data.get("stake")
         )
 
 
@@ -200,7 +194,9 @@ class AccumulatorUpdateView(AccumulatorView, UpdateView):
         BetPart.objects.filter(accumulator=accumulator).delete()
 
 
-class AccumulatorDeleteView(BetContainerOwnerAllowedMixin, LoginRequiredMixin, DeleteView):
+class AccumulatorDeleteView(
+    BetContainerOwnerAllowedMixin, LoginRequiredMixin, DeleteView
+):
     model = Accumulator
 
     def dispatch(self, request, pk, *args, **kwargs):

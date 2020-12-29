@@ -58,7 +58,9 @@ class BetContainerViewsTest(TestCase):
     def test_user_can_view_own_bet_container(self):
         self.client.force_login(self.user)
 
-        bet_container = BetContainer.objects.create(gameweek=self.gameweek, owner=self.user)
+        bet_container = BetContainer.objects.create(
+            gameweek=self.gameweek, owner=self.user
+        )
         url = reverse("update-bet-container", kwargs={"pk": bet_container.id})
 
         response = self.client.get(url)
@@ -70,7 +72,9 @@ class BetContainerViewsTest(TestCase):
         self.client.force_login(self.user)
 
         other_user = User.objects.create_user(username="player_two", password="pass")
-        bet_container = BetContainer.objects.create(gameweek=self.gameweek, owner=other_user)
+        bet_container = BetContainer.objects.create(
+            gameweek=self.gameweek, owner=other_user
+        )
         url = reverse("update-bet-container", kwargs={"pk": bet_container.id})
 
         response = self.client.get(url)
@@ -78,7 +82,9 @@ class BetContainerViewsTest(TestCase):
         assert response.status_code == 403
 
     def test_anonymous_user_cannot_view_users_bet_container(self):
-        bet_container = BetContainer.objects.create(gameweek=self.gameweek, owner=self.user)
+        bet_container = BetContainer.objects.create(
+            gameweek=self.gameweek, owner=self.user
+        )
         url = reverse("update-bet-container", kwargs={"pk": bet_container.id})
 
         response = self.client.get(url)
