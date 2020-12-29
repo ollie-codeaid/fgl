@@ -66,8 +66,8 @@ def _create_bet_data(bet_num, game_id, result):
     }
 
 
-def _create_basic_accumulator_form_data(bet_container_id, game_id, result):
-    accumulator_data = {"stake": 100.0, "bet_container": bet_container_id}
+def _create_basic_accumulator_form_data(bet_container_id, game_id, result, stake=100.0):
+    accumulator_data = {"stake": stake, "bet_container": bet_container_id}
     accumulator_data.update(_create_management_data(1))
     accumulator_data.update(_create_bet_data(0, game_id, result))
 
@@ -135,6 +135,21 @@ class AccumulatorViewTest(TestCase):
 
         accumulator = self.bet_container.accumulator_set.get()
         _assert_accumulator_matches_expectations(accumulator, 100.0, self.game, "H")
+
+    def test_POST_fails_on_create_if_stake_too_big(self):
+        form_data = _create_basic_accumulator_form_data(
+            self.bet_container.id, self.game.id, "H", stake=300.0
+        )
+
+        url = reverse("add-bet", kwargs={"bet_container_id": self.bet_container.id})
+        self.client.force_login(self.user)
+        response = self.client.post(url, data=form_data)
+
+        assert (
+            response.context["form"].errors["stake"][0]
+            == "Stake may not be greater than 100.0"
+        )
+        assert self.bet_container.accumulator_set.count() == 0
 
     def test_POST_on_create_non_user_forbidden(self):
         form_data = _create_basic_accumulator_form_data(
@@ -220,6 +235,29 @@ class AccumulatorViewTest(TestCase):
 
         accumulator = self.bet_container.accumulator_set.get()
         _assert_accumulator_matches_expectations(accumulator, 100.0, self.game, "H")
+
+    def test_POST_fails_on_update_if_stake_too_big(self):
+        accumulator = Accumulator.objects.create(
+            bet_container=self.bet_container, stake=50.0
+        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game, result="A")
+
+        form_data = _create_basic_accumulator_form_data(
+            self.bet_container.id, self.game.id, "H", stake=300.0
+        )
+
+        url = reverse("update-bet", kwargs={"pk": accumulator.pk})
+        self.client.force_login(self.user)
+        response = self.client.post(url, data=form_data)
+
+        assert (
+            response.context["form"].errors["stake"][0]
+            == "Stake may not be greater than 100.0"
+        )
+        assert self.bet_container.accumulator_set.count() == 1
+
+        accumulator = self.bet_container.accumulator_set.get()
+        _assert_accumulator_matches_expectations(accumulator, 50.0, self.game, "A")
 
     def test_POST_on_update_non_user_forbidden(self):
         accumulator = Accumulator.objects.create(
