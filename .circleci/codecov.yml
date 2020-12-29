@@ -20,6 +20,10 @@ parsers:
       method: no
       macro: no
 
+ignore:
+  - "test_*.py"
+  - "**/migrations/*"
+
 comment:
   layout: "header, diff"
   behavior: default
