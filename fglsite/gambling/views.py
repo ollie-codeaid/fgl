@@ -3,10 +3,13 @@ from __future__ import unicode_literals
 from functools import partial
 
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
 from django.forms.formsets import formset_factory
+from django.http import HttpResponseForbidden
+from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 from django.shortcuts import get_object_or_404, render, redirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from fglsite.bets.forms import BaseResultFormSet
 from fglsite.bets.models import Gameweek
 from .models import (
@@ -19,6 +22,7 @@ from .models import (
 )
 from .forms import (
     AccumulatorForm,
+    BetContainerForm,
     BetPartForm,
     LongSpecialContainerForm,
     LongSpecialForm,
@@ -27,164 +31,184 @@ from .forms import (
 )
 
 
-# Create your views here.
-def manage_bet_container(request, gameweek_id):
-    gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
-    owner = request.user
+class BetContainerCreateView(LoginRequiredMixin, CreateView):
+    model = BetContainer
+    form_class = BetContainerForm
 
-    gameweek_bets = gameweek.betcontainer_set.all()
-    user_bets = gameweek_bets.filter(owner=owner)
+    def dispatch(self, request, gameweek_id, *args, **kwargs):
+        self.gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
+        user_bets = self.gameweek.betcontainer_set.filter(owner=request.user)
 
-    if len(user_bets) > 1:
-        messages.error(request, "Error on bet creation, user already has bets.")
-        return redirect("gameweek", gameweek_id=gameweek.id)
-    elif len(user_bets) == 1:
-        bet_container = user_bets.first()
-    else:
-        bet_container = BetContainer(gameweek=gameweek, owner=owner)
-        bet_container.save()
-
-    return redirect("bet-container", bet_container.pk)
-
-
-def bet_container(request, bet_container_id):
-    bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
-    context = {"bet_container": bet_container}
-    return render(request, "gambling/bet_container.html", context)
-
-
-def _manage_accumulator(request, accumulator, bet_container):
-    gameweek = bet_container.gameweek
-    is_new_bet = accumulator is None
-
-    if is_new_bet:
-        BetPartFormSet = formset_factory(
-            BetPartForm, formset=BaseResultFormSet, extra=1
-        )
-    else:
-        BetPartFormSet = formset_factory(
-            BetPartForm, formset=BaseResultFormSet, extra=0
-        )
-    BetPartFormSet.form = staticmethod(partial(BetPartForm, gameweek=gameweek))
-
-    if (
-        request.method == "POST"
-        and request.user.is_authenticated
-        and request.user == bet_container.owner
-    ):
-        accumulator_form = AccumulatorForm(request.POST)
-        betpart_formset = BetPartFormSet(request.POST)
-
-        if accumulator_form.is_valid() and betpart_formset.is_valid():
-            for betpart_form in betpart_formset:
-                if betpart_form.cleaned_data.get("game") is None:
-                    messages.error(request, "Game missing from selection.")
-                    return redirect("add-bet", bet_container_id=bet_container.id)
-
-            if is_new_bet:
-                old_stake = 0.0
-            else:
-                old_stake = float(accumulator.stake)
-            stake = accumulator_form.cleaned_data.get("stake")
-            full = float(bet_container.get_allowance())
-            used = float(bet_container.get_allowance_used())
-            remaining_allowance = full - used + old_stake
-
-            if float(stake) > remaining_allowance:
-                messages.error(
-                    request,
-                    "Stake greater than remaining allowance: {0}".format(
-                        remaining_allowance
-                    ),
-                )
-                return redirect("add-bet", bet_container_id=bet_container.id)
-
-            if is_new_bet:
-                accumulator = Accumulator(bet_container=bet_container, stake=stake)
-            else:
-                accumulator.stake = stake
-            accumulator.save()
-
-            new_betparts = []
-
-            for betpart_form in betpart_formset:
-                game = betpart_form.cleaned_data.get("game")
-                result = betpart_form.cleaned_data.get("result")
-
-                new_betparts.append(
-                    BetPart(accumulator=accumulator, game=game, result=result)
-                )
-
-            try:
-                with transaction.atomic():
-                    if not is_new_bet:
-                        BetPart.objects.filter(accumulator=accumulator).delete()
-                    BetPart.objects.bulk_create(new_betparts)
-
-                messages.success(request, "Bet created.")
-                return redirect("bet-container", bet_container_id=bet_container.id)
-
-            except IntegrityError as err:
-                messages.error(request, "Error saving bet.")
-                messages.error(request, err)
+        if len(user_bets) == 0:
+            return super().dispatch(request, gameweek_id, *args, **kwargs)
         else:
-            messages.error(request, "Invalid bet.")
+            return redirect("update-bet-container", user_bets.first().pk)
 
-    if not (request.user.is_authenticated and request.user == bet_container.owner):
-        messages.error(
-            request,
-            ("Only bet owner ({0}) allowed to " "create or update bet").format(
-                bet_container.owner.username
-            ),
+    def get_success_url(self):
+        return reverse_lazy("update-bet-container", args=[self.object.pk])
+
+    def get_form_kwargs(self):
+        return {
+            "data": {
+                "gameweek": self.gameweek.id,
+                "owner": self.request.user.id
+            }
+        }
+
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)
+
+
+class BetContainerOwnerAllowedMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if request.user != self.bet_container.owner:
+            return HttpResponseForbidden()
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+class BetContainerDetailView(BetContainerOwnerAllowedMixin, LoginRequiredMixin, DetailView):
+    model = BetContainer
+
+    def dispatch(self, request, pk, *args, **kwargs):
+        self.bet_container = get_object_or_404(BetContainer, pk=pk)
+        return super().dispatch(request, pk, *args, **kwargs)
+
+
+class AccumulatorView(BetContainerOwnerAllowedMixin, LoginRequiredMixin):
+    model = Accumulator
+    form_class = AccumulatorForm
+    formset_class = formset_factory(
+        BetPartForm,
+        formset=BaseResultFormSet
+    )
+
+    def get_success_url(self):
+        return reverse_lazy("update-bet-container", args=[self.bet_container.pk])
+
+    def get_formset(self):
+        self.formset_class.form = staticmethod(
+            partial(BetPartForm, gameweek=self.bet_container.gameweek)
         )
+        if self.request.POST:
+            return self.formset_class(self.request.POST)
+        else:
+            self.formset_class.extra = self.extra
+            return self.formset_class(initial=self.get_formset_initial())
 
-    if is_new_bet:
-        accumulator_form = AccumulatorForm()
-        betpart_formset = BetPartFormSet()
-    else:
-        current_betparts = [
-            {"game": bp.game, "result": bp.result}
-            for bp in accumulator.betpart_set.all()
+    def get_formset_initial(self):
+        return []
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super().get_context_data(*args, **kwargs)
+        context_data.update({
+            "betpart_formset": self.get_formset(),
+            "bet_container": self.bet_container
+        })
+        return context_data
+
+    def dispatch(self, request, bet_container_id, *args, **kwargs):
+        self.bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
+        return super().dispatch(request, bet_container_id, *args, **kwargs)
+
+    def get_initial_stake(self):
+        return 0
+
+    def post(self, *args, **kwargs):
+        accumulator_form = self.get_form()
+        bet_formset = self.get_formset()
+
+        if accumulator_form.is_valid(initial_stake=self.get_initial_stake()) and bet_formset.is_valid():
+            return self.form_valid(accumulator_form, bet_formset)
+        else:
+            self.object = None
+            return self.form_invalid(accumulator_form, bet_formset)
+
+    def form_valid(self, form, formset):
+        accumulator = self.save_accumulator(form)
+
+        new_betparts = [
+            BetPart(
+                accumulator=accumulator,
+                game=betpart_form.cleaned_data.get("game"),
+                result=betpart_form.cleaned_data.get("result"),
+            ) for betpart_form in formset.forms
         ]
-        accumulator_form = AccumulatorForm(initial={"stake": accumulator.stake})
-        betpart_formset = BetPartFormSet(initial=current_betparts)
 
-    context = {
-        "bet_container_id": bet_container.id,
-        "accumulator_form": accumulator_form,
-        "betpart_formset": betpart_formset,
-    }
+        try:
+            with transaction.atomic():
+                self.clear_existing_betparts(accumulator)
+                BetPart.objects.bulk_create(new_betparts)
+                messages.success(self.request, self.success_message)
+        except Exception as err:
+            messages.error(self.request, "Error saving bet.")
+            messages.error(self.request, err)
 
-    return render(request, "gambling/create_bet.html", context)
+        return redirect(self.get_success_url())
 
+    def clear_existing_betparts(self, accumulator):
+        # Do nothing
+        return
 
-def add_bet(request, bet_container_id):
-    bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
-
-    return _manage_accumulator(request, None, bet_container)
-
-
-def update_bet(request, accumulator_id):
-    accumulator = get_object_or_404(Accumulator, pk=accumulator_id)
-    bet_container = accumulator.bet_container
-
-    return _manage_accumulator(request, accumulator, bet_container)
-
-
-def delete_bet(request, accumulator_id, bet_container_id):
-    betcontainer = get_object_or_404(BetContainer, pk=bet_container_id)
-    if request.user.is_authenticated and request.user == betcontainer.owner:
-        Accumulator.objects.filter(pk=accumulator_id).delete()
-        messages.success(request, "Bet deleted")
-    else:
-        messages.error(
-            request,
-            (
-                "Only bet owner ({0}) allowed "
-                "to delete".format(betcontainer.owner.username)
-            ),
+    def form_invalid(self, form, formset):
+        """If the form is invalid, render the invalid form."""
+        return self.render_to_response(
+            self.get_context_data(form=form, formset=formset)
         )
-    return bet_container(request, bet_container_id)
+
+
+class AccumulatorCreateView(AccumulatorView, CreateView):
+    extra = 1
+    success_message = "Created bet."
+
+    def get_initial(self):
+        return {
+            "bet_container": self.bet_container
+        }
+
+    def save_accumulator(self, form):
+        return Accumulator.objects.create(
+            bet_container=self.bet_container,
+            stake=form.cleaned_data.get("stake")
+        )
+
+
+class AccumulatorUpdateView(AccumulatorView, UpdateView):
+    extra = 0
+    success_message = "Updated bet."
+
+    def get_formset_initial(self):
+        return [
+            {"game": bp.game, "result": bp.result}
+            for bp in self.get_object().betpart_set.all()
+        ]
+
+    def dispatch(self, request, pk, *args, **kwargs):
+        accumulator = get_object_or_404(Accumulator, pk=pk)
+        return super().dispatch(request, accumulator.bet_container.id, *args, **kwargs)
+
+    def get_initial_stake(self):
+        return self.get_object().stake
+
+    def save_accumulator(self, form):
+        accumulator = self.get_object()
+        accumulator.stake = form.cleaned_data.get("stake")
+        accumulator.save()
+        return accumulator
+
+    def clear_existing_betparts(self, accumulator):
+        BetPart.objects.filter(accumulator=accumulator).delete()
+
+
+class AccumulatorDeleteView(BetContainerOwnerAllowedMixin, LoginRequiredMixin, DeleteView):
+    model = Accumulator
+
+    def dispatch(self, request, pk, *args, **kwargs):
+        self.bet_container = get_object_or_404(Accumulator, pk=pk).bet_container
+        return super().dispatch(request, pk, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy("update-bet-container", args=[self.bet_container.pk])
 
 
 def _process_new_specials(special_formset, container, request):

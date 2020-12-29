@@ -14,20 +14,28 @@ urlpatterns = [
         name="update-longterm",
     ),
     path(
-        "gameweek/<int:gameweek_id>/manage_bet_container/",
-        views.manage_bet_container,
+        "gameweek/<int:gameweek_id>/manage-bets/",
+        views.BetContainerCreateView.as_view(),
         name="manage-bet-container",
     ),
     path(
-        "bets/<int:bet_container_id>/my_bets/",
-        views.bet_container,
-        name="bet-container",
+        "bets/<int:pk>/update-bets/",
+        views.BetContainerDetailView.as_view(),
+        name="update-bet-container",
     ),
-    path("bets/<int:bet_container_id>/add_bet/", views.add_bet, name="add-bet"),
-    path("bets/<int:accumulator_id>/update_bet/", views.update_bet, name="update-bet"),
     path(
-        "bets/<int:bet_container_id>/<int:accumulator_id>/delete_bet/",
-        views.delete_bet,
+        "bets/<int:bet_container_id>/add-bet/",
+        views.AccumulatorCreateView.as_view(),
+        name="add-bet"
+    ),
+    path(
+        "bets/<int:pk>/update-bet/",
+        views.AccumulatorUpdateView.as_view(),
+        name="update-bet"
+    ),
+    path(
+        "bets/<int:pk>/delete-bet/",
+        views.AccumulatorDeleteView.as_view(),
         name="delete-bet",
     ),
     path(

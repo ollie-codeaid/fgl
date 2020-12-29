@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% load bets_extras %}
+{% load common_extras %}
+{% load gambling_extras %}
+
+{% block title %}Manage bets{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="twelve columns">
+        <h1>Manage Bets</h1>
+        <table>
+            <tr>
+                <td><a href="/bets/gameweek/{{ object.gameweek.id }}/">Back to gameweek</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+{% render_messages messages %}
+{% gameweek_odds object.gameweek %}
+{% if object.gameweek.longspecialcontainer_set.all %}
+{% for longspecial in object.gameweek.longspecialcontainer_set.all %}
+<div class="row">
+    <div class="twelve columns">
+        <h3><a href="/bets/longterms/{{ object.id }}/{{ longspecial.id }}/manage_bet">
+            {{ longspecial.description }} - {% get_longterm_choice_by_user longspecial request %}
+        </a></h3>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+<div class="row">
+    <div class="twelve columns">
+        <h3>Weekly allowance: {{ object.get_allowance }}</h3>
+    </div>
+</div>
+{% if object.accumulator_set.all %}
+<div class="row">
+    <div class="twelve columns">
+        <table>
+            <thead>
+            <tr>
+                <th>Stake</th>
+                <th>Game</th>
+                <th>Result</th>
+                <th></th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for accumulator in object.accumulator_set.all %}
+            <tr>
+                <td rowspan="{{ accumulator.betpart_set.all|length }}">{{ accumulator.stake }}</td>
+                {% for betpart in accumulator.betpart_set.all %}
+                <td>{{ betpart.game }}</td>
+                <td>{{ betpart.result }}</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td><a href="{% url 'update-bet' accumulator.id %}">Update</a></td>
+                <td><form method="POST" action="{% url 'delete-bet' accumulator.id %}">
+                    {% csrf_token %}<input type="submit" value="DELETE">
+                </form></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="twelve columns">
+        <h4>Total stake used: {{ object.get_allowance_used }}</h4>
+    </div>
+</div>
+{% endif %}
+<div class="row">
+    <div class="twelve columns">
+        <a href="{% url 'add-bet' object.id %}">Add bet</a>
+    </div>
+</div>
+{% endblock %}
