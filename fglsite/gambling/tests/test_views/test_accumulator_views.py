@@ -188,7 +188,7 @@ class AccumulatorViewTest(TestCase):
 
         assert response.status_code == 403
 
-    def test_GET_on_create_non_owner_user_forbidden(self):
+    def test_GET_on_update_non_owner_user_forbidden(self):
         accumulator = Accumulator.objects.create(
             bet_container=self.bet_container, stake=100.0
         )
@@ -202,7 +202,7 @@ class AccumulatorViewTest(TestCase):
 
         assert response.status_code == 403
 
-    def test_POST_on_create_saves_accumulator(self):
+    def test_POST_on_update_saves_accumulator(self):
         accumulator = Accumulator.objects.create(
             bet_container=self.bet_container, stake=50.0
         )
@@ -221,7 +221,7 @@ class AccumulatorViewTest(TestCase):
         accumulator = self.bet_container.accumulator_set.get()
         _assert_accumulator_matches_expectations(accumulator, 100.0, self.game, "H")
 
-    def test_POST_on_create_non_user_forbidden(self):
+    def test_POST_on_update_non_user_forbidden(self):
         accumulator = Accumulator.objects.create(
             bet_container=self.bet_container, stake=50.0
         )
@@ -240,7 +240,7 @@ class AccumulatorViewTest(TestCase):
         accumulator = self.bet_container.accumulator_set.get()
         _assert_accumulator_matches_expectations(accumulator, 50.0, self.game, "A")
 
-    def test_POST_on_create_non_owner_user_forbidden(self):
+    def test_POST_on_update_non_owner_user_forbidden(self):
         accumulator = Accumulator.objects.create(
             bet_container=self.bet_container, stake=50.0
         )
