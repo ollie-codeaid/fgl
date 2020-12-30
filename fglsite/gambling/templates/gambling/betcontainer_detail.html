@@ -12,7 +12,7 @@
         <h1>Manage Bets</h1>
         <table>
             <tr>
-                <td><a href="/bets/gameweek/{{ object.gameweek.id }}/">Back to gameweek</a></td>
+                <td><a href="{% url 'gameweek' object.gameweek.id %}">Back to gameweek</a></td>
             </tr>
         </table>
     </div>

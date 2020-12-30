@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse, reverse_lazy
 from fglsite.bets.forms import BaseResultFormSet
 from fglsite.bets.models import Gameweek
+from fglsite.bets.views import SeasonCommissionerAllowedMixin
 from .models import (
     BetContainer,
     Accumulator,
@@ -207,137 +208,137 @@ class AccumulatorDeleteView(
         return reverse_lazy("update-bet-container", args=[self.bet_container.pk])
 
 
-def _process_new_specials(special_formset, container, request):
+class LongSpecialContainerView(SeasonCommissionerAllowedMixin, LoginRequiredMixin):
+    model = LongSpecialContainer
+    form_class = LongSpecialContainerForm
+    formset_class = formset_factory(LongSpecialForm, formset=BaseLongSpecialFormSet)
 
-    if container.has_bets():
-        messages.error(
-            request,
-            (
-                "Cannot update specials that already have bets,"
-                " speak to Ollie if required"
-            ),
+    def get_season(self, *args, **kwargs):
+        return self.gameweek.season
+
+    def get_success_url(self):
+        return reverse_lazy("gameweek", args=[self.gameweek.pk])
+
+    def get_formset(self):
+        if self.request.POST:
+            return self.formset_class(self.request.POST)
+        else:
+            self.formset_class.extra = self.extra
+            return self.formset_class(initial=self.get_formset_initial())
+
+    def get_formset_initial(self):
+        return []
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super().get_context_data(*args, **kwargs)
+        context_data.update(
+            {
+                "long_special_formset": self.get_formset(),
+                "gameweek_id": self.gameweek.id,
+            }
         )
-        return redirect("gameweek", gameweek_id=container.created_gameweek.id)
+        return context_data
 
-    new_specials = []
+    def dispatch(self, request, gameweek_id, *args, **kwargs):
+        self.gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
+        return super().dispatch(request, gameweek_id, *args, **kwargs)
 
-    for special_form in special_formset:
-        description = special_form.cleaned_data.get("description")
-        numerator = special_form.cleaned_data.get("numerator")
-        denominator = special_form.cleaned_data.get("denominator")
-
-        new_specials.append(
-            LongSpecial(
-                container=container,
-                description=description,
-                numerator=numerator,
-                denominator=denominator,
-            )
-        )
-
-    try:
-        with transaction.atomic():
-            LongSpecial.objects.filter(container=container).delete()
-            LongSpecial.objects.bulk_create(new_specials)
-
-            messages.success(request, "Successfully created long term special.")
-
-    except IntegrityError as err:
-        messages.error(request, "Error saving long term special.")
-        messages.error(request, err)
-        return redirect(reverse("update-longterm", args=(container.id)))
-
-
-def _manage_longterm(request, container, gameweek):
-    is_new_container = container is None
-
-    if is_new_container:
-        LongSpecialFormSet = formset_factory(
-            LongSpecialForm, formset=BaseLongSpecialFormSet
-        )
-    else:
-        LongSpecialFormSet = formset_factory(
-            LongSpecialForm, formset=BaseLongSpecialFormSet, extra=0
-        )
-
-    if (
-        request.method == "POST"
-        and request.user.is_authenticated
-        and request.user == gameweek.season.commissioner
-    ):
-        container_form = LongSpecialContainerForm(request.POST)
-        long_special_formset = LongSpecialFormSet(request.POST)
+    def post(self, *args, **kwargs):
+        container_form = self.get_form()
+        long_special_formset = self.get_formset()
 
         if container_form.is_valid() and long_special_formset.is_valid():
-            if is_new_container:
-                container = LongSpecialContainer(
-                    description=container_form.cleaned_data.get("description"),
-                    allowance=container_form.cleaned_data.get("allowance"),
-                    created_gameweek=gameweek,
-                )
-            else:
-                container.description = container_form.cleaned_data.get("description")
-                container.allowance = container_form.cleaned_data.get("allowance")
-            container.save()
-
-            _process_new_specials(long_special_formset, container, request)
-            return redirect("gameweek", gameweek_id=gameweek.id)
+            return self.form_valid(container_form, long_special_formset)
         else:
-            messages.error(request, "Invalid form")
+            self.object = None
+            return self.form_invalid(container_form, long_special_formset)
 
-    if not (
-        request.user.is_authenticated and request.user == gameweek.season.commissioner
-    ):
-        messages.error(
-            request,
-            (
-                "Only season commissioner ({0}) allowed to " "create or update gameweek"
-            ).format(gameweek.season.commissioner.username),
-        )
+    def form_valid(self, form, formset):
+        container = self.save_container(form)
 
-    if is_new_container:
-        container_form = LongSpecialContainerForm()
-        long_special_formset = LongSpecialFormSet()
-    else:
-        current_long_specials = [
-            {
-                "container": ls.container,
-                "description": ls.description,
-                "numerator": ls.numerator,
-                "denominator": ls.denominator,
-            }
-            for ls in container.longspecial_set.all()
+        new_long_specials = [
+            LongSpecial(
+                container=container,
+                description=long_special_form.cleaned_data.get("description"),
+                numerator=long_special_form.cleaned_data.get("numerator"),
+                denominator=long_special_form.cleaned_data.get("denominator"),
+            )
+            for long_special_form in formset.forms
         ]
 
-        container_form = LongSpecialContainerForm(
-            initial={
-                "description": container.description,
-                "allowance": container.allowance,
-                "created_gameweek": gameweek,
-            }
+        try:
+            with transaction.atomic():
+                self.clear_existing_long_specials(container)
+                LongSpecial.objects.bulk_create(new_long_specials)
+                messages.success(self.request, self.success_message)
+        except Exception as err:
+            messages.error(self.request, "Error saving new long special.")
+            messages.error(self.request, err)
+
+        return redirect(self.get_success_url())
+
+    def clear_existing_long_specials(self, container):
+        # Do nothing
+        return
+
+    def form_invalid(self, form, formset):
+        """If the form is invalid, render the invalid form."""
+        return self.render_to_response(
+            self.get_context_data(form=form, formset=formset)
         )
-        long_special_formset = LongSpecialFormSet(initial=current_long_specials)
-
-    context = {
-        "gameweek_id": gameweek.id,
-        "container_form": container_form,
-        "long_special_formset": long_special_formset,
-    }
-
-    return render(request, "gambling/create_long_term.html", context)
 
 
-def create_longterm(request, gameweek_id):
-    gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
+class LongSpecialCreateView(LongSpecialContainerView, CreateView):
+    extra = 1
+    success_message = "Created long special."
 
-    return _manage_longterm(request, None, gameweek)
+    def save_container(self, form):
+        return LongSpecialContainer.objects.create(
+            created_gameweek=self.gameweek,
+            description=form.cleaned_data.get("description"),
+            allowance=form.cleaned_data.get("allowance"),
+        )
 
 
-def update_longterm(request, longspecial_id):
-    container = get_object_or_404(LongSpecialContainer, pk=longspecial_id)
-    gameweek = container.created_gameweek
+class LongSpecialUpdateView(LongSpecialContainerView, UpdateView):
+    extra = 0
+    success_message = "Updated long special."
 
-    return _manage_longterm(request, container, gameweek)
+    def get_formset_initial(self):
+        return [
+            {
+                "container": long_special.container,
+                "description": long_special.description,
+                "numerator": long_special.numerator,
+                "denominator": long_special.denominator,
+            }
+            for long_special in self.get_object().longspecial_set.all()
+        ]
+
+    def dispatch(self, request, pk, *args, **kwargs):
+        container = get_object_or_404(LongSpecialContainer, pk=pk)
+
+        if container.has_bets():
+            messages.error(
+                request,
+                (
+                    "Cannot update specials that already have bets,"
+                    " speak to Ollie if required"
+                ),
+            )
+            return redirect("gameweek", pk=container.created_gameweek.id)
+
+        return super().dispatch(request, container.created_gameweek.id, *args, **kwargs)
+
+    def save_container(self, form):
+        container = self.get_object()
+        container.description = form.cleaned_data.get("description")
+        container.allowance = form.cleaned_data.get("allowance")
+        container.save()
+        return container
+
+    def clear_existing_long_specials(self, container):
+        LongSpecial.objects.filter(container=container).delete()
 
 
 def manage_longterm_bet(request, bet_container_id, longspecial_id):
@@ -368,7 +369,7 @@ def _manage_longterm_bet(request, bet_container_id, longspecial_id, existing_bet
                 )
             bet.save()
 
-            return redirect("gameweek", gameweek_id=container.created_gameweek.id)
+            return redirect("gameweek", pk=container.created_gameweek.id)
         else:
             messages.error(request, "Invalid form or unauthenticated user.")
 

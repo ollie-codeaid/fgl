@@ -93,8 +93,7 @@ class GameweekViewsTest(TestCase):
         url = reverse("create-gameweek", args=(self.season.pk,))
         response = self.client.get(url)
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
 
     def test_non_commissioner_user_cannot_view_create_gameweek_form(self):
         user = User.objects.create_user(username="non_comm", password="non_comm")
@@ -102,8 +101,7 @@ class GameweekViewsTest(TestCase):
         url = reverse("create-gameweek", args=(self.season.pk,))
         response = self.client.get(url)
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
 
     @patch(
         "fglsite.odds_reader.reader._read_from_disk",
@@ -154,8 +152,7 @@ class GameweekViewsTest(TestCase):
         url = reverse("create-gameweek", args=(self.season.pk,))
         response = self.client.post(url, data=form_data)
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
         assert self.season.gameweek_set.count() == 0
 
     def test_non_commissioner_user_cannot_create_gameweek(self):
@@ -166,8 +163,7 @@ class GameweekViewsTest(TestCase):
         self.client.force_login(user)
         response = self.client.post(url, data=form_data)
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
         assert self.season.gameweek_set.count() == 0
 
     def _create_gameweek_with_single_game(self):
@@ -208,8 +204,7 @@ class GameweekViewsTest(TestCase):
         url = reverse("update-gameweek", args=(gameweek.pk,))
         response = self.client.get(url)
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
 
     def test_non_commissioner_user_cannot_view_update_gameweek_form(self):
         user = User.objects.create_user(username="non_comm", password="non_comm")
@@ -218,8 +213,7 @@ class GameweekViewsTest(TestCase):
         url = reverse("update-gameweek", args=(gameweek.pk,))
         response = self.client.get(url)
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
 
     def test_commissioner_can_update_gameweek(self):
         gameweek = self._create_gameweek_with_single_game()
@@ -238,8 +232,7 @@ class GameweekViewsTest(TestCase):
         url = reverse("update-gameweek", args=(gameweek.id,))
         response = self.client.post(url, data=form_data)
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
         gameweek.refresh_from_db()
         assert gameweek.game_set.get().hometeam == "Watford"
 
@@ -252,7 +245,6 @@ class GameweekViewsTest(TestCase):
         self.client.force_login(user)
         response = self.client.post(url, data=form_data)
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
         gameweek.refresh_from_db()
         assert gameweek.game_set.get().hometeam == "Watford"

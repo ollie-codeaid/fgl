@@ -130,18 +130,19 @@ class LongSpecialContainer(models.Model):
     def get_choice_by_user(self, user):
         user_container = BetContainer.objects.filter(
             gameweek=self.created_gameweek
-        ).filter(owner=user)
+        ).get(owner=user)
 
-        if not user_container:
+        user_choices = LongSpecialBet.objects.filter(bet_container=user_container)
+
+        if user_choices.count() == 0:
             return None
 
-        choice = (
-            LongSpecialBet.objects.filter(bet_container=user_container)
-            .filter(long_special__container=self)
-            .first()
-        )
+        this_user_choice = user_choices.filter(long_special__container=self)
 
-        return choice
+        if this_user_choice.count() == 0:
+            return None
+
+        return this_user_choice.first()
 
 
 class LongSpecial(models.Model):
