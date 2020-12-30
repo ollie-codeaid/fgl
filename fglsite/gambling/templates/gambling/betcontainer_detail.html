@@ -19,13 +19,19 @@
 </div>
 {% render_messages messages %}
 {% gameweek_odds object.gameweek %}
-{% if object.gameweek.longspecialcontainer_set.all %}
-{% for longspecial in object.gameweek.longspecialcontainer_set.all %}
+{% if long_specials %}
+{% for long_special_container, long_special_bet in long_specials.items %}
 <div class="row">
     <div class="twelve columns">
-        <h3><a href="/bets/longterms/{{ object.id }}/{{ longspecial.id }}/manage_bet">
-            {{ longspecial.description }} - {% get_longterm_choice_by_user longspecial request %}
-        </a></h3>
+        {% if long_special_bet %}
+            <h3><a href="{% url 'update-longterm-bet' long_special_bet.id %}">
+                {{ long_special_container.description }} - {{ long_special_bet }}
+            </a></h3>
+        {% else %}
+            <h3><a href="{% url 'create-longterm-bet' object.id long_special_container.id %}">
+                {{ long_special_container.description }} - No bet placed.
+            </a></h3>
+        {% endif %}
     </div>
 </div>
 {% endfor %}

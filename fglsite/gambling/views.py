@@ -4,12 +4,12 @@ from functools import partial
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.forms.formsets import formset_factory
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 from django.shortcuts import get_object_or_404, render, redirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from fglsite.bets.forms import BaseResultFormSet
 from fglsite.bets.models import Gameweek
 from fglsite.bets.views import SeasonCommissionerAllowedMixin
@@ -71,6 +71,23 @@ class BetContainerDetailView(
     def dispatch(self, request, pk, *args, **kwargs):
         self.bet_container = get_object_or_404(BetContainer, pk=pk)
         return super().dispatch(request, pk, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        long_special_containers = (
+            self.bet_container.gameweek.longspecialcontainer_set.all()
+        )
+        long_special_bets = self.bet_container.longspecialbet_set.all()
+
+        long_specials = {
+            long_special_container: long_special_bets.filter(
+                long_special__container=long_special_container
+            ).first()
+            for long_special_container in long_special_containers
+        }
+
+        context_data.update({"long_specials": long_specials})
+        return context_data
 
 
 class AccumulatorView(BetContainerOwnerAllowedMixin, LoginRequiredMixin):
@@ -341,50 +358,52 @@ class LongSpecialUpdateView(LongSpecialContainerView, UpdateView):
         LongSpecial.objects.filter(container=container).delete()
 
 
-def manage_longterm_bet(request, bet_container_id, longspecial_id):
-    existing_bet = (
-        LongSpecialBet.objects.filter(bet_container=bet_container_id)
-        .filter(long_special__container=longspecial_id)
-        .first()
-    )
+class LongSpecialBetView(BetContainerOwnerAllowedMixin, LoginRequiredMixin):
+    model = LongSpecialBet
+    form_class = LongSpecialBetForm
 
-    return _manage_longterm_bet(request, bet_container_id, longspecial_id, existing_bet)
+    def get_success_url(self):
+        return reverse_lazy("update-bet-container", args=[self.bet_container.pk])
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super().get_context_data(*args, **kwargs)
+        context_data.update(
+            {
+                "bet_container": self.bet_container,
+                "long_special_container": self.long_special_container,
+            }
+        )
+        return context_data
+
+    def get_form_kwargs(self):
+        form_kwargs = super().get_form_kwargs()
+        form_kwargs.update({"long_special_container": self.long_special_container})
+        return form_kwargs
 
 
-def _manage_longterm_bet(request, bet_container_id, longspecial_id, existing_bet):
-    bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
-    container = get_object_or_404(LongSpecialContainer, pk=longspecial_id)
+class LongSpecialBetCreateView(LongSpecialBetView, CreateView):
+    def dispatch(
+        self, request, bet_container_id, long_special_container_id, *args, **kwargs
+    ):
+        self.bet_container = get_object_or_404(BetContainer, pk=bet_container_id)
+        self.long_special_container = get_object_or_404(
+            LongSpecialContainer, pk=long_special_container_id
+        )
+        return super().dispatch(
+            request, bet_container_id, long_special_container_id, *args, **kwargs
+        )
 
-    if request.method == "POST":
-        form = LongSpecialBetForm(longspecial_id, request.POST)
+    def form_valid(self, form):
+        self.object = LongSpecialBet.objects.create(
+            long_special=form.cleaned_data["long_special"],
+            bet_container=self.bet_container,
+        )
+        return HttpResponseRedirect(self.get_success_url())
 
-        if form.is_valid() and request.user.is_authenticated:
-            if existing_bet:
-                bet = existing_bet
-                bet.long_special = form.cleaned_data.get("long_special")
-            else:
-                bet = LongSpecialBet(
-                    long_special=form.cleaned_data.get("long_special"),
-                    bet_container=bet_container,
-                )
-            bet.save()
 
-            return redirect("gameweek", pk=container.created_gameweek.id)
-        else:
-            messages.error(request, "Invalid form or unauthenticated user.")
-
-    initial = {}
-
-    if existing_bet:
-        initial = {
-            "long_special": existing_bet.long_special,
-        }
-
-    form = LongSpecialBetForm(longspecial_id, initial=initial)
-
-    context = {
-        "special_form": form,
-        "container": container,
-    }
-
-    return render(request, "gambling/create_long_term_bet.html", context)
+class LongSpecialBetUpdateView(LongSpecialBetView, UpdateView):
+    def dispatch(self, request, pk, *args, **kwargs):
+        long_special_bet = get_object_or_404(LongSpecialBet, pk=pk)
+        self.bet_container = long_special_bet.bet_container
+        self.long_special_container = long_special_bet.long_special.container
+        return super().dispatch(request, pk, *args, **kwargs)

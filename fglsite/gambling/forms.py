@@ -84,10 +84,10 @@ class BaseLongSpecialFormSet(BaseFormSet):
 
 
 class LongSpecialBetForm(ModelForm):
-    def __init__(self, longspecial_id, *args, **kwargs):
+    def __init__(self, long_special_container, *args, **kwargs):
         super(LongSpecialBetForm, self).__init__(*args, **kwargs)
         self.fields["long_special"].queryset = LongSpecial.objects.filter(
-            container=longspecial_id,
+            container=long_special_container,
         )
 
     class Meta:

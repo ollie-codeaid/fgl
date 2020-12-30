@@ -39,8 +39,13 @@ urlpatterns = [
         name="update-longterm",
     ),
     path(
-        "longterms/<int:bet_container_id>/<int:longspecial_id>/manage_bet/",
-        views.manage_longterm_bet,
-        name="manage-longterm-bet",
+        "bets/<int:bet_container_id>/longterms/<int:long_special_container_id>/add-bet/",
+        views.LongSpecialBetCreateView.as_view(),
+        name="create-longterm-bet",
+    ),
+    path(
+        "bets/longterms/<int:pk>/update-bet/",
+        views.LongSpecialBetUpdateView.as_view(),
+        name="update-longterm-bet",
     ),
 ]
