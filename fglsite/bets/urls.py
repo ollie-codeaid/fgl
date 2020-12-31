@@ -3,8 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("create_season/", views.SeasonCreateView.as_view(), name="create-season"),
-    path("find_season/", views.find_season, name="find-season"),
+    path("create-season/", views.SeasonCreateView.as_view(), name="create-season"),
+    path("find-season/", views.find_season, name="find-season"),
     path("<int:pk>/", views.SeasonDetailView.as_view(), name="season"),
     path(
         "<int:season_id>/create_gameweek/",

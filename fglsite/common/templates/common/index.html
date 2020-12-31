@@ -4,45 +4,51 @@
 
 {% block content %}
 <div class="row">
-	<div class="twelve columns">
-		<h1>Welcome to FGL</h1>
-	</br>
-	</br>
-	</div>
+    <div class="twelve columns">
+        <h1>Welcome to FGL</h1>
+        </br>
+        </br>
+    </div>
 </div>
 <div class="row">
-	<div class="two columns"><p></p></div>
-	<div class="eight columns">
-	<h5>What is a FGL?</h5>
-	<p>Fantasy Gambling League is a game conceived by an uncle of
-	Liam Woulfe and adopted by the ex-residents of Calton Walk. Each week, the Commissioner
-	will publish odds on a group of Premier League games. Players are given a 'fantasy' allowance
-	to bet on those games as they see fit. Once results are in, winnings are calculated and the
-	league table is updated.</p>
-	</br>
-	</br>
-	<h5>How do I play?</h5>
-	<p>You'll first need an account. Only way to register at the
-	moment is to ask Ollie to get you set up.</p>
-	</br>
-	</br>
-	<h5>What is a Commissioner?</h5>
-	<p>The Commissioner is responsible for creating and
-	maintaining the season. Season creation can be actioned using the link below. Once a
-	season has been created and players have joined, the Commissioner may begin populating
-	gameweek odds.</p>
-	</br>
-	</br>
-	</div>
-	<div class="two columns"><p></p></div>
+    <div class="two columns"><p></p></div>
+    <div class="eight columns">
+        <h5>What is a FGL?</h5>
+        <p>Fantasy Gambling League is a game conceived by an uncle of
+            Liam Woulfe and adopted by the ex-residents of Calton Walk. Each week, the Commissioner
+            will publish odds on a group of Premier League games. Players are given a 'fantasy' allowance
+            to bet on those games as they see fit. Once results are in, winnings are calculated and the
+            league table is updated.</p>
+        </br>
+        </br>
+        <h5>How do I play?</h5>
+        <p>You'll first need an account. Only way to register at the
+            moment is to ask Ollie to get you set up.</p>
+        </br>
+        </br>
+        <h5>What is a Commissioner?</h5>
+        <p>The Commissioner is responsible for creating and
+            maintaining the season. Season creation can be actioned using the link below. Once a
+            season has been created and players have joined, the Commissioner may begin populating
+            gameweek odds.</p>
+        </br>
+        </br>
+    </div>
+    <div class="two columns"><p></p></div>
 </div>
 <div class="row">
-	<div class="twelve columns">
-	<h3>Seasons</h3>
-	<table>
-		<tr><td><a href="{% url 'find-season' %}">Find season</a></td></tr>
-		<tr><td><a href="{% url 'create-season' %}">Create new season</a></td></tr>
-	</table>
-	</div>
+    <div class="twelve columns">
+        <h3>Seasons</h3>
+        <table>
+            <tr>
+                <td><a href="{% url 'find-season' %}">Find season</a></td>
+            </tr>
+            {% if user.is_authenticated %}
+            <tr>
+                <td><a href="{% url 'create-season' %}">Create new season</a></td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
 </div>
 {% endblock %}
