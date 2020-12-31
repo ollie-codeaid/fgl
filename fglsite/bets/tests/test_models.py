@@ -209,7 +209,7 @@ class GameweekTest(TestCase):
 
         self.assertEqual(1, set_balance_method.call_count)
         set_balance_method.assert_any_call(
-            user=user_two, week_winnings=float(-100.0), week_unused=float(50.0)
+            user=user_two, week_winnings=float(-100.0), long_term_winnings=0.0, week_unused=float(50.0)
         )
 
     def test__calc_enforce_banked(self):
@@ -237,16 +237,16 @@ class GameweekTest(TestCase):
 
     @patch("fglsite.bets.models.Balance")
     @patch("fglsite.bets.models.Gameweek.user_has_balance", Mock(return_value=False))
-    def test__set_balance_by_user(self, balance):
+    def test_set_balance_by_user(self, balance):
 
         season = _create_test_season()
         gameweek = _create_test_gameweek(season)
 
         user = Mock()
-        gameweek.set_balance_by_user(user, 123.0, 50.0)
+        gameweek.set_balance_by_user(user, 123.0, 0.0, 50.0)
 
         balance.assert_any_call(
-            gameweek=gameweek, user=user, week=123.0, provisional=173.0, banked=50.0
+            gameweek=gameweek, user=user, week=123.0, provisional=173.0, special=0.0, banked=50.0
         )
 
     def test__get_balance_by_user(self):
@@ -297,7 +297,7 @@ class GameweekTest(TestCase):
         user_one = User.objects.create_user("user_one")
         user_one.save()
 
-        gameweek_one.set_balance_by_user(user_one, 199.0, 29.9)
+        gameweek_one.set_balance_by_user(user_one, 199.0, 0.0, 29.9)
 
         allowances = gameweek_two.get_rollable_allowances()
 
@@ -316,11 +316,11 @@ class GameweekTest(TestCase):
         user_two = User.objects.create_user("user_two")
         user_two.save()
 
-        gameweek_one.set_balance_by_user(user_one, 1000.0, 0.0)
-        gameweek_one.set_balance_by_user(user_two, 500.0, 0.0)
+        gameweek_one.set_balance_by_user(user_one, 1000.0, 0.0, 0.0)
+        gameweek_one.set_balance_by_user(user_two, 500.0, 0.0, 0.0)
 
-        gameweek_two.set_balance_by_user(user_one, -100.0, 0.0)
-        gameweek_two.set_balance_by_user(user_two, -100.0, 500.0)
+        gameweek_two.set_balance_by_user(user_one, -100.0, 0.0, 0.0)
+        gameweek_two.set_balance_by_user(user_two, -100.0, 0.0, 500.0)
 
         results_one = gameweek_one.get_ordered_results()
         results_two = gameweek_two.get_ordered_results()

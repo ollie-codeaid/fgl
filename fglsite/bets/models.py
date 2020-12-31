@@ -71,6 +71,9 @@ class Season(models.Model):
                 return False
         return True
 
+    def long_specials_outstanding(self):
+        return any([gameweek.long_specials_outstanding() for gameweek in self.gameweek_set.all()])
+
 
 class Gameweek(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE)
@@ -116,6 +119,7 @@ class Gameweek(models.Model):
                     self.set_balance_by_user(
                         user=balance.user,
                         week_winnings=float(self.season.weekly_allowance * -1),
+                        long_term_winnings=0.0,
                         week_unused=unused,
                     )
 
@@ -137,15 +141,16 @@ class Gameweek(models.Model):
             prev_banked = prev_balance.banked
         return prev_banked
 
-    def set_balance_by_user(self, user, week_winnings, week_unused):
+    def set_balance_by_user(self, user, week_winnings, long_term_winnings, week_unused):
         """Set the balance for this gameweek for this user.
         Weekly = week_winnings
-        Provisional = banked + week winnings (if positive)
-        Banked = last week banked + week_unused + any weekly losses"""
+        Special = long_term_winnings
+        Provisional = banked + weekly winnings (if positive) + special
+        Banked = last week banked + week_unused + any weekly losses + special"""
         enforce_banked = self._calc_enforce_banked(week_winnings)
 
         prev_banked = self._get_prev_banked(user)
-        banked = float(prev_banked) + week_unused + enforce_banked
+        banked = float(prev_banked) + week_unused + enforce_banked + long_term_winnings
         if week_winnings > 0.0:
             provisional = banked + week_winnings
         else:
@@ -156,12 +161,13 @@ class Gameweek(models.Model):
             user=user,
             week=week_winnings,
             provisional=provisional,
+            special=long_term_winnings,
             banked=banked,
         )
 
         with transaction.atomic():
             if self.user_has_balance(user):
-                old_user_balance = self.balance_set.filter(user=user)[0]
+                old_user_balance = self.balance_set.get(user=user)
                 old_user_balance.delete()
             user_balance.save()
 
@@ -283,12 +289,16 @@ class Gameweek(models.Model):
         """ Check if user has a balance """
         return len(self.balance_set.filter(user=user)) > 0
 
+    def long_specials_outstanding(self):
+        return any([not container.is_complete() for container in self.longspecialcontainer_set.all()])
+
 
 class Balance(models.Model):
     gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     week = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
     provisional = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
+    special = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
     banked = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
 
     def __str__(self):

@@ -124,8 +124,8 @@ class LongSpecialContainer(models.Model):
     def has_bets(self):
         return False
 
-    def complete(self):
-        return False
+    def is_complete(self):
+        return all([longspecial.is_correct() for longspecial in self.longspecial_set.all()])
 
 
 class LongSpecial(models.Model):
@@ -149,10 +149,12 @@ class LongSpecial(models.Model):
 
         return users
 
+    def is_correct(self):
+        return self.longspecialresult_set.count() == 1
+
 
 class LongSpecialResult(models.Model):
-    long_special = models.ForeignKey(Game, on_delete=models.CASCADE)
-    result = models.BooleanField()
+    long_special = models.ForeignKey(LongSpecial, on_delete=models.CASCADE)
     completed_gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -167,9 +169,4 @@ class LongSpecialBet(models.Model):
         return str(self.long_special)
 
     def is_correct(self):
-        if len(self.long_special.longspecialresult_set.all()) != 1:
-            return False
-
-        result = next(iter(self.long_special.longspecialresult_set.all()))
-
-        return result.result
+        self.long_special.is_correct()
