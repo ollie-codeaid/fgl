@@ -4,14 +4,14 @@
 {% load bets_extras %}
 {% load common_extras %}
 
-{% block title %}{{ container.description }}{% endblock %}
+{% block title %}{{ long_special_container.description }}{% endblock %}
 
 {% block content %}
 <div class="row">
 	<div class="twelve columns">
-		<h1>{{ container.description }}</h1>
-		<h3>Allowance: {{ container.allowance }}</h3>
-		<a href="/">Back to index</a></br></br>
+		<h1>{{ long_special_container.description }}</h1>
+		<h3>Allowance: {{ long_special_container.allowance }}</h3>
+		<a href="{% url 'update-bet-container' bet_container.id %}">Back to bets</a></br></br>
 	</div>
 </div>
 {% render_messages messages %}
@@ -19,7 +19,7 @@
 	<div class="twelve columns">
 		<form method="post">
 		{% csrf_token %}
-		{{ special_form }}
+		{{ form }}
 		<input type="submit" value="Add long term" class="button"/>
 		</form>
 	</div>

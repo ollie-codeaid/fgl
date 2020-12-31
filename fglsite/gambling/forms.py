@@ -5,6 +5,7 @@ from django.forms.formsets import BaseFormSet
 from fglsite.bets.models import Game
 from .models import (
     Accumulator,
+    BetContainer,
     BetPart,
     LongSpecialContainer,
     LongSpecial,
@@ -12,10 +13,29 @@ from .models import (
 )
 
 
+class BetContainerForm(ModelForm):
+    class Meta:
+        model = BetContainer
+        fields = ["gameweek", "owner"]
+
+
 class AccumulatorForm(ModelForm):
     class Meta:
         model = Accumulator
-        fields = ["stake"]
+        fields = ["bet_container", "stake"]
+
+    def is_valid(self, initial_stake):
+        is_valid = super().is_valid()
+
+        total_stake_left = self.cleaned_data[
+            "bet_container"
+        ].get_allowance_unused() + float(initial_stake)
+
+        if total_stake_left < self.cleaned_data["stake"]:
+            self.add_error("stake", f"Stake may not be greater than {total_stake_left}")
+            return False
+
+        return is_valid
 
 
 class BetPartForm(ModelForm):
@@ -64,10 +84,10 @@ class BaseLongSpecialFormSet(BaseFormSet):
 
 
 class LongSpecialBetForm(ModelForm):
-    def __init__(self, longspecial_id, *args, **kwargs):
+    def __init__(self, long_special_container, *args, **kwargs):
         super(LongSpecialBetForm, self).__init__(*args, **kwargs)
         self.fields["long_special"].queryset = LongSpecial.objects.filter(
-            container=longspecial_id,
+            container=long_special_container,
         )
 
     class Meta:

@@ -53,8 +53,7 @@ class ResultViewsTest(TestCase):
         url = reverse("add-gameweek-results", args=(self.gameweek.pk,))
         response = self.client.get(url)
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
 
     def test_non_commissioner_user_cannot_view_results_form(self):
         user = User.objects.create_user(username="non_comm", password="non_comm")
@@ -62,8 +61,7 @@ class ResultViewsTest(TestCase):
         url = reverse("add-gameweek-results", args=(self.gameweek.pk,))
         response = self.client.get(url)
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
 
     def _build_test_form_data(self):
         return {
@@ -94,8 +92,7 @@ class ResultViewsTest(TestCase):
         url = reverse("add-gameweek-results", args=(self.gameweek.pk,))
         response = self.client.post(url, data=self._build_test_form_data())
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
         assert self.game_one.result_set.count() == 0
 
     def test_non_commissioner_user_cannot_create_gameweek(self):
@@ -105,6 +102,5 @@ class ResultViewsTest(TestCase):
         self.client.force_login(user)
         response = self.client.post(url, data=self._build_test_form_data())
 
-        assert response.status_code == 302
-        assert response.url == "/bets/1/"
+        assert response.status_code == 403
         assert self.game_one.result_set.count() == 0

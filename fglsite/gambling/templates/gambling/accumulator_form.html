@@ -11,7 +11,7 @@
 	<div class="twelve columns">
 		<h1>Add Bet</h1>
 		<table>
-		<tr><td><a href="/bets/bets/{{ bet_container_id }}/my_bets/">Back to bets</a></td></tr>
+		<tr><td><a href="{% url 'update-bet-container' bet_container.id %}">Back to bets</a></td></tr>
 		</table>
 	</div>
 </div>
@@ -20,8 +20,13 @@
 	<div class="twelve columns">
 		<form method="post">
 		{% csrf_token %}
-		{{ accumulator_form.as_p }}
-		{% for error in accumulator_form.non_form_errors %}
+		{{ form.bet_container.as_hidden }}
+		<label>Stake:</label>
+		{% for error in form.stake.errors %}
+		<p>{{ error }}</p>
+		{% endfor %}
+		{{ form.stake }}
+		{% for error in form.non_form_errors %}
 		<p>{{ error }}</p>
 		{% endfor %}
 		<table>
@@ -33,6 +38,11 @@
 			</thead>
 			<tbody>
 			{% for betpart_form in betpart_formset.forms %}
+			{% if betpart_form.errors %}
+				{% for error in betpart_form.errors %}
+					<tr>{{ error }}</tr>
+				{% endfor %}
+			{% endif %}
 			<tr class="betpart-formset">
 				<td>{{ betpart_form.game }}</td>
 				<td>{{ betpart_form.result }}</td>

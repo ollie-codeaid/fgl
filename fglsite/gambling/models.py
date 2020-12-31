@@ -127,22 +127,6 @@ class LongSpecialContainer(models.Model):
     def complete(self):
         return False
 
-    def get_choice_by_user(self, user):
-        user_container = BetContainer.objects.filter(
-            gameweek=self.created_gameweek
-        ).filter(owner=user)
-
-        if not user_container:
-            return None
-
-        choice = (
-            LongSpecialBet.objects.filter(bet_container=user_container)
-            .filter(long_special__container=self)
-            .first()
-        )
-
-        return choice
-
 
 class LongSpecial(models.Model):
     container = models.ForeignKey(LongSpecialContainer, on_delete=models.CASCADE)

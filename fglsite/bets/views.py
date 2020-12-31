@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from functools import partial
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
 from django.forms.formsets import formset_factory
-from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render, redirect
+from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, render
 from django.views.generic import CreateView, DetailView, FormView, UpdateView
 from django.urls import reverse, reverse_lazy
 
@@ -71,7 +70,7 @@ class SeasonCommissionerAllowedMixin:
     def dispatch(self, request, *args, **kwargs):
         season = self.get_season(*args, **kwargs)
         if request.user != season.commissioner:
-            return HttpResponseRedirect(reverse_lazy("season", args=[season.id]))
+            return HttpResponseForbidden()
 
         return super().dispatch(request, *args, **kwargs)
 
