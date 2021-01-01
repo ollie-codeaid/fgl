@@ -10,6 +10,7 @@ from .models import (
     LongSpecialContainer,
     LongSpecial,
     LongSpecialBet,
+    LongSpecialResult
 )
 
 
@@ -93,3 +94,15 @@ class LongSpecialBetForm(ModelForm):
     class Meta:
         model = LongSpecialBet
         fields = ["long_special"]
+
+
+class LongSpecialResultForm(ModelForm):
+    class Meta:
+        model = LongSpecialResult
+        fields = ["long_special", "completed_gameweek"]
+
+    def __init__(self, long_special_container, *args, **kwargs):
+        super(LongSpecialResultForm, self).__init__(*args, **kwargs)
+        self.fields["long_special"].queryset = LongSpecial.objects.filter(
+            container=long_special_container,
+        )

@@ -29,6 +29,11 @@ urlpatterns = [
         name="delete-bet",
     ),
     path(
+        "gameweek/<int:pk>/manage-longterms/",
+        views.LongSpecialManagementView.as_view(),
+        name="manage-longterms",
+    ),
+    path(
         "gameweek/<int:gameweek_id>/create-longterm/",
         views.LongSpecialCreateView.as_view(),
         name="create-longterm",
@@ -37,6 +42,11 @@ urlpatterns = [
         "longterms/<int:pk>/update/",
         views.LongSpecialUpdateView.as_view(),
         name="update-longterm",
+    ),
+    path(
+        "longterms/<int:pk>/add-result/<int:gameweek_id>",
+        views.LongSpecialResultFormView.as_view(),
+        name="add-longterm-result",
     ),
     path(
         "bets/<int:bet_container_id>/longterms/<int:long_special_container_id>/add-bet/",

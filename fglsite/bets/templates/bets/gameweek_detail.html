@@ -35,18 +35,12 @@
             <tr>
                 <td><a href="{% url 'update-gameweek' gameweek.id %}">Update gameweek</a></td>
             </tr>
+            <tr>
+                <td><a href="{% url 'manage-longterms' gameweek.id %}">Manage long terms</a></td>
+            </tr>
             {% if gameweek.deadline_passed %}
             <tr>
                 <td><a href="{% url 'add-gameweek-results' gameweek.id %}">Add results</a></td>
-            </tr>
-            {% if gameweek.season.long_specials_outstanding %}
-            <tr>
-                <td><a href="{% url 'add-longterm-results' gameweek.id %}">Add long term results</a></td>
-            </tr>
-            {% endif %}
-            {% else %}
-            <tr>
-                <td><a href="{% url 'create-longterm' gameweek.id %}">Add long term</a></td>
             </tr>
             {% endif %}
             {% endif %}
@@ -81,7 +75,7 @@
     </div>
 </div>
 {% for container in gameweek.longspecialcontainer_set.all %}
-{% long_term_odds container request %}
+{% long_term_odds container gameweek request %}
 {% endfor %}
 {% endif %}
 {% if gameweek.results_complete %}

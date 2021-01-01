@@ -291,7 +291,6 @@ class ResultsFormView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, FormVi
                     gameweek.set_balance_by_user(
                         user=betcontainer.owner,
                         week_winnings=betcontainer.calc_winnings(),
-                        long_term_winnings=0.0,
                         week_unused=betcontainer.get_allowance_unused(),
                     )
 

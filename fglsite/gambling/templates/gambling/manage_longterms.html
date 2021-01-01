@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% load bets_extras %}
+{% load common_extras %}
+{% load gambling_extras %}
+
+{% block title %}Manage Long Terms{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="twelve columns">
+        <h1>Manage Long Terms</h1>
+        <table>
+            <tr>
+                <td><a href="{% url 'gameweek' gameweek.id %}">Back to gameweek</a></td>
+            </tr>
+            {% if not gameweek.deadline_passed %}
+            <tr>
+                <td><a href="{% url 'create-longterm' gameweek.id %}">Add long term</a></td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+</div>
+{% render_messages messages %}
+{% if gameweek.season.long_specials_outstanding %}
+<div class="row">
+    <div class="twelve columns">
+        <h2>Long terms</h2>
+    </div>
+</div>
+{% for container in gameweek.season.long_specials_outstanding %}
+{% long_term_odds container gameweek request %}
+{% endfor %}
+{% else %}
+<div><p>No long terms outstanding</p></div>
+{% endif %}
+{% endblock %}

@@ -158,7 +158,7 @@ class LongSpecialResult(models.Model):
     completed_gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.long_special) + " - " + str(self.result)
+        return str(self.long_special.container.description) + " - " + str(self.long_special)
 
 
 class LongSpecialBet(models.Model):
@@ -170,3 +170,9 @@ class LongSpecialBet(models.Model):
 
     def is_correct(self):
         self.long_special.is_correct()
+
+    def project_winnings(self, long_special):
+        if self.long_special == long_special:
+            return (long_special.numerator / long_special.denominator) * float(long_special.container.allowance)
+        else:
+            return -long_special.container.allowance
