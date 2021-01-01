@@ -58,9 +58,4 @@ urlpatterns = [
         views.LongSpecialBetUpdateView.as_view(),
         name="update-longterm-bet",
     ),
-    path(
-        "gameweek/<int:gameweek_id>/create-longterm/",
-        views.LongSpecialCreateView.as_view(),
-        name="add-longterm-results",
-    ),
 ]
