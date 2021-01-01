@@ -211,7 +211,9 @@ class GameweekTest(TestCase):
         )
 
     @patch("fglsite.bets.models.Gameweek.user_has_balance", Mock(return_value=False))
-    def test_set_balance_by_user(self,):
+    def test_set_balance_by_user(
+        self,
+    ):
 
         season = _create_test_season()
         gameweek = _create_test_gameweek(season)
@@ -311,7 +313,9 @@ class GameweekTest(TestCase):
 
         self.assertEquals(2, len(results_two))
         self.assertEquals([user_two, -100.0, 400.0, 0.0, 400.0, "/\\"], results_two[0])
-        self.assertEquals([user_one, -100.0, -100.0, 0.0, -100.0, "\\/"], results_two[1])
+        self.assertEquals(
+            [user_one, -100.0, -100.0, 0.0, -100.0, "\\/"], results_two[1]
+        )
 
 
 class BalanceTest(TestCase):

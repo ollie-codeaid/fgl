@@ -7,7 +7,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseForbidden, HttpResponseRedirect
-from django.views.generic import CreateView, DeleteView, DetailView, FormView, UpdateView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    FormView,
+    UpdateView,
+)
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from fglsite.bets.forms import BaseResultFormSet
@@ -20,7 +26,7 @@ from .models import (
     LongSpecialContainer,
     LongSpecial,
     LongSpecialBet,
-    LongSpecialResult
+    LongSpecialResult,
 )
 from .forms import (
     AccumulatorForm,
@@ -30,7 +36,7 @@ from .forms import (
     LongSpecialForm,
     BaseLongSpecialFormSet,
     LongSpecialBetForm,
-    LongSpecialResultForm
+    LongSpecialResultForm,
 )
 
 
@@ -227,7 +233,9 @@ class AccumulatorDeleteView(
         return reverse_lazy("update-bet-container", args=[self.bet_container.pk])
 
 
-class LongSpecialManagementView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, DetailView):
+class LongSpecialManagementView(
+    SeasonCommissionerAllowedMixin, LoginRequiredMixin, DetailView
+):
     model = Gameweek
     template_name = "gambling/manage_longterms.html"
 
@@ -423,7 +431,9 @@ class LongSpecialBetUpdateView(LongSpecialBetView, UpdateView):
         return super().dispatch(request, pk, *args, **kwargs)
 
 
-class LongSpecialResultFormView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, FormView):
+class LongSpecialResultFormView(
+    SeasonCommissionerAllowedMixin, LoginRequiredMixin, FormView
+):
     form_class = LongSpecialResultForm
     template_name = "gambling/longspecialresult_form.html"
 
@@ -448,27 +458,39 @@ class LongSpecialResultFormView(SeasonCommissionerAllowedMixin, LoginRequiredMix
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
-        context_data.update({
-            "long_special_container": self.long_special_container,
-            "gameweek": self.gameweek
-        })
+        context_data.update(
+            {
+                "long_special_container": self.long_special_container,
+                "gameweek": self.gameweek,
+            }
+        )
         return context_data
 
     def form_valid(self, form):
         existing_result = LongSpecialResult.objects.filter(
             long_special__container=self.long_special_container,
-            completed_gameweek=self.gameweek
+            completed_gameweek=self.gameweek,
         ).first()
 
-        long_special_bets = LongSpecialBet.objects.filter(long_special__container=self.long_special_container)
+        long_special_bets = LongSpecialBet.objects.filter(
+            long_special__container=self.long_special_container
+        )
 
         with transaction.atomic():
             for long_special_bet in long_special_bets:
-                change_in_balance = float(long_special_bet.project_winnings(form.cleaned_data["long_special"]))
+                change_in_balance = float(
+                    long_special_bet.project_winnings(form.cleaned_data["long_special"])
+                )
                 if existing_result:
-                    change_in_balance -= float(long_special_bet.project_winnings(existing_result.long_special))
+                    change_in_balance -= float(
+                        long_special_bet.project_winnings(existing_result.long_special)
+                    )
 
-                Balance.objects.create_with_longterm(self.gameweek, long_special_bet.bet_container.owner, change_in_balance)
+                Balance.objects.create_with_longterm(
+                    self.gameweek,
+                    long_special_bet.bet_container.owner,
+                    change_in_balance,
+                )
 
             if existing_result:
                 existing_result.delete()

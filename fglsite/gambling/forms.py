@@ -10,7 +10,7 @@ from .models import (
     LongSpecialContainer,
     LongSpecial,
     LongSpecialBet,
-    LongSpecialResult
+    LongSpecialResult,
 )
 
 

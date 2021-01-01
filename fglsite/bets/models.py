@@ -268,7 +268,11 @@ class Gameweek(models.Model):
         return len(self.balance_set.filter(user=user)) > 0
 
     def long_specials_outstanding(self):
-        return [container for container in self.longspecialcontainer_set.all() if not container.is_complete()]
+        return [
+            container
+            for container in self.longspecialcontainer_set.all()
+            if not container.is_complete()
+        ]
 
 
 class BalanceManager(models.Manager):
@@ -317,10 +321,22 @@ class BalanceManager(models.Manager):
         """
 
         existing_balance = self.get_existing(gameweek, user)
-        special = float(existing_balance.special) + float(long_term_winnings) if existing_balance else long_term_winnings
+        special = (
+            float(existing_balance.special) + float(long_term_winnings)
+            if existing_balance
+            else long_term_winnings
+        )
         week_winnings = existing_balance.week if existing_balance else 0.0
-        provisional = float(existing_balance.provisional) + float(long_term_winnings) if existing_balance else long_term_winnings
-        banked = float(existing_balance.banked) + float(long_term_winnings) if existing_balance else long_term_winnings
+        provisional = (
+            float(existing_balance.provisional) + float(long_term_winnings)
+            if existing_balance
+            else long_term_winnings
+        )
+        banked = (
+            float(existing_balance.banked) + float(long_term_winnings)
+            if existing_balance
+            else long_term_winnings
+        )
 
         with transaction.atomic():
             if existing_balance:
