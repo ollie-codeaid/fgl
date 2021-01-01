@@ -120,7 +120,8 @@ class Gameweek(models.Model):
                         unused = float(balance.week)
                     else:
                         unused = 0.0
-                    self.set_balance_by_user(
+                    Balance.objects.create_with_weekly(
+                        gameweek=self,
                         user=balance.user,
                         week_winnings=float(self.season.weekly_allowance * -1),
                         week_unused=unused,
@@ -134,19 +135,6 @@ class Gameweek(models.Model):
             prev_gameweek = self.get_prev_gameweek()
             prev_balance = prev_gameweek._get_balance_by_user(user)
             return prev_balance.banked
-
-    def set_balance_by_user(self, user, week_winnings, week_unused):
-        with transaction.atomic():
-            if self.user_has_balance(user):
-                old_user_balance = self.balance_set.get(user=user)
-                old_user_balance.delete()
-
-            Balance.objects.create_with_weekly(
-                gameweek=self,
-                user=user,
-                week_winnings=week_winnings,
-                week_unused=week_unused,
-            )
 
     def _get_balance_by_user(self, user):
         """ Get user balance """
@@ -295,7 +283,12 @@ class BalanceManager(models.Manager):
         # If user made a loss then that has to be realized immediately
         enforce_banked = week_winnings if week_winnings < 0.0 else 0.0
         prev_banked = gameweek.get_prev_banked(user)
-        banked = float(prev_banked) + week_unused + enforce_banked + long_term_winnings
+        banked = (
+            float(prev_banked)
+            + week_unused
+            + enforce_banked
+            + float(long_term_winnings)
+        )
 
         provisional = banked if week_winnings <= 0.0 else banked + week_winnings
 

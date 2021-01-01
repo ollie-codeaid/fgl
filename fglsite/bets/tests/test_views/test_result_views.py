@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.urls import reverse
 from django.test import TestCase
 
@@ -8,8 +8,6 @@ from fglsite.bets.models import Season, Gameweek, Game
 
 class ResultViewsTest(TestCase):
     def setUp(self):
-        Group.objects.create(name="Commissioners")
-
         self.user = User.objects.create_user(username="comm", password="comm")
         self.season = Season.objects.create(
             name="test", commissioner=self.user, weekly_allowance=100.0
