@@ -1,6 +1,6 @@
 <div class="row">
     <div class="twelve columns">
-        {% if request.user == container.created_gameweek.season.commissioner %}
+        {% if show_management_links %}
         {% if container.created_gameweek.is_latest_gameweek and not container.created_gameweek.deadline_passed %}
         <h3><a href="{% url 'update-longterm' container.id %}">{{ container.description }}</a></h3>
         {% elif gameweek.deadline_passed %}

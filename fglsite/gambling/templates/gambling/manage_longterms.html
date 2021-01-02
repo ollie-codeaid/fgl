@@ -30,10 +30,10 @@
     </div>
 </div>
 {% for container in gameweek.longspecialcontainer_set.all %}
-{% long_term_odds container gameweek request %}
+{% long_term_odds container gameweek True %}
 {% endfor %}
 {% for container in gameweek.season.long_specials_outstanding %}
-{% long_term_odds container gameweek request %}
+{% long_term_odds container gameweek True %}
 {% endfor %}
 {% else %}
 <div><p>No long terms outstanding</p></div>
