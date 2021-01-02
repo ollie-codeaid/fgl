@@ -47,7 +47,7 @@ def _build_test_form_data(game_id_one, game_id_two):
     }
 
 
-class ResultViewsTest(TestCase):
+class ResultViewsBalanceTest(TestCase):
     """This is an integration style test to cover balance creation."""
 
     def setUp(self):
