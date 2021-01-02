@@ -39,12 +39,6 @@ def _create_test_game(gameweek):
     return game
 
 
-def _create_test_result(game, result):
-    result = Result(game=game, result=result)
-    result.save()
-    return result
-
-
 class SeasonTest(TestCase):
     def test__str__(self):
         season = _create_test_season()

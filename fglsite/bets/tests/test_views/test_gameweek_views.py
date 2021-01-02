@@ -236,7 +236,7 @@ class GameweekViewsTest(TestCase):
         gameweek.refresh_from_db()
         assert gameweek.game_set.get().hometeam == "Watford"
 
-    def test_non_commissioner_user_cannot_create_gameweek(self):
+    def test_non_commissioner_user_cannot_update_gameweek(self):
         gameweek = self._create_gameweek_with_single_game()
         form_data = self._create_basic_gameweek_form_data()
         user = User.objects.create_user(username="non_comm", password="non_comm")
