@@ -65,10 +65,12 @@ class Accumulator(models.Model):
         """ Calculate winnings for this accumulator """
         odds = 1.0
         for betpart in self.betpart_set.all():
-            if not betpart.is_correct():
-                return False
-            else:
+            if betpart.is_void():
+                continue
+            if betpart.is_correct():
                 odds = odds * (1 + betpart.get_odds())
+            else:
+                return 0.0
 
         return odds * float(self.stake)
 
@@ -88,6 +90,9 @@ class BetPart(models.Model):
 
         result = self.game.result_set.get()
         return result.result == self.result
+
+    def is_void(self):
+        return self.game.get_result().result == "P"
 
     def get_odds(self):
         return self.game.get_numerator(self.result) / self.game.get_denominator(

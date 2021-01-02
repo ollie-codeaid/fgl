@@ -382,12 +382,12 @@ class Game(models.Model):
 
     def get_result(self):
         """ Get result """
-        return self.result_set.all()[0]
+        return self.result_set.first()
 
 
 class Result(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    RESULTS = (("H", "Home"), ("D", "Draw"), ("A", "Away"))
+    RESULTS = (("H", "Home"), ("D", "Draw"), ("A", "Away"), ("P", "Postponed"))
     result = models.CharField(max_length=1, choices=RESULTS, default="H")
 
     def __str__(self):
