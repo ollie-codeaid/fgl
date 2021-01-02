@@ -7,11 +7,7 @@ from fglsite.bets.models import (
     Season,
     Gameweek,
 )
-from fglsite.gambling.models import (
-    LongSpecialContainer,
-    LongSpecial,
-    LongSpecialResult
-)
+from fglsite.gambling.models import LongSpecialContainer, LongSpecial, LongSpecialResult
 from django.contrib.auth.models import User
 from django.urls import reverse
 
@@ -233,8 +229,7 @@ class LongSpecialManagementViewTest(TestCase):
             denominator=11,
         )
         LongSpecialResult.objects.create(
-            long_special=long_special,
-            completed_gameweek=self.gameweek
+            long_special=long_special, completed_gameweek=self.gameweek
         )
 
         self.gameweek.deadline_date = datetime.datetime.now() - datetime.timedelta(
@@ -267,8 +262,7 @@ class LongSpecialManagementViewTest(TestCase):
             denominator=11,
         )
         LongSpecialResult.objects.create(
-            long_special=long_special,
-            completed_gameweek=self.gameweek
+            long_special=long_special, completed_gameweek=self.gameweek
         )
 
         gameweek_two = Gameweek.objects.create(
