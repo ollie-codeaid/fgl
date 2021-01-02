@@ -1,29 +1,34 @@
 <div class="row">
     <div class="twelve columns">
-	{% if request.user == container.created_gameweek.season.commissioner and container.created_gameweek.is_latest_gameweek %}
-
-	<h3><a href="{% url 'update-longterm' container.id %}">{{ container.description }}</a></h3>
-	{% else %}
-	<h3>{{ container.description }}</h3>
-	{% endif %}
-	<h4>{{ container.allowance }}</h4>
-	<table>
-	    <tr>
-		<th></th>
-		<th>Price</th>
-		{% if container.created_gameweek.deadline_passed %}
-		<th>Chosen by</th>
-		{% endif %}
-	    </tr>
-	    {% for special in container.longspecial_set.all %}
-	    <tr>
-		<td>{{ special.description }}</td>
-		<td>{{ special.numerator }}/{{ special.denominator }}</td>
-		{% if container.created_gameweek.deadline_passed %}
-		<td>{{ special.chosen_by }}</td>
-		{% endif %}
-	    </tr>
-	    {% endfor %}
-	</table>
+        {% if show_management_links %}
+        {% if container.created_gameweek.is_latest_gameweek and not container.created_gameweek.deadline_passed %}
+        <h3><a href="{% url 'update-longterm' container.id %}">{{ container.description }}</a></h3>
+        {% elif gameweek.deadline_passed %}
+        <h3><a href="{% url 'add-longterm-result' container.id gameweek.id %}">{{ container.description }}</a></h3>
+        {% else %}
+        <h3>{{ container.description }}</h3>
+        {% endif %}
+        {% else %}
+        <h3>{{ container.description }}</h3>
+        {% endif %}
+        <h4>{{ container.allowance }}</h4>
+        <table>
+            <tr>
+                <th></th>
+                <th>Price</th>
+                {% if container.created_gameweek.deadline_passed %}
+                <th>Chosen by</th>
+                {% endif %}
+            </tr>
+            {% for special in container.longspecial_set.all %}
+            <tr>
+                <td>{{ special.description }}</td>
+                <td>{{ special.numerator }}/{{ special.denominator }}</td>
+                {% if container.created_gameweek.deadline_passed %}
+                <td>{{ special.chosen_by }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
     </div>
 </div>

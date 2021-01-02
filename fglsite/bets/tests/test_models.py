@@ -14,15 +14,13 @@ def _create_test_season():
 
 
 def _create_test_gameweek(season):
-    gameweek = Gameweek(
+    return Gameweek.objects.create(
         season=season,
         number=season.get_next_gameweek_id(),
         deadline_date=date(2017, 11, 1),
         deadline_time=time(12, 00),
         spiel="",
     )
-    gameweek.save()
-    return gameweek
 
 
 def _create_test_game(gameweek):
@@ -39,12 +37,6 @@ def _create_test_game(gameweek):
     )
     game.save()
     return game
-
-
-def _create_test_result(game, result):
-    result = Result(game=game, result=result)
-    result.save()
-    return result
 
 
 class SeasonTest(TestCase):
@@ -179,9 +171,9 @@ class GameweekTest(TestCase):
 
     @patch("fglsite.bets.models.Gameweek._get_users_with_bets")
     @patch("fglsite.bets.models.Gameweek.get_prev_gameweek")
-    @patch("fglsite.bets.models.Gameweek.set_balance_by_user")
+    @patch("fglsite.bets.models.Balance.objects.create_with_weekly")
     def test_update_no_bet_users(
-        self, set_balance_method, prev_gameweek_method, users_method
+        self, create_balance_method, prev_gameweek_method, users_method
     ):
         user_one = Mock(spec=User)
         user_two = Mock(spec=User)
@@ -207,46 +199,12 @@ class GameweekTest(TestCase):
 
         gameweek_two.update_no_bet_users()
 
-        self.assertEqual(1, set_balance_method.call_count)
-        set_balance_method.assert_any_call(
-            user=user_two, week_winnings=float(-100.0), week_unused=float(50.0)
-        )
-
-    def test__calc_enforce_banked(self):
-        season = _create_test_season()
-        gameweek = _create_test_gameweek(season)
-
-        self.assertEqual(0.0, gameweek._calc_enforce_banked(10.0))
-        self.assertEqual(-10.0, gameweek._calc_enforce_banked(-10.0))
-
-    @patch("fglsite.bets.models.Gameweek._get_balance_by_user")
-    def test__get_last_banked(self, getBalanceMethod):
-        season = _create_test_season()
-        gameweek_one = _create_test_gameweek(season)
-        gameweek_two = _create_test_gameweek(season)
-
-        balance = Mock()
-        balance.banked = 100.0
-        getBalanceMethod.return_value = balance
-
-        user = Mock()
-
-        self.assertEqual(0.0, gameweek_one._get_prev_banked(user))
-        self.assertEqual(100.0, gameweek_two._get_prev_banked(user))
-        getBalanceMethod.assert_any_call(user)
-
-    @patch("fglsite.bets.models.Balance")
-    @patch("fglsite.bets.models.Gameweek.user_has_balance", Mock(return_value=False))
-    def test__set_balance_by_user(self, balance):
-
-        season = _create_test_season()
-        gameweek = _create_test_gameweek(season)
-
-        user = Mock()
-        gameweek.set_balance_by_user(user, 123.0, 50.0)
-
-        balance.assert_any_call(
-            gameweek=gameweek, user=user, week=123.0, provisional=173.0, banked=50.0
+        self.assertEqual(1, create_balance_method.call_count)
+        create_balance_method.assert_any_call(
+            gameweek=gameweek_two,
+            user=user_two,
+            week_winnings=float(-100.0),
+            week_unused=float(50.0),
         )
 
     def test__get_balance_by_user(self):
@@ -297,7 +255,9 @@ class GameweekTest(TestCase):
         user_one = User.objects.create_user("user_one")
         user_one.save()
 
-        gameweek_one.set_balance_by_user(user_one, 199.0, 29.9)
+        Balance.objects.create_with_weekly(
+            gameweek=gameweek_one, user=user_one, week_winnings=199.0, week_unused=29.9
+        )
 
         allowances = gameweek_two.get_rollable_allowances()
 
@@ -316,22 +276,50 @@ class GameweekTest(TestCase):
         user_two = User.objects.create_user("user_two")
         user_two.save()
 
-        gameweek_one.set_balance_by_user(user_one, 1000.0, 0.0)
-        gameweek_one.set_balance_by_user(user_two, 500.0, 0.0)
+        balance_one = Balance.objects.create(
+            gameweek=gameweek_one,
+            user=user_one,
+            week=1000.0,
+            provisional=1000.0,
+            special=0.0,
+            banked=0.0,
+        )
+        balance_two = Balance.objects.create(
+            gameweek=gameweek_one,
+            user=user_two,
+            week=500.0,
+            provisional=500.0,
+            special=0.0,
+            banked=0.0,
+        )
 
-        gameweek_two.set_balance_by_user(user_one, -100.0, 0.0)
-        gameweek_two.set_balance_by_user(user_two, -100.0, 500.0)
+        balance_three = Balance.objects.create(
+            gameweek=gameweek_two,
+            user=user_one,
+            week=-100.0,
+            provisional=-100.0,
+            special=0.0,
+            banked=-100.0,
+        )
+        balance_four = Balance.objects.create(
+            gameweek=gameweek_two,
+            user=user_two,
+            week=-100.0,
+            provisional=400.0,
+            special=0.0,
+            banked=400.0,
+        )
 
         results_one = gameweek_one.get_ordered_results()
         results_two = gameweek_two.get_ordered_results()
 
         self.assertEquals(2, len(results_one))
-        self.assertEquals([user_one, 1000.0, 1000.0, 0.0, "-"], results_one[0])
-        self.assertEquals([user_two, 500.0, 500.0, 0.0, "-"], results_one[1])
+        self.assertEquals([balance_one, "-"], results_one[0])
+        self.assertEquals([balance_two, "-"], results_one[1])
 
         self.assertEquals(2, len(results_two))
-        self.assertEquals([user_two, -100.0, 400.0, 400.0, "/\\"], results_two[0])
-        self.assertEquals([user_one, -100.0, -100.0, -100.0, "\\/"], results_two[1])
+        self.assertEquals([balance_four, "/\\"], results_two[0])
+        self.assertEquals([balance_three, "\\/"], results_two[1])
 
 
 class BalanceTest(TestCase):
@@ -350,6 +338,27 @@ class BalanceTest(TestCase):
 
         self.assertIn(str(gameweek), str(balance))
         self.assertIn(user_one.username, str(balance))
+
+    def test_create_with_weekly(
+        self,
+    ):
+        season = _create_test_season()
+        gameweek = _create_test_gameweek(season)
+
+        user = User.objects.create_user("user_one")
+        Balance.objects.create_with_weekly(
+            gameweek=gameweek, user=user, week_winnings=123.0, week_unused=50.0
+        )
+
+        assert Balance.objects.count() == 1
+
+        balance = Balance.objects.get()
+        assert balance.gameweek == gameweek
+        assert balance.user == user
+        assert balance.week == 123.0
+        assert balance.provisional == 173.0
+        assert balance.special == 0.0
+        assert balance.banked == 50.0
 
 
 class GameTest(TestCase):

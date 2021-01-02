@@ -4,8 +4,9 @@ register = template.Library()
 
 
 @register.inclusion_tag("gambling/long_term_odds.html")
-def long_term_odds(container, request):
+def long_term_odds(container, gameweek, show_management_links):
     return {
         "container": container,
-        "request": request,
+        "gameweek": gameweek,
+        "show_management_links": show_management_links,
     }

@@ -7,11 +7,17 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseForbidden, HttpResponseRedirect
-from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
-from django.shortcuts import get_object_or_404, render, redirect
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    FormView,
+    UpdateView,
+)
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from fglsite.bets.forms import BaseResultFormSet
-from fglsite.bets.models import Gameweek
+from fglsite.bets.models import Gameweek, Balance
 from fglsite.bets.views import SeasonCommissionerAllowedMixin
 from .models import (
     BetContainer,
@@ -20,6 +26,7 @@ from .models import (
     LongSpecialContainer,
     LongSpecial,
     LongSpecialBet,
+    LongSpecialResult,
 )
 from .forms import (
     AccumulatorForm,
@@ -29,6 +36,7 @@ from .forms import (
     LongSpecialForm,
     BaseLongSpecialFormSet,
     LongSpecialBetForm,
+    LongSpecialResultForm,
 )
 
 
@@ -225,6 +233,20 @@ class AccumulatorDeleteView(
         return reverse_lazy("update-bet-container", args=[self.bet_container.pk])
 
 
+class LongSpecialManagementView(
+    SeasonCommissionerAllowedMixin, LoginRequiredMixin, DetailView
+):
+    model = Gameweek
+    template_name = "gambling/manage_longterms.html"
+
+    def get_season(self, *args, **kwargs):
+        return self.gameweek.season
+
+    def dispatch(self, request, pk, *args, **kwargs):
+        self.gameweek = get_object_or_404(Gameweek, pk=pk)
+        return super().dispatch(request, pk, *args, **kwargs)
+
+
 class LongSpecialContainerView(SeasonCommissionerAllowedMixin, LoginRequiredMixin):
     model = LongSpecialContainer
     form_class = LongSpecialContainerForm
@@ -407,3 +429,71 @@ class LongSpecialBetUpdateView(LongSpecialBetView, UpdateView):
         self.bet_container = long_special_bet.bet_container
         self.long_special_container = long_special_bet.long_special.container
         return super().dispatch(request, pk, *args, **kwargs)
+
+
+class LongSpecialResultFormView(
+    SeasonCommissionerAllowedMixin, LoginRequiredMixin, FormView
+):
+    form_class = LongSpecialResultForm
+    template_name = "gambling/longspecialresult_form.html"
+
+    def get_success_url(self):
+        return reverse_lazy("manage-longterms", args=[self.gameweek.id])
+
+    def get_season(self, *args, **kwargs):
+        return self.gameweek.season
+
+    def dispatch(self, request, pk, gameweek_id, *args, **kwargs):
+        self.long_special_container = get_object_or_404(LongSpecialContainer, pk=pk)
+        self.gameweek = get_object_or_404(Gameweek, pk=gameweek_id)
+        return super().dispatch(request, pk, gameweek_id, *args, **kwargs)
+
+    def get_initial(self):
+        return {"completed_gameweek": self.gameweek.id}
+
+    def get_form_kwargs(self):
+        form_kwargs = super().get_form_kwargs()
+        form_kwargs.update({"long_special_container": self.long_special_container})
+        return form_kwargs
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data.update(
+            {
+                "long_special_container": self.long_special_container,
+                "gameweek": self.gameweek,
+            }
+        )
+        return context_data
+
+    def form_valid(self, form):
+        existing_result = LongSpecialResult.objects.filter(
+            long_special__container=self.long_special_container,
+            completed_gameweek=self.gameweek,
+        ).first()
+
+        long_special_bets = LongSpecialBet.objects.filter(
+            long_special__container=self.long_special_container
+        )
+
+        with transaction.atomic():
+            for long_special_bet in long_special_bets:
+                change_in_balance = float(
+                    long_special_bet.project_winnings(form.cleaned_data["long_special"])
+                )
+                if existing_result:
+                    change_in_balance -= float(
+                        long_special_bet.project_winnings(existing_result.long_special)
+                    )
+
+                Balance.objects.create_with_longterm(
+                    self.gameweek,
+                    long_special_bet.bet_container.owner,
+                    change_in_balance,
+                )
+
+            if existing_result:
+                existing_result.delete()
+            form.save()
+
+        return HttpResponseRedirect(self.get_success_url())

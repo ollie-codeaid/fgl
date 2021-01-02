@@ -11,7 +11,6 @@ from fglsite.bets.models import Gameweek, Game
 logger = logging.getLogger(__name__)
 
 
-# Create your models here.
 class BetContainer(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
@@ -41,10 +40,10 @@ class BetContainer(models.Model):
 
         return game_count
 
-    def calc_winnings(self):
+    def calculate_winnings(self):
         winnings = 0.0
         for accumulator in self.accumulator_set.all():
-            winnings += accumulator.calc_winnings()
+            winnings += accumulator.calculate_winnings()
 
         true_winnings = winnings - float(self.gameweek.season.weekly_allowance)
 
@@ -62,34 +61,16 @@ class Accumulator(models.Model):
 
         return name
 
-    def calc_winnings(self):
+    def calculate_winnings(self):
         """ Calculate winnings for this accumulator """
-        correct = True
         odds = 1.0
         for betpart in self.betpart_set.all():
             if not betpart.is_correct():
-                correct = False
-                break
+                return False
             else:
-                game = betpart.game
-                result = betpart.result
-                num = 1
-                denom = 1
-                if result == "H":
-                    num = game.homenumerator
-                    denom = game.homedenominator
-                elif result == "D":
-                    num = game.drawnumerator
-                    denom = game.drawdenominator
-                elif result == "A":
-                    num = game.awaynumerator
-                    denom = game.awaydenominator
-                odds = odds * float(num + denom) / float(denom)
+                odds = odds * (1 + betpart.get_odds())
 
-        if correct:
-            return odds * float(self.stake)
-        else:
-            return 0.0
+        return odds * float(self.stake)
 
 
 class BetPart(models.Model):
@@ -102,15 +83,16 @@ class BetPart(models.Model):
         return str(self.game) + "," + str(self.result)
 
     def is_correct(self):
-        if len(self.game.result_set.all()) != 1:
+        if self.game.result_set.count() != 1:
             return False
 
-        result = next(iter(self.game.result_set.all()))
+        result = self.game.result_set.get()
+        return result.result == self.result
 
-        if result.result == self.result:
-            return True
-        else:
-            return False
+    def get_odds(self):
+        return self.game.get_numerator(self.result) / self.game.get_denominator(
+            self.result
+        )
 
 
 class LongSpecialContainer(models.Model):
@@ -124,8 +106,10 @@ class LongSpecialContainer(models.Model):
     def has_bets(self):
         return False
 
-    def complete(self):
-        return False
+    def is_complete(self):
+        return all(
+            [longspecial.is_correct() for longspecial in self.longspecial_set.all()]
+        )
 
 
 class LongSpecial(models.Model):
@@ -149,14 +133,20 @@ class LongSpecial(models.Model):
 
         return users
 
+    def is_correct(self):
+        return self.longspecialresult_set.count() == 1
+
 
 class LongSpecialResult(models.Model):
-    long_special = models.ForeignKey(Game, on_delete=models.CASCADE)
-    result = models.BooleanField()
+    long_special = models.ForeignKey(LongSpecial, on_delete=models.CASCADE)
     completed_gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.long_special) + " - " + str(self.result)
+        return (
+            str(self.long_special.container.description)
+            + " - "
+            + str(self.long_special)
+        )
 
 
 class LongSpecialBet(models.Model):
@@ -167,9 +157,12 @@ class LongSpecialBet(models.Model):
         return str(self.long_special)
 
     def is_correct(self):
-        if len(self.long_special.longspecialresult_set.all()) != 1:
-            return False
+        self.long_special.is_correct()
 
-        result = next(iter(self.long_special.longspecialresult_set.all()))
-
-        return result.result
+    def project_winnings(self, long_special):
+        if self.long_special == long_special:
+            return (long_special.numerator / long_special.denominator) * float(
+                long_special.container.allowance
+            )
+        else:
+            return -long_special.container.allowance

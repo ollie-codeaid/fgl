@@ -100,12 +100,12 @@ class AccumulatorTest(TestCase):
         bet_part.save()
 
         result = _create_test_result(game, "H")
-        self.assertEquals(102.0, accumulator.calc_winnings())
+        self.assertEquals(102.0, accumulator.calculate_winnings())
 
         result.result = "D"
         result.save()
-        self.assertEquals(0.0, accumulator.calc_winnings())
+        self.assertEquals(0.0, accumulator.calculate_winnings())
 
         result.result = "A"
         result.save()
-        self.assertEquals(0.0, accumulator.calc_winnings())
+        self.assertEquals(0.0, accumulator.calculate_winnings())

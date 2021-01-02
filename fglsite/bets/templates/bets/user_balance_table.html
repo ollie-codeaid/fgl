@@ -1,3 +1,4 @@
+{% load bets_extras %}
 <div class="row">
 	<div class="twelve columns">
         <table>
@@ -5,15 +6,14 @@
 	        	<th></th>
 	        	<th>Weekly</th>
 	        	<th>Provisional</th>
+				{% if show_specials %}
+				<th>Special</th>
+				{% endif %}
 	        	<th>Banked</th>
                 <th></th>
 	        </tr>
-	        {% for result in gameweek.get_ordered_results %}
-            <tr>
-                {% for el in result %}
-                <td>{{ el }}</td>
-                {% endfor %}
-            </tr>
+	        {% for result in ordered_results %}
+			{% user_balance_row result show_specials %}
 	        {% endfor %}
         </table>
 	</div>

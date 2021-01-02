@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.generic import CreateView, DetailView, FormView, UpdateView
 from django.urls import reverse, reverse_lazy
 
-from fglsite.bets.models import Season, Gameweek, Game, Result
+from fglsite.bets.models import Season, Gameweek, Game, Result, Balance
 from fglsite.bets.forms import (
     SeasonForm,
     FindSeasonForm,
@@ -288,9 +288,10 @@ class ResultsFormView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, FormVi
                 Result.objects.bulk_create(results)
 
                 for betcontainer in gameweek.betcontainer_set.all():
-                    gameweek.set_balance_by_user(
+                    Balance.objects.create_with_weekly(
+                        gameweek=gameweek,
                         user=betcontainer.owner,
-                        week_winnings=betcontainer.calc_winnings(),
+                        week_winnings=betcontainer.calculate_winnings(),
                         week_unused=betcontainer.get_allowance_unused(),
                     )
 

@@ -71,6 +71,13 @@ class Season(models.Model):
                 return False
         return True
 
+    def long_specials_outstanding(self):
+        long_specials_outstanding = []
+        for gameweek in self.gameweek_set.all():
+            long_specials_outstanding += gameweek.long_specials_outstanding()
+
+        return long_specials_outstanding
+
 
 class Gameweek(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE)
@@ -113,57 +120,21 @@ class Gameweek(models.Model):
                         unused = float(balance.week)
                     else:
                         unused = 0.0
-                    self.set_balance_by_user(
+                    Balance.objects.create_with_weekly(
+                        gameweek=self,
                         user=balance.user,
                         week_winnings=float(self.season.weekly_allowance * -1),
                         week_unused=unused,
                     )
 
-    def _calc_enforce_banked(self, week_winnings):
-        # If user made a loss then that has to be realized immediately
-        if week_winnings < 0.0:
-            enforce_banked = week_winnings
-        else:
-            enforce_banked = 0.0
-        return enforce_banked
-
-    def _get_prev_banked(self, user):
+    def get_prev_banked(self, user):
         # If Gameweek 1 then last banked must be 0
         if self.number == 1:
-            prev_banked = 0.0
+            return 0.0
         else:
             prev_gameweek = self.get_prev_gameweek()
             prev_balance = prev_gameweek._get_balance_by_user(user)
-            prev_banked = prev_balance.banked
-        return prev_banked
-
-    def set_balance_by_user(self, user, week_winnings, week_unused):
-        """Set the balance for this gameweek for this user.
-        Weekly = week_winnings
-        Provisional = banked + week winnings (if positive)
-        Banked = last week banked + week_unused + any weekly losses"""
-        enforce_banked = self._calc_enforce_banked(week_winnings)
-
-        prev_banked = self._get_prev_banked(user)
-        banked = float(prev_banked) + week_unused + enforce_banked
-        if week_winnings > 0.0:
-            provisional = banked + week_winnings
-        else:
-            provisional = banked
-
-        user_balance = Balance(
-            gameweek=self,
-            user=user,
-            week=week_winnings,
-            provisional=provisional,
-            banked=banked,
-        )
-
-        with transaction.atomic():
-            if self.user_has_balance(user):
-                old_user_balance = self.balance_set.filter(user=user)[0]
-                old_user_balance.delete()
-            user_balance.save()
+            return prev_balance.banked
 
     def _get_balance_by_user(self, user):
         """ Get user balance """
@@ -250,15 +221,7 @@ class Gameweek(models.Model):
 
         for balance in self.balance_set.order_by("-provisional"):
             change_icon = self._get_change_icon(positions, prev_positions, balance.user)
-            results.append(
-                [
-                    balance.user,
-                    balance.week,
-                    balance.provisional,
-                    balance.banked,
-                    change_icon,
-                ]
-            )
+            results.append([balance, change_icon])
 
         return results
 
@@ -283,13 +246,103 @@ class Gameweek(models.Model):
         """ Check if user has a balance """
         return len(self.balance_set.filter(user=user)) > 0
 
+    def long_specials_outstanding(self):
+        return [
+            container
+            for container in self.longspecialcontainer_set.all()
+            if not container.is_complete()
+        ]
+
+
+class BalanceManager(models.Manager):
+    def get_existing(self, gameweek, user):
+        return Balance.objects.filter(gameweek=gameweek, user=user).first()
+
+    def create_with_weekly(self, gameweek, user, week_winnings, week_unused):
+        """Create or recreate balance for this gameweek for this user.
+        If the balance already exists then we need to add any existing special money.
+
+        Weekly = week_winnings
+        Special = long_term_winnings
+        Provisional = banked + weekly winnings (if positive) + special
+        Banked = last week banked + week_unused + any weekly losses + special
+        """
+
+        existing_balance = self.get_existing(gameweek, user)
+        long_term_winnings = existing_balance.special if existing_balance else 0.0
+
+        # If user made a loss then that has to be realized immediately
+        enforce_banked = week_winnings if week_winnings < 0.0 else 0.0
+        prev_banked = gameweek.get_prev_banked(user)
+        banked = (
+            float(prev_banked)
+            + week_unused
+            + enforce_banked
+            + float(long_term_winnings)
+        )
+
+        provisional = banked if week_winnings <= 0.0 else banked + week_winnings
+
+        with transaction.atomic():
+            if existing_balance:
+                existing_balance.delete()
+            return super().create(
+                gameweek=gameweek,
+                user=user,
+                week=week_winnings,
+                provisional=provisional,
+                special=long_term_winnings,
+                banked=banked,
+            )
+
+    def create_with_longterm(self, gameweek, user, long_term_winnings):
+        """Create or recreate balance for this gameweek for this user.
+        If the balance already exists then we need to account for any existing special money and any existing
+        weekly winnings.
+
+        Be careful when updating the result of a long term. This method must be called with the difference to ensure
+        updated long terms are not double counted.
+        """
+
+        existing_balance = self.get_existing(gameweek, user)
+        special = (
+            float(existing_balance.special) + float(long_term_winnings)
+            if existing_balance
+            else long_term_winnings
+        )
+        week_winnings = existing_balance.week if existing_balance else 0.0
+        provisional = (
+            float(existing_balance.provisional) + float(long_term_winnings)
+            if existing_balance
+            else long_term_winnings
+        )
+        banked = (
+            float(existing_balance.banked) + float(long_term_winnings)
+            if existing_balance
+            else long_term_winnings
+        )
+
+        with transaction.atomic():
+            if existing_balance:
+                existing_balance.delete()
+            return super().create(
+                gameweek=gameweek,
+                user=user,
+                week=week_winnings,
+                provisional=provisional,
+                special=special,
+                banked=banked,
+            )
+
 
 class Balance(models.Model):
     gameweek = models.ForeignKey(Gameweek, null=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     week = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
     provisional = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
+    special = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
     banked = models.DecimalField(default=0.0, decimal_places=2, max_digits=99)
+    objects = BalanceManager()
 
     def __str__(self):
         return str(self.gameweek) + ":" + self.user.username

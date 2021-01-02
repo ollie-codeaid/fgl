@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+{% load bets_extras %}
+{% load common_extras %}
+
+{% block title %}{{ long_special_container.description }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="twelve columns">
+        <h1>{{ long_special_container.description }}</h1>
+        <a href="{% url 'manage-longterms' gameweek.id %}">Back to long terms</a></br></br>
+    </div>
+</div>
+{% render_messages messages %}
+<div class="row">
+    <div class="twelve columns">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.completed_gameweek.as_hidden }}
+            {{ form.long_special }}
+            <input type="submit" value="Submit result" class="button"/>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}
