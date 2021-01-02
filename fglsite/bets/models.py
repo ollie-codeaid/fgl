@@ -382,7 +382,7 @@ class Game(models.Model):
 
     def get_result(self):
         """ Get result """
-        return self.result_set.all()[0]
+        return self.result_set.first()
 
 
 class Result(models.Model):

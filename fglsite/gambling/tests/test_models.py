@@ -4,53 +4,38 @@ from fglsite.bets.models import Season, Gameweek, Game, Result
 from fglsite.gambling.models import BetContainer, Accumulator, BetPart
 from django.contrib.auth.models import User
 from datetime import date, time
+from uuid import uuid4
 
 
 def _create_test_season():
     commissioner = User.objects.create_user("comm")
-    season = Season(name="test", commissioner=commissioner, weekly_allowance=100.0)
-    season.save()
-    return season
+    return Season.objects.create(
+        name="test", commissioner=commissioner, weekly_allowance=100.0
+    )
 
 
 def _create_test_gameweek(season):
-    gameweek = Gameweek(
+    return Gameweek.objects.create(
         season=season,
         number=season.get_next_gameweek_id(),
         deadline_date=date(2017, 11, 1),
         deadline_time=time(12, 00),
         spiel="",
     )
-    gameweek.save()
-    return gameweek
 
 
 def _create_test_game(gameweek):
-    game = Game(
+    return Game.objects.create(
         gameweek=gameweek,
-        hometeam="Chelsea",
-        awayteam="Liverpool",
-        homenumerator=1,
-        homedenominator=50,
-        drawnumerator=1,
-        drawdenominator=20,
-        awaynumerator=100,
+        hometeam=str(uuid4()),
+        awayteam=str(uuid4()),
+        homenumerator=3,
+        homedenominator=1,
+        drawnumerator=4,
+        drawdenominator=1,
+        awaynumerator=5,
         awaydenominator=1,
     )
-    game.save()
-    return game
-
-
-def _create_test_bet_container(gameweek, user):
-    betcontainer = BetContainer(gameweek=gameweek, owner=user)
-    betcontainer.save()
-    return betcontainer
-
-
-def _create_test_result(game, result):
-    result = Result(game=game, result=result)
-    result.save()
-    return result
 
 
 class GameweekTest(TestCase):
@@ -88,24 +73,93 @@ class GameweekTest(TestCase):
 
 
 class AccumulatorTest(TestCase):
-    def test_calc_winnings(self):
-        season = _create_test_season()
-        gameweek = _create_test_gameweek(season)
-        game = _create_test_game(gameweek)
-        user = User.objects.create_user("user_one")
-        bet_container = _create_test_bet_container(gameweek, user)
-        accumulator = Accumulator(bet_container=bet_container, stake=100.0)
-        accumulator.save()
-        bet_part = BetPart(accumulator=accumulator, game=game, result="H")
-        bet_part.save()
+    def setUp(self):
+        self.season = _create_test_season()
+        self.gameweek = _create_test_gameweek(self.season)
+        self.game_one = _create_test_game(self.gameweek)
+        self.game_two = _create_test_game(self.gameweek)
+        self.game_three = _create_test_game(self.gameweek)
 
-        result = _create_test_result(game, "H")
-        self.assertEquals(102.0, accumulator.calculate_winnings())
+    def test_calc_winnings_single_game_correct(self):
+        user = User.objects.create_user("user")
+        bet_container = BetContainer.objects.create(gameweek=self.gameweek, owner=user)
+        accumulator = Accumulator.objects.create(
+            bet_container=bet_container, stake=100.0
+        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game_one, result="H")
+        Result.objects.create(game=self.game_one, result="H")
 
-        result.result = "D"
-        result.save()
+        self.assertEquals(400.0, accumulator.calculate_winnings())
+
+    def test_calc_winnings_single_game_incorrect(self):
+        user = User.objects.create_user("user")
+        bet_container = BetContainer.objects.create(gameweek=self.gameweek, owner=user)
+        accumulator = Accumulator.objects.create(
+            bet_container=bet_container, stake=100.0
+        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game_one, result="H")
+        Result.objects.create(game=self.game_one, result="D")
+
         self.assertEquals(0.0, accumulator.calculate_winnings())
 
-        result.result = "A"
-        result.save()
+    def test_calc_winnings_single_game_postponed(self):
+        user = User.objects.create_user("user")
+        bet_container = BetContainer.objects.create(gameweek=self.gameweek, owner=user)
+        accumulator = Accumulator.objects.create(
+            bet_container=bet_container, stake=100.0
+        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game_one, result="H")
+        Result.objects.create(game=self.game_one, result="P")
+
+        self.assertEquals(100.0, accumulator.calculate_winnings())
+
+    def test_calc_winnings_multiple_game_correct(self):
+        user = User.objects.create_user("user")
+        bet_container = BetContainer.objects.create(gameweek=self.gameweek, owner=user)
+        accumulator = Accumulator.objects.create(
+            bet_container=bet_container, stake=100.0
+        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game_one, result="H")
+        BetPart.objects.create(accumulator=accumulator, game=self.game_two, result="D")
+        BetPart.objects.create(
+            accumulator=accumulator, game=self.game_three, result="A"
+        )
+        Result.objects.create(game=self.game_one, result="H")
+        Result.objects.create(game=self.game_two, result="D")
+        Result.objects.create(game=self.game_three, result="A")
+
+        self.assertEquals(12000.0, accumulator.calculate_winnings())
+
+    def test_calc_winnings_multiple_game_incorrect(self):
+        user = User.objects.create_user("user")
+        bet_container = BetContainer.objects.create(gameweek=self.gameweek, owner=user)
+        accumulator = Accumulator.objects.create(
+            bet_container=bet_container, stake=100.0
+        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game_one, result="H")
+        BetPart.objects.create(accumulator=accumulator, game=self.game_two, result="D")
+        BetPart.objects.create(
+            accumulator=accumulator, game=self.game_three, result="A"
+        )
+        Result.objects.create(game=self.game_one, result="D")
+        Result.objects.create(game=self.game_two, result="D")
+        Result.objects.create(game=self.game_three, result="A")
+
         self.assertEquals(0.0, accumulator.calculate_winnings())
+
+    def test_calc_winnings_multiple_game_postponed(self):
+        user = User.objects.create_user("user")
+        bet_container = BetContainer.objects.create(gameweek=self.gameweek, owner=user)
+        accumulator = Accumulator.objects.create(
+            bet_container=bet_container, stake=100.0
+        )
+        BetPart.objects.create(accumulator=accumulator, game=self.game_one, result="H")
+        BetPart.objects.create(accumulator=accumulator, game=self.game_two, result="D")
+        BetPart.objects.create(
+            accumulator=accumulator, game=self.game_three, result="A"
+        )
+        Result.objects.create(game=self.game_one, result="P")
+        Result.objects.create(game=self.game_two, result="D")
+        Result.objects.create(game=self.game_three, result="A")
+
+        self.assertEquals(3000.0, accumulator.calculate_winnings())
