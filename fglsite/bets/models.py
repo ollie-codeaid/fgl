@@ -221,16 +221,7 @@ class Gameweek(models.Model):
 
         for balance in self.balance_set.order_by("-provisional"):
             change_icon = self._get_change_icon(positions, prev_positions, balance.user)
-            results.append(
-                [
-                    balance.user,
-                    balance.week,
-                    balance.provisional,
-                    balance.special,
-                    balance.banked,
-                    change_icon,
-                ]
-            )
+            results.append([balance, change_icon])
 
         return results
 

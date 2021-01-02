@@ -1,0 +1,10 @@
+<tr>
+	<td>{{ balance.user }}</td>
+	<td>{{ balance.week }}</td>
+	<td>{{ balance.provisional }}</td>
+	{% if show_specials %}
+	<td>{{ balance.special }}</td>
+	{% endif %}
+	<td>{{ balance.banked }}</td>
+	<td>{{ change_icon }}</td>
+</tr>

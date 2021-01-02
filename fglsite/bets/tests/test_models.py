@@ -276,7 +276,7 @@ class GameweekTest(TestCase):
         user_two = User.objects.create_user("user_two")
         user_two.save()
 
-        Balance.objects.create(
+        balance_one = Balance.objects.create(
             gameweek=gameweek_one,
             user=user_one,
             week=1000.0,
@@ -284,7 +284,7 @@ class GameweekTest(TestCase):
             special=0.0,
             banked=0.0,
         )
-        Balance.objects.create(
+        balance_two = Balance.objects.create(
             gameweek=gameweek_one,
             user=user_two,
             week=500.0,
@@ -293,7 +293,7 @@ class GameweekTest(TestCase):
             banked=0.0,
         )
 
-        Balance.objects.create(
+        balance_three = Balance.objects.create(
             gameweek=gameweek_two,
             user=user_one,
             week=-100.0,
@@ -301,7 +301,7 @@ class GameweekTest(TestCase):
             special=0.0,
             banked=-100.0,
         )
-        Balance.objects.create(
+        balance_four = Balance.objects.create(
             gameweek=gameweek_two,
             user=user_two,
             week=-100.0,
@@ -314,14 +314,12 @@ class GameweekTest(TestCase):
         results_two = gameweek_two.get_ordered_results()
 
         self.assertEquals(2, len(results_one))
-        self.assertEquals([user_one, 1000.0, 1000.0, 0.0, 0.0, "-"], results_one[0])
-        self.assertEquals([user_two, 500.0, 500.0, 0.0, 0.0, "-"], results_one[1])
+        self.assertEquals([balance_one, "-"], results_one[0])
+        self.assertEquals([balance_two, "-"], results_one[1])
 
         self.assertEquals(2, len(results_two))
-        self.assertEquals([user_two, -100.0, 400.0, 0.0, 400.0, "/\\"], results_two[0])
-        self.assertEquals(
-            [user_one, -100.0, -100.0, 0.0, -100.0, "\\/"], results_two[1]
-        )
+        self.assertEquals([balance_four, "/\\"], results_two[0])
+        self.assertEquals([balance_three, "\\/"], results_two[1])
 
 
 class BalanceTest(TestCase):

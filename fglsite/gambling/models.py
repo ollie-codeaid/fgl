@@ -90,7 +90,9 @@ class BetPart(models.Model):
         return result.result == self.result
 
     def get_odds(self):
-        return self.game.get_numerator(self.result) / self.game.get_denominator(self.result)
+        return self.game.get_numerator(self.result) / self.game.get_denominator(
+            self.result
+        )
 
 
 class LongSpecialContainer(models.Model):

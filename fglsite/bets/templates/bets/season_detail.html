@@ -28,6 +28,6 @@
 		<h2>Latest Results</h2>
 	</div>
 </div>
-{% user_balances season.get_latest_complete_gameweek %}
+{% user_balance_table season.get_latest_complete_gameweek True %}
 {% endif %}
 {% endblock %}
