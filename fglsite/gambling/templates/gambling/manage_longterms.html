@@ -23,12 +23,15 @@
     </div>
 </div>
 {% render_messages messages %}
-{% if gameweek.season.long_specials_outstanding %}
+{% if gameweek.season.long_specials_outstanding or gameweek.longspecialcontainer_set.all %}
 <div class="row">
     <div class="twelve columns">
         <h2>Long terms</h2>
     </div>
 </div>
+{% for container in gameweek.longspecialcontainer_set.all %}
+{% long_term_odds container gameweek request %}
+{% endfor %}
 {% for container in gameweek.season.long_specials_outstanding %}
 {% long_term_odds container gameweek request %}
 {% endfor %}

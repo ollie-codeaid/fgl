@@ -11,7 +11,6 @@ from fglsite.bets.models import Gameweek, Game
 logger = logging.getLogger(__name__)
 
 
-# Create your models here.
 class BetContainer(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     gameweek = models.ForeignKey(Gameweek, on_delete=models.CASCADE)
