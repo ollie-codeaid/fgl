@@ -291,7 +291,7 @@ class ResultsFormView(SeasonCommissionerAllowedMixin, LoginRequiredMixin, FormVi
                     Balance.objects.create_with_weekly(
                         gameweek=gameweek,
                         user=betcontainer.owner,
-                        week_winnings=betcontainer.calc_winnings(),
+                        week_winnings=betcontainer.calculate_winnings(),
                         week_unused=betcontainer.get_allowance_unused(),
                     )
 

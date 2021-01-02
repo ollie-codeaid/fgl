@@ -40,10 +40,10 @@ class BetContainer(models.Model):
 
         return game_count
 
-    def calc_winnings(self):
+    def calculate_winnings(self):
         winnings = 0.0
         for accumulator in self.accumulator_set.all():
-            winnings += accumulator.calc_winnings()
+            winnings += accumulator.calculate_winnings()
 
         true_winnings = winnings - float(self.gameweek.season.weekly_allowance)
 
@@ -61,34 +61,16 @@ class Accumulator(models.Model):
 
         return name
 
-    def calc_winnings(self):
+    def calculate_winnings(self):
         """ Calculate winnings for this accumulator """
-        correct = True
         odds = 1.0
         for betpart in self.betpart_set.all():
             if not betpart.is_correct():
-                correct = False
-                break
+                return False
             else:
-                game = betpart.game
-                result = betpart.result
-                num = 1
-                denom = 1
-                if result == "H":
-                    num = game.homenumerator
-                    denom = game.homedenominator
-                elif result == "D":
-                    num = game.drawnumerator
-                    denom = game.drawdenominator
-                elif result == "A":
-                    num = game.awaynumerator
-                    denom = game.awaydenominator
-                odds = odds * float(num + denom) / float(denom)
+                odds = odds * (1 + betpart.get_odds())
 
-        if correct:
-            return odds * float(self.stake)
-        else:
-            return 0.0
+        return odds * float(self.stake)
 
 
 class BetPart(models.Model):
@@ -101,15 +83,14 @@ class BetPart(models.Model):
         return str(self.game) + "," + str(self.result)
 
     def is_correct(self):
-        if len(self.game.result_set.all()) != 1:
+        if self.game.result_set.count() != 1:
             return False
 
-        result = next(iter(self.game.result_set.all()))
+        result = self.game.result_set.get()
+        return result.result == self.result
 
-        if result.result == self.result:
-            return True
-        else:
-            return False
+    def get_odds(self):
+        return self.game.get_numerator(self.result) / self.game.get_denominator(self.result)
 
 
 class LongSpecialContainer(models.Model):
