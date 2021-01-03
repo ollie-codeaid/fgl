@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-from django.contrib.auth.models import User
-from django.urls import reverse
-from django.test import TestCase
 from decimal import Decimal
 from uuid import uuid4
 
-from fglsite.bets.models import Season, Gameweek, Game, Balance
-from fglsite.gambling.models import BetContainer, Accumulator, BetPart
+from django.contrib.auth.models import User
+from django.test import TestCase
+from django.urls import reverse
+
+from fglsite.bets.models import Balance, Game, Gameweek, Season
+from fglsite.gambling.models import Accumulator, BetContainer, BetPart
 
 
 def _build_game(gameweek):

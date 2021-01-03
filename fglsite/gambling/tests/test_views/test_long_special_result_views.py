@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
-from django.test import TestCase
-
 import datetime
 from decimal import Decimal
 
-from fglsite.bets.models import (
-    Season,
-    Gameweek,
-    Balance,
-)
-from fglsite.gambling.models import (
-    LongSpecialContainer,
-    LongSpecial,
-    LongSpecialResult,
-    BetContainer,
-    LongSpecialBet,
-)
 from django.contrib.auth.models import User
+from django.test import TestCase
 from django.urls import reverse
+
+from fglsite.bets.models import Balance, Gameweek, Season
+from fglsite.gambling.models import (
+    BetContainer,
+    LongSpecial,
+    LongSpecialBet,
+    LongSpecialContainer,
+    LongSpecialResult,
+)
 
 
 class LongSpecialResultTestMixin:

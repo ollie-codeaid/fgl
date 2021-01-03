@@ -5,21 +5,21 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
 from django.forms.formsets import formset_factory
-from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from django.views.generic import CreateView, DetailView, FormView, UpdateView
 from django.urls import reverse, reverse_lazy
+from django.views.generic import CreateView, DetailView, FormView, UpdateView
 
-from fglsite.bets.models import Season, Gameweek, Game, Result, Balance
 from fglsite.bets.forms import (
-    SeasonForm,
-    FindSeasonForm,
-    GameweekForm,
-    GameForm,
     BaseGameFormSet,
-    ResultForm,
     BaseResultFormSet,
+    FindSeasonForm,
+    GameForm,
+    GameweekForm,
+    ResultForm,
+    SeasonForm,
 )
+from fglsite.bets.models import Balance, Game, Gameweek, Result, Season
 from fglsite.odds_reader.reader import read_odds
 
 

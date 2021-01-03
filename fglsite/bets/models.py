@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals, division
+from __future__ import absolute_import, division, unicode_literals
 
 import datetime
-
-from django.db import models
+import logging
 
 from django.contrib.auth.models import User
-from django.db import transaction
-import logging
+from django.db import models, transaction
 
 logger = logging.getLogger(__name__)
 

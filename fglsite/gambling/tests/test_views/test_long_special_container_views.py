@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-from django.test import TestCase
-
 import datetime
 
-from fglsite.bets.models import (
-    Season,
-    Gameweek,
-)
-from fglsite.gambling.models import BetPart, LongSpecialContainer, LongSpecial
 from django.contrib.auth.models import User
+from django.test import TestCase
 from django.urls import reverse
+
+from fglsite.bets.models import Gameweek, Season
+from fglsite.gambling.models import BetPart, LongSpecial, LongSpecialContainer
 
 
 def _create_management_data(form_count):

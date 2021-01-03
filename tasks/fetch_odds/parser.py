@@ -1,7 +1,7 @@
 from fractions import Fraction
 from typing import List, Tuple
 
-from tasks.fetch_odds.client import OddsAPIResponse, GameData
+from tasks.fetch_odds.client import GameData, OddsAPIResponse
 
 
 # No dataclass yet because pythonanywhere only goes up to 3.6

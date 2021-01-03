@@ -4,13 +4,13 @@ from __future__ import unicode_literals
 from django.contrib import admin
 
 from .models import (
-    BetContainer,
     Accumulator,
+    BetContainer,
     BetPart,
-    LongSpecialContainer,
     LongSpecial,
-    LongSpecialResult,
     LongSpecialBet,
+    LongSpecialContainer,
+    LongSpecialResult,
 )
 
 # Register your models here.
