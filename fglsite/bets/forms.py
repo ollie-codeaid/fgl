@@ -1,9 +1,9 @@
 from django import forms
 from django.forms import Form, ModelForm
 from django.forms.formsets import BaseFormSet
-from django.forms.widgets import DateInput, TimeInput, Textarea
+from django.forms.widgets import DateInput, Textarea, TimeInput
 
-from .models import Season, Gameweek, Game, Result
+from .models import Game, Gameweek, Result, Season
 
 
 class SeasonForm(ModelForm):

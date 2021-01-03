@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals, division
+from __future__ import absolute_import, division, unicode_literals
 
-from django.db import models
-
-from django.contrib.auth.models import User
 import logging
 
-from fglsite.bets.models import Gameweek, Game
+from django.contrib.auth.models import User
+from django.db import models
+
+from fglsite.bets.models import Game, Gameweek
 
 logger = logging.getLogger(__name__)
 

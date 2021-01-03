@@ -1,10 +1,11 @@
-from django.test import TestCase
-
-from fglsite.bets.models import Season, Gameweek, Game, Result
-from fglsite.gambling.models import BetContainer, Accumulator, BetPart
-from django.contrib.auth.models import User
 from datetime import date, time
 from uuid import uuid4
+
+from django.contrib.auth.models import User
+from django.test import TestCase
+
+from fglsite.bets.models import Game, Gameweek, Result, Season
+from fglsite.gambling.models import Accumulator, BetContainer, BetPart
 
 
 def _create_test_season():

@@ -1,8 +1,7 @@
-from json import loads
 import os
+from json import loads
 
 from django.conf import settings
-
 
 OUTPUT_DIR = os.path.dirname(settings.ODDS_OUTPUT_DIR)
 

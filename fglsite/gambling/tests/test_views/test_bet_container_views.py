@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-from django.test import TestCase
-
 import datetime
 
-from fglsite.bets.models import (
-    Season,
-    Gameweek,
-)
-from fglsite.gambling.models import BetContainer
 from django.contrib.auth.models import User
+from django.test import TestCase
 from django.urls import reverse
+
+from fglsite.bets.models import Gameweek, Season
+from fglsite.gambling.models import BetContainer
 
 
 def _create_test_season():

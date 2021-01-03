@@ -3,12 +3,11 @@ import datetime
 from unittest.mock import Mock, patch
 
 from django.contrib.auth.models import Group, User
-from django.urls import reverse
 from django.test import TestCase
+from django.urls import reverse
 
-from fglsite.bets.models import Season, Gameweek, Game
 from fglsite.bets.forms import GameweekForm
-
+from fglsite.bets.models import Game, Gameweek, Season
 
 single_game_output = """
 [{

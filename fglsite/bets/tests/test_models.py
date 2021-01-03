@@ -1,9 +1,10 @@
-from django.test import TestCase
-
-from fglsite.bets.models import Season, Gameweek, Game, Balance, Result
-from django.contrib.auth.models import User
-from mock import Mock, patch
 from datetime import date, time
+
+from django.contrib.auth.models import User
+from django.test import TestCase
+from mock import Mock, patch
+
+from fglsite.bets.models import Balance, Game, Gameweek, Result, Season
 
 
 def _create_test_season():

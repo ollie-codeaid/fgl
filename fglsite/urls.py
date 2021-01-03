@@ -1,8 +1,8 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.conf import settings
-from django.urls import include, path
 from django.contrib import admin
+from django.urls import include, path
 
 urlpatterns = [
     path("", include("fglsite.common.urls")),

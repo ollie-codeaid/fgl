@@ -4,7 +4,6 @@ from typing import List
 
 from tasks.fetch_odds.parser import Game
 
-
 OUTPUT_DIR = os.path.dirname(os.environ["ODDS_OUTPUT_DIR"])
 
 

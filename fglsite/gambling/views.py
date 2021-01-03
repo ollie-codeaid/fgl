@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from functools import partial
 
 from django.contrib import messages
@@ -7,6 +8,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -14,29 +17,29 @@ from django.views.generic import (
     FormView,
     UpdateView,
 )
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+
 from fglsite.bets.forms import BaseResultFormSet
-from fglsite.bets.models import Gameweek, Balance
+from fglsite.bets.models import Balance, Gameweek
 from fglsite.bets.views import SeasonCommissionerAllowedMixin
-from .models import (
-    BetContainer,
-    Accumulator,
-    BetPart,
-    LongSpecialContainer,
-    LongSpecial,
-    LongSpecialBet,
-    LongSpecialResult,
-)
+
 from .forms import (
     AccumulatorForm,
+    BaseLongSpecialFormSet,
     BetContainerForm,
     BetPartForm,
+    LongSpecialBetForm,
     LongSpecialContainerForm,
     LongSpecialForm,
-    BaseLongSpecialFormSet,
-    LongSpecialBetForm,
     LongSpecialResultForm,
+)
+from .models import (
+    Accumulator,
+    BetContainer,
+    BetPart,
+    LongSpecial,
+    LongSpecialBet,
+    LongSpecialContainer,
+    LongSpecialResult,
 )
 
 
