@@ -53,6 +53,7 @@ jobs:
             coverage run manage.py test
             codecov
             black --check .
+            isort --check .
           environment:
             DJANGO_SETTINGS_MODULE: fglsite.settings.dev
             ODDS_API_KEY: dummy_value
