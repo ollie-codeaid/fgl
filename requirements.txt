@@ -4,7 +4,7 @@ chardet==3.0.4
 configparser==3.5.0
 Django==2.1.15
 django-treebeard==4.3
-djangorestframework==3.8.2
+djangorestframework==3.11.2
 enum34==1.1.6
 flake8==3.5.0
 funcsigs==1.0.2
